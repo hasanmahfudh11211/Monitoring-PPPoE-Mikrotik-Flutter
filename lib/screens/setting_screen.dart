@@ -288,7 +288,7 @@ class _SettingScreenState extends State<SettingScreen> {
                                 const SizedBox(height: 12),
                                 _buildInfoRow(
                                     Icons.group,
-                                    'Group/Profile',
+                                    'Group',
                                     _loadingGroup
                                         ? 'Loading...'
                                         : (_currentUserGroup.isEmpty
