@@ -1,5 +1,10 @@
 # Mikrotik-PPPoE-Monitor
 
+![Flutter](https://img.shields.io/badge/Flutter-3.0%2B-blue?style=for-the-badge&logo=flutter)
+![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-green?style=for-the-badge&logo=android)
+![License](https://img.shields.io/badge/License-GPL--3.0-red?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
+
 Aplikasi monitoring user PPPoE Mikrotik berbasis Flutter dan REST API. Memudahkan monitoring, manajemen, dan analisis user PPPoE secara real-time. Dibuat untuk tugas akhir/skripsi dan kebutuhan monitoring jaringan.
 
 ---
@@ -8,20 +13,22 @@ Aplikasi monitoring user PPPoE Mikrotik berbasis Flutter dan REST API. Memudahka
 
 1.  [Fitur Utama](#fitur-utama)
 2.  [Teknologi yang Digunakan](#teknologi-yang-digunakan)
-3.  [Mulai Cepat (Quick Start)](#mulai-cepat-quick-start)
-4.  [Panduan Deployment](#panduan-deployment)
-5.  [Konfigurasi Mikrotik](#konfigurasi-mikrotik)
-6.  [Fitur & Panduan Penggunaan](#fitur--panduan-penggunaan)
+3.  [Struktur Project](#struktur-project)
+4.  [Mulai Cepat (Quick Start)](#mulai-cepat-quick-start)
+5.  [Panduan Deployment](#panduan-deployment)
+6.  [Konfigurasi Mikrotik](#konfigurasi-mikrotik)
+7.  [Fitur & Panduan Penggunaan](#fitur--panduan-penggunaan)
     *   [Auto Update System](#auto-update-system)
     *   [Router Image Feature](#router-image-feature)
     *   [Auto Backup Feature](#auto-backup-feature)
     *   [API Billing & Fixes](#api-billing--fixes)
     *   [Penanganan Duplikasi Data](#penanganan-duplikasi-data)
     *   [Perlindungan & Pemulihan Data](#perlindungan--pemulihan-data)
-7.  [Keamanan (Security Notes)](#keamanan-security-notes)
-8.  [Troubleshooting](#troubleshooting)
-9.  [Ringkasan Perbaikan](#ringkasan-perbaikan)
-10. [Lisensi & Pengembang](#lisensi--pengembang)
+8.  [Keamanan (Security Notes)](#keamanan-security-notes)
+9.  [Troubleshooting](#troubleshooting)
+10. [Ringkasan Perbaikan](#ringkasan-perbaikan)
+11. [Galeri Screenshot](#galeri-screenshot)
+12. [Lisensi & Pengembang](#lisensi--pengembang)
 
 ---
 
@@ -49,6 +56,33 @@ Aplikasi monitoring user PPPoE Mikrotik berbasis Flutter dan REST API. Memudahka
 *   **HTTP Client** (untuk komunikasi dengan backend)
 *   **Image Picker** (untuk upload foto lokasi)
 *   **PDF Generator** (untuk export laporan)
+
+---
+
+## Struktur Project
+
+Berikut adalah struktur direktori utama project ini:
+
+```
+mikrotik_monitor/
+├── api/                    # Backend PHP scripts
+│   ├── config.php          # Database configuration
+│   ├── check_update.php    # Auto update logic
+│   └── ...                 # Other API endpoints
+├── assets/                 # Static assets
+│   ├── router_images_online.json # Router image mapping
+│   └── ...                 # Images & icons
+├── lib/                    # Flutter source code
+│   ├── models/             # Data models
+│   ├── providers/          # State management
+│   ├── screens/            # UI Screens
+│   ├── services/           # API & Logic services
+│   ├── widgets/            # Reusable widgets
+│   └── main.dart           # Entry point
+├── database_schema.sql     # Database structure
+├── pubspec.yaml            # Dependencies
+└── README.md               # Documentation
+```
 
 ---
 
@@ -299,6 +333,67 @@ Jika ada error palsu di IDE, jalankan `Dart: Restart Analysis Server` atau `flut
 **November 2025**
 *   Fixed Duplicate Data issue (Merge Router ID).
 *   Updated Router Image feature (JSON based).
+
+---
+
+## Galeri Screenshot
+
+### Halaman Login
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/login.jpg" width="300" alt="Halaman Login"/>
+  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/login2.jpg" width="300" alt="Koneksi Tersimpan"/>
+</p>
+<p align="center"><i>Tampilan untuk memasukkan kredensial Mikrotik dan daftar koneksi yang tersimpan.</i></p>
+
+### Halaman Dashboard
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/dashboard.jpg" width="300" alt="Dashboard Light Mode"/>
+  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/dashboard-dark.jpg" width="300" alt="Dashboard Dark Mode"/>
+</p>
+<p align="center"><i>Dashboard utama yang menampilkan ringkasan informasi, dengan dukungan tema terang dan gelap.</i></p>
+
+### Halaman Tambah User
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/tambah-user.jpg" width="300" alt="Tambah User"/>
+</p>
+<p align="center"><i>Formulir untuk menambahkan user PPPoE baru ke perangkat Mikrotik.</i></p>
+
+### Halaman System Resource
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/system-resource.jpg" width="300" alt="System Resource"/>
+</p>
+<p align="center"><i>Monitor penggunaan CPU, memori, dan uptime perangkat Mikrotik secara real-time.</i></p>
+
+### Halaman Traffic
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/traffic-online.jpg" width="300" alt="Traffic Online"/>
+  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/traffic-offline.jpg" width="300" alt="Traffic Offline"/>
+</p>
+<p align="center"><i>Grafik lalu lintas jaringan untuk user yang sedang online dan riwayat traffic user.</i></p>
+
+### Halaman User PPP
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/user-ppp.jpg" width="300" alt="User PPP"/>
+</p>
+<p align="center"><i>Menampilkan daftar semua user PPPoE yang terdaftar di perangkat.</i></p>
+
+### Halaman Log
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/log.jpg" width="300" alt="Log"/>
+</p>
+<p align="center"><i>Catatan log aktivitas yang terjadi pada sistem Mikrotik untuk keperluan audit.</i></p>
+
+### Halaman Billing
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/billing.jpg" width="300" alt="Billing"/>
+</p>
+<p align="center"><i>Manajemen pembayaran user dengan fitur filter berdasarkan bulan.</i></p>
+
+### Halaman Ringkasan Pembayaran
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/payment-summary.jpg" width="300" alt="Payment Summary"/>
+</p>
+<p align="center"><i>Ringkasan pembayaran per bulan dengan kemampuan export ke Excel dan PDF.</i></p>
 
 ---
 
