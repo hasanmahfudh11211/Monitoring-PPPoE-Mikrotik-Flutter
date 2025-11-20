@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../widgets/gradient_container.dart';
@@ -14,7 +13,8 @@ import '../providers/router_session_provider.dart';
 
 class CurrencyInputFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     if (newValue.selection.baseOffset == 0) {
       return newValue;
     }
@@ -50,10 +50,11 @@ class _BillingScreenState extends State<BillingScreen> {
   final currencyFormat = NumberFormat('#,##0', 'id_ID');
   String _searchQuery = '';
   final TextEditingController _searchUserController = TextEditingController();
-  
+
   // Filter bulan untuk pembayaran
   DateTime _selectedMonth = DateTime.now();
-  bool _showAllPayments = false; // false = filter per bulan (default ke bulan saat ini)
+  bool _showAllPayments =
+      false; // false = filter per bulan (default ke bulan saat ini)
   bool _showFilterPanel = false; // Tambahkan state untuk panel filter
   // Tambahkan state sementara untuk filter manual
   DateTime? _tempSelectedMonth;
@@ -67,13 +68,14 @@ class _BillingScreenState extends State<BillingScreen> {
     _showAllPayments = false;
     _loadUsers();
   }
-  
+
   void _loadUsers() {
     setState(() {
       _error = null;
       // Clear cache when manually refreshing
       ApiService.clearCache();
-      final routerSession = Provider.of<RouterSessionProvider>(context, listen: false);
+      final routerSession =
+          Provider.of<RouterSessionProvider>(context, listen: false);
       final routerId = routerSession.routerId;
       if (routerId == null) {
         setState(() {
@@ -82,10 +84,11 @@ class _BillingScreenState extends State<BillingScreen> {
         });
         return;
       }
-      
+
       // Sinkronisasi sekarang dilakukan di background saat dashboard dibuka
       // Langsung ambil data dari database
-      _usersFuture = ApiService.fetchAllUsersWithPayments(routerId: routerId).then((data) {
+      _usersFuture =
+          ApiService.fetchAllUsersWithPayments(routerId: routerId).then((data) {
         _users = data;
         return data;
       }).catchError((e) {
@@ -95,7 +98,8 @@ class _BillingScreenState extends State<BillingScreen> {
         if (e.toString().contains('Timeout')) {
           _error = 'Koneksi timeout. Silakan coba lagi.';
         } else if (e.toString().contains('Failed host lookup')) {
-          _error = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
+          _error =
+              'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
         } else if (e.toString().contains('500')) {
           _error = 'Server error. Silakan coba lagi nanti.';
         }
@@ -109,7 +113,9 @@ class _BillingScreenState extends State<BillingScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: isDark
+          ? const Color(0xFF1E1E1E)
+          : Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -121,7 +127,7 @@ class _BillingScreenState extends State<BillingScreen> {
           DateTime paymentDate = DateTime.now();
           final noteController = TextEditingController();
           bool isSubmitting = false;
-          
+
           await showDialog(
             context: context,
             barrierDismissible: false,
@@ -129,15 +135,15 @@ class _BillingScreenState extends State<BillingScreen> {
               return StatefulBuilder(
                 builder: (context, setDialogState) {
                   return AlertDialog(
-                    backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    title: Text(
-                      'Tambah Pembayaran', 
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
-                      )
-                    ),
+                    backgroundColor:
+                        isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    title: Text('Tambah Pembayaran',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        )),
                     content: Form(
                       key: formKey,
                       child: SingleChildScrollView(
@@ -154,7 +160,8 @@ class _BillingScreenState extends State<BillingScreen> {
                               decoration: InputDecoration(
                                 labelText: 'Nominal (Rp)',
                                 labelStyle: TextStyle(
-                                  color: isDark ? Colors.white70 : Colors.black54,
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black54,
                                 ),
                                 prefixText: 'Rp ',
                                 prefixStyle: TextStyle(
@@ -163,47 +170,59 @@ class _BillingScreenState extends State<BillingScreen> {
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                    color: isDark
+                                        ? Colors.grey.shade700
+                                        : Colors.grey.shade300,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                    color: isDark
+                                        ? Colors.grey.shade700
+                                        : Colors.grey.shade300,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: isDark ? Colors.blue.shade300 : Colors.blue,
+                                    color: isDark
+                                        ? Colors.blue.shade300
+                                        : Colors.blue,
                                   ),
                                 ),
                               ),
-                              validator: (v) => v == null || v.isEmpty ? 'Nominal wajib diisi' : null,
+                              validator: (v) => v == null || v.isEmpty
+                                  ? 'Nominal wajib diisi'
+                                  : null,
                             ),
                             const SizedBox(height: 16),
                             DropdownButtonFormField<String>(
-                              dropdownColor: isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                              dropdownColor: isDark
+                                  ? const Color(0xFF2D2D2D)
+                                  : Colors.white,
                               value: selectedMethod,
                               items: [
                                 DropdownMenuItem(
-                                  value: 'Cash', 
-                                  child: Text(
-                                    'Cash',
-                                    style: TextStyle(
-                                      color: isDark ? Colors.white : Colors.black87,
-                                    ),
-                                  )
-                                ),
+                                    value: 'Cash',
+                                    child: Text(
+                                      'Cash',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black87,
+                                      ),
+                                    )),
                                 DropdownMenuItem(
-                                  value: 'Transfer', 
-                                  child: Text(
-                                    'Transfer',
-                                    style: TextStyle(
-                                      color: isDark ? Colors.white : Colors.black87,
-                                    ),
-                                  )
-                                ),
+                                    value: 'Transfer',
+                                    child: Text(
+                                      'Transfer',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black87,
+                                      ),
+                                    )),
                               ],
                               onChanged: (v) {
                                 setDialogState(() {
@@ -213,24 +232,31 @@ class _BillingScreenState extends State<BillingScreen> {
                               decoration: InputDecoration(
                                 labelText: 'Metode',
                                 labelStyle: TextStyle(
-                                  color: isDark ? Colors.white70 : Colors.black54,
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black54,
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                    color: isDark
+                                        ? Colors.grey.shade700
+                                        : Colors.grey.shade300,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                    color: isDark
+                                        ? Colors.grey.shade700
+                                        : Colors.grey.shade300,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: isDark ? Colors.blue.shade300 : Colors.blue,
+                                    color: isDark
+                                        ? Colors.blue.shade300
+                                        : Colors.blue,
                                   ),
                                 ),
                               ),
@@ -242,7 +268,8 @@ class _BillingScreenState extends State<BillingScreen> {
                                   context: context,
                                   initialDate: paymentDate,
                                   firstDate: DateTime(2020),
-                                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                                  lastDate: DateTime.now()
+                                      .add(const Duration(days: 365)),
                                 );
                                 if (picked != null) {
                                   setDialogState(() {
@@ -254,41 +281,51 @@ class _BillingScreenState extends State<BillingScreen> {
                                 decoration: InputDecoration(
                                   labelText: 'Tanggal Pembayaran',
                                   labelStyle: TextStyle(
-                                    color: isDark ? Colors.white70 : Colors.black54,
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.black54,
                                   ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide(
-                                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                      color: isDark
+                                          ? Colors.grey.shade700
+                                          : Colors.grey.shade300,
                                     ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide(
-                                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                      color: isDark
+                                          ? Colors.grey.shade700
+                                          : Colors.grey.shade300,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     borderSide: BorderSide(
-                                      color: isDark ? Colors.blue.shade300 : Colors.blue,
+                                      color: isDark
+                                          ? Colors.blue.shade300
+                                          : Colors.blue,
                                     ),
                                   ),
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(
-                                      Icons.calendar_today, 
-                                      size: 18, 
-                                      color: isDark ? Colors.grey.shade400 : Colors.blueGrey
-                                    ),
+                                    Icon(Icons.calendar_today,
+                                        size: 18,
+                                        color: isDark
+                                            ? Colors.grey.shade400
+                                            : Colors.blueGrey),
                                     const SizedBox(width: 8),
                                     Text(
-                                      DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(paymentDate),
+                                      DateFormat('EEEE, dd MMMM yyyy', 'id_ID')
+                                          .format(paymentDate),
                                       style: TextStyle(
-                                        fontSize: 13, 
-                                        color: isDark ? Colors.white70 : Colors.black54
-                                      ),
+                                          fontSize: 13,
+                                          color: isDark
+                                              ? Colors.white70
+                                              : Colors.black54),
                                     ),
                                   ],
                                 ),
@@ -303,24 +340,31 @@ class _BillingScreenState extends State<BillingScreen> {
                               decoration: InputDecoration(
                                 labelText: 'Catatan (opsional)',
                                 labelStyle: TextStyle(
-                                  color: isDark ? Colors.white70 : Colors.black54,
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black54,
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                    color: isDark
+                                        ? Colors.grey.shade700
+                                        : Colors.grey.shade300,
                                   ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                    color: isDark
+                                        ? Colors.grey.shade700
+                                        : Colors.grey.shade300,
                                   ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
-                                    color: isDark ? Colors.blue.shade300 : Colors.blue,
+                                    color: isDark
+                                        ? Colors.blue.shade300
+                                        : Colors.blue,
                                   ),
                                 ),
                               ),
@@ -348,54 +392,67 @@ class _BillingScreenState extends State<BillingScreen> {
                             ? null
                             : () async {
                                 if (!formKey.currentState!.validate()) return;
-                                
+
                                 setDialogState(() {
                                   isSubmitting = true;
                                 });
-                                
+
                                 try {
                                   // Safe access to prevent null pointer exceptions
                                   final userId = user['id'];
                                   if (userId == null) {
                                     throw Exception('User ID tidak ditemukan');
                                   }
-                                  
+
                                   // Get router_id from RouterSessionProvider
-                                  final routerId = Provider.of<RouterSessionProvider>(context, listen: false).routerId;
+                                  final routerId =
+                                      Provider.of<RouterSessionProvider>(
+                                              context,
+                                              listen: false)
+                                          .routerId;
                                   if (routerId == null || routerId.isEmpty) {
-                                    throw Exception('Router belum login. Silakan login dulu.');
+                                    throw Exception(
+                                        'Router belum login. Silakan login dulu.');
                                   }
-                                  
-                                  final amountRaw = amountController.text.replaceAll('.', '').replaceAll(',', '');
-                                  final amount = double.tryParse(amountRaw) ?? 0;
-                                  final url = Uri.parse('${ApiService.baseUrl}/payment_operations.php?operation=add');
+
+                                  final amountRaw = amountController.text
+                                      .replaceAll('.', '')
+                                      .replaceAll(',', '');
+                                  final amount =
+                                      double.tryParse(amountRaw) ?? 0;
+                                  final url = Uri.parse(
+                                      '${ApiService.baseUrl}/payment_operations.php?operation=add');
                                   final body = {
                                     'router_id': routerId,
                                     'user_id': userId,
                                     'amount': amount,
-                                    'payment_date': DateFormat('yyyy-MM-dd').format(paymentDate),
+                                    'payment_date': DateFormat('yyyy-MM-dd')
+                                        .format(paymentDate),
                                     'method': selectedMethod,
                                     'note': noteController.text,
                                     'created_by': 'Admin',
                                   };
-                                  
+
                                   // Adding payment for user $userId
                                   // Payment data: $body
-                                  
+
                                   final resp = await http.post(
                                     url,
-                                    headers: {'Content-Type': 'application/json'},
+                                    headers: {
+                                      'Content-Type': 'application/json'
+                                    },
                                     body: jsonEncode(body),
                                   );
-                                  
+
                                   // Payment API response status: ${resp.statusCode}
                                   // Payment API response body: ${resp.body}
-                                  
+
                                   final respData = jsonDecode(resp.body);
                                   if (respData['success'] == true) {
                                     Navigator.of(dialogContext).pop();
                                     if (context.mounted) {
-                                      await showSuccessDialog(context, 'Pembayaran berhasil ditambahkan!');
+                                      await showSuccessDialog(context,
+                                          'Pembayaran berhasil ditambahkan!');
                                       if (mounted) {
                                         // Refresh data setelah berhasil menambah pembayaran
                                         _loadUsers();
@@ -407,7 +464,8 @@ class _BillingScreenState extends State<BillingScreen> {
                                       CustomSnackbar.show(
                                         context: context,
                                         message: 'Gagal menambahkan pembayaran',
-                                        additionalInfo: respData['error'] ?? 'Unknown error',
+                                        additionalInfo: respData['error'] ??
+                                            'Unknown error',
                                         isSuccess: false,
                                       );
                                     }
@@ -432,7 +490,11 @@ class _BillingScreenState extends State<BillingScreen> {
                                 }
                               },
                         child: isSubmitting
-                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2))
                             : const Text('SIMPAN'),
                       ),
                     ],
@@ -442,7 +504,7 @@ class _BillingScreenState extends State<BillingScreen> {
             },
           );
         }
-        
+
         return DraggableScrollableSheet(
           initialChildSize: 0.65,
           minChildSize: 0.4,
@@ -454,7 +516,8 @@ class _BillingScreenState extends State<BillingScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 child: ListView(
                   controller: controller,
@@ -466,7 +529,8 @@ class _BillingScreenState extends State<BillingScreen> {
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.grey.shade700 : Colors.grey[300],
+                          color:
+                              isDark ? Colors.grey.shade700 : Colors.grey[300],
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -481,16 +545,19 @@ class _BillingScreenState extends State<BillingScreen> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
-                              color: isDark ? Colors.blue.shade300 : const Color(0xFF1565C0),
+                              color: isDark
+                                  ? Colors.blue.shade300
+                                  : const Color(0xFF1565C0),
                             ),
                           ),
                           if (user['profile'] != null)
                             Text(
                               'Profile: ${user['profile']}',
                               style: TextStyle(
-                                color: isDark ? Colors.white70 : Colors.grey[600], 
-                                fontSize: 13
-                              ),
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.grey[600],
+                                  fontSize: 13),
                             ),
                           const SizedBox(height: 16),
                         ],
@@ -499,20 +566,18 @@ class _BillingScreenState extends State<BillingScreen> {
                     const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(
-                          Icons.payments, 
-                          color: isDark ? Colors.green.shade300 : Colors.green.shade700, 
-                          size: 22
-                        ),
+                        Icon(Icons.payments,
+                            color: isDark
+                                ? Colors.green.shade300
+                                : Colors.green.shade700,
+                            size: 22),
                         const SizedBox(width: 10),
-                        Text(
-                          'History Pembayaran', 
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600, 
-                            fontSize: 16,
-                            color: isDark ? Colors.white : Colors.black87,
-                          )
-                        ),
+                        Text('History Pembayaran',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              color: isDark ? Colors.white : Colors.black87,
+                            )),
                         const Spacer(),
                       ],
                     ),
@@ -524,29 +589,36 @@ class _BillingScreenState extends State<BillingScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.blue.shade900 : Colors.blue.shade50,
+                          color: isDark
+                              ? Colors.blue.shade900
+                              : Colors.blue.shade50,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isDark ? Colors.blue.shade700 : Colors.blue.shade200
-                          ),
+                              color: isDark
+                                  ? Colors.blue.shade700
+                                  : Colors.blue.shade200),
                         ),
                         child: Row(
                           children: [
-                            Icon(
-                              Icons.analytics, 
-                              color: isDark ? Colors.blue.shade300 : Colors.blue.shade700, 
-                              size: 20
-                            ),
+                            Icon(Icons.analytics,
+                                color: isDark
+                                    ? Colors.blue.shade300
+                                    : Colors.blue.shade700,
+                                size: 20),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    _showAllPayments ? 'Total Semua Pembayaran' : 'Total Pembayaran ${DateFormat('MMMM yyyy', 'id_ID').format(_selectedMonth)}',
+                                    _showAllPayments
+                                        ? 'Total Semua Pembayaran'
+                                        : 'Total Pembayaran ${DateFormat('MMMM yyyy', 'id_ID').format(_selectedMonth)}',
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
+                                      color: isDark
+                                          ? Colors.blue.shade300
+                                          : Colors.blue.shade700,
                                       fontSize: 13,
                                     ),
                                   ),
@@ -555,7 +627,9 @@ class _BillingScreenState extends State<BillingScreen> {
                                     'Rp ${currencyFormat.format(_filteredPayments(user).fold<double>(0, (sum, p) => sum + (double.tryParse(p['amount']?.toString() ?? '0') ?? 0)))}',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: isDark ? Colors.blue.shade200 : Colors.blue.shade800,
+                                      color: isDark
+                                          ? Colors.blue.shade200
+                                          : Colors.blue.shade800,
                                       fontSize: 16,
                                     ),
                                   ),
@@ -563,15 +637,20 @@ class _BillingScreenState extends State<BillingScreen> {
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: isDark ? Colors.blue.shade900 : Colors.blue.shade100,
+                                color: isDark
+                                    ? Colors.blue.shade900
+                                    : Colors.blue.shade100,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 '${_filteredPayments(user).length} pembayaran',
                                 style: TextStyle(
-                                  color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
+                                  color: isDark
+                                      ? Colors.blue.shade300
+                                      : Colors.blue.shade700,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 12,
                                 ),
@@ -585,265 +664,353 @@ class _BillingScreenState extends State<BillingScreen> {
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 350),
                       child: _filteredPayments(user).isEmpty
-                        ? Column(
-                            key: const ValueKey('empty'),
-                            children: [
-                              const SizedBox(height: 32),
-                              Icon(
-                                Icons.receipt_long, 
-                                color: isDark ? Colors.grey.shade600 : Colors.grey, 
-                                size: 54
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                !_showAllPayments 
-                                  ? 'Tidak ada pembayaran di ${DateFormat('MMMM yyyy', 'id_ID').format(_selectedMonth)}.'
-                                  : 'Belum ada pembayaran.',
-                                style: TextStyle(
-                                  color: isDark ? Colors.white70 : Colors.black54, 
-                                  fontSize: 15
+                          ? Column(
+                              key: const ValueKey('empty'),
+                              children: [
+                                const SizedBox(height: 32),
+                                Icon(Icons.receipt_long,
+                                    color: isDark
+                                        ? Colors.grey.shade600
+                                        : Colors.grey,
+                                    size: 54),
+                                const SizedBox(height: 12),
+                                Text(
+                                  !_showAllPayments
+                                      ? 'Tidak ada pembayaran di ${DateFormat('MMMM yyyy', 'id_ID').format(_selectedMonth)}.'
+                                      : 'Belum ada pembayaran.',
+                                  style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black54,
+                                      fontSize: 15),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                !_showAllPayments 
-                                  ? 'Coba pilih bulan lain atau tekan tombol "Semua" untuk melihat semua pembayaran.'
-                                  : 'Tekan tombol di bawah untuk menambah pembayaran baru.',
-                                style: TextStyle(
-                                  color: isDark ? Colors.white54 : Colors.black38, 
-                                  fontSize: 13
+                                const SizedBox(height: 8),
+                                Text(
+                                  !_showAllPayments
+                                      ? 'Coba pilih bulan lain atau tekan tombol "Semua" untuk melihat semua pembayaran.'
+                                      : 'Tekan tombol di bawah untuk menambah pembayaran baru.',
+                                  style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.black38,
+                                      fontSize: 13),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          )
-                        : Column(
-                            key: const ValueKey('list'),
-                            children: _filteredPayments(user).map<Widget>((p) {
-                              final amount = p['amount']?.toString() ?? '-';
-                              final method = p['method']?.toString() ?? '-';
-                              final paymentDate = p['payment_date']?.toString() ?? '-';
-                              final createdBy = p['created_by']?.toString() ?? '';
-                              final note = p['note']?.toString() ?? '';
-                              final isCurrentMonth = () {
-                                final dt = DateTime.tryParse(paymentDate);
-                                return dt != null && dt.year == _selectedMonth.year && dt.month == _selectedMonth.month;
-                              }();
-                              return Center(
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(maxWidth: 380),
-                                  child: Card(
-                                    margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
-                                    elevation: 3,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18),
-                                      side: isCurrentMonth
-                                        ? BorderSide(
-                                            color: isDark ? Colors.blue.shade700 : Colors.blue.shade400, 
-                                            width: 2
-                                          )
-                                        : BorderSide(
-                                            color: isDark ? Colors.grey.shade700 : Colors.grey.shade200, 
-                                            width: 1
-                                          ),
-                                    ),
-                                    color: isCurrentMonth 
-                                      ? (isDark ? Colors.blue.shade900 : Colors.blue.shade50) 
-                                      : (isDark ? const Color(0xFF2D2D2D) : Colors.white),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.check_circle, 
-                                                color: Colors.green, 
-                                                size: 22
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Expanded(
+                              ],
+                            )
+                          : Column(
+                              key: const ValueKey('list'),
+                              children:
+                                  _filteredPayments(user).map<Widget>((p) {
+                                final amount = p['amount']?.toString() ?? '-';
+                                final method = p['method']?.toString() ?? '-';
+                                final paymentDate =
+                                    p['payment_date']?.toString() ?? '-';
+                                final createdBy =
+                                    p['created_by']?.toString() ?? '';
+                                final note = p['note']?.toString() ?? '';
+                                final isCurrentMonth = () {
+                                  final dt = DateTime.tryParse(paymentDate);
+                                  return dt != null &&
+                                      dt.year == _selectedMonth.year &&
+                                      dt.month == _selectedMonth.month;
+                                }();
+                                return Center(
+                                  child: ConstrainedBox(
+                                    constraints:
+                                        const BoxConstraints(maxWidth: 380),
+                                    child: Card(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 12, horizontal: 0),
+                                      elevation: 3,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(18),
+                                        side: isCurrentMonth
+                                            ? BorderSide(
+                                                color: isDark
+                                                    ? Colors.blue.shade700
+                                                    : Colors.blue.shade400,
+                                                width: 2)
+                                            : BorderSide(
+                                                color: isDark
+                                                    ? Colors.grey.shade700
+                                                    : Colors.grey.shade200,
+                                                width: 1),
+                                      ),
+                                      color: isCurrentMonth
+                                          ? (isDark
+                                              ? Colors.blue.shade900
+                                              : Colors.blue.shade50)
+                                          : (isDark
+                                              ? const Color(0xFF2D2D2D)
+                                              : Colors.white),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 16, horizontal: 18),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(Icons.check_circle,
+                                                    color: Colors.green,
+                                                    size: 22),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                      'Rp ${currencyFormat.format(double.tryParse(amount) ?? 0)}',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 18,
+                                                        color: isDark
+                                                            ? Colors.white
+                                                            : Colors.black87,
+                                                      )),
+                                                ),
+                                                _buildMethodChip(method),
+                                                if (isCurrentMonth) ...[
+                                                  const SizedBox(width: 8),
+                                                  Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: isDark
+                                                          ? Colors.blue.shade900
+                                                          : Colors
+                                                              .blue.shade100,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                    child: Text('Bulan Ini',
+                                                        style: TextStyle(
+                                                            color: isDark
+                                                                ? Colors.blue
+                                                                    .shade300
+                                                                : Colors.blue,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 11)),
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
+                                            if (!_showAllPayments) ...[
+                                              const SizedBox(height: 4),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: isDark
+                                                      ? Colors.blue.shade900
+                                                      : Colors.blue.shade100,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
                                                 child: Text(
-                                                  'Rp ${currencyFormat.format(double.tryParse(amount) ?? 0)}',
+                                                  'Filter: ${DateFormat('MMMM yyyy', 'id_ID').format(_selectedMonth)}',
                                                   style: TextStyle(
-                                                    fontWeight: FontWeight.bold, 
-                                                    fontSize: 18,
-                                                    color: isDark ? Colors.white : Colors.black87,
-                                                  )
+                                                    color: isDark
+                                                        ? Colors.blue.shade300
+                                                        : Colors.blue.shade700,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
                                                 ),
                                               ),
-                                              _buildMethodChip(method),
-                                              if (isCurrentMonth) ...[
-                                                const SizedBox(width: 8),
-                                                Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                                  decoration: BoxDecoration(
-                                                    color: isDark ? Colors.blue.shade900 : Colors.blue.shade100,
-                                                    borderRadius: BorderRadius.circular(8),
+                                            ],
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.calendar_today,
+                                                    size: 16,
+                                                    color: isDark
+                                                        ? Colors.grey.shade400
+                                                        : Colors
+                                                            .blueGrey.shade300),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  'Tanggal: ${DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.parse(paymentDate))}',
+                                                  style: TextStyle(
+                                                      fontSize: 13,
+                                                      color: isDark
+                                                          ? Colors.white70
+                                                          : Colors.black54),
+                                                ),
+                                              ],
+                                            ),
+                                            if (createdBy.isNotEmpty)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 2),
+                                                child: Row(
+                                                  children: [
+                                                    Icon(Icons.person,
+                                                        size: 15,
+                                                        color: isDark
+                                                            ? Colors
+                                                                .grey.shade400
+                                                            : Colors.blueGrey
+                                                                .shade300),
+                                                    const SizedBox(width: 6),
+                                                    Text('Oleh: $createdBy',
+                                                        style: TextStyle(
+                                                            fontSize: 12,
+                                                            color: isDark
+                                                                ? Colors.white70
+                                                                : Colors
+                                                                    .black45)),
+                                                  ],
+                                                ),
+                                              ),
+                                            if (note.isNotEmpty)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 2),
+                                                child: Row(
+                                                  children: [
+                                                    const Icon(
+                                                        Icons.info_outline,
+                                                        size: 15,
+                                                        color: Colors.orange),
+                                                    const SizedBox(width: 6),
+                                                    Expanded(
+                                                        child: Text(note,
+                                                            style: TextStyle(
+                                                                fontSize: 12,
+                                                                color: isDark
+                                                                    ? Colors
+                                                                        .white70
+                                                                    : Colors
+                                                                        .black54))),
+                                                  ],
+                                                ),
+                                              ),
+                                            const SizedBox(height: 12),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: [
+                                                Tooltip(
+                                                  message: 'Edit pembayaran',
+                                                  child: ElevatedButton.icon(
+                                                    onPressed: () =>
+                                                        _showEditPaymentDialog(
+                                                            p, user),
+                                                    icon: Icon(
+                                                      Icons.edit,
+                                                      size: 18,
+                                                      color: isDark
+                                                          ? Colors.blue.shade300
+                                                          : Colors
+                                                              .blue.shade800,
+                                                    ),
+                                                    label: Text(
+                                                      'Edit',
+                                                      style: TextStyle(
+                                                        color: isDark
+                                                            ? Colors
+                                                                .blue.shade300
+                                                            : Colors
+                                                                .blue.shade800,
+                                                      ),
+                                                    ),
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor: isDark
+                                                          ? Colors.blue.shade900
+                                                          : Colors.blue.shade50,
+                                                      foregroundColor: isDark
+                                                          ? Colors.blue.shade300
+                                                          : Colors
+                                                              .blue.shade800,
+                                                      elevation: 0,
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 16,
+                                                          vertical: 8),
+                                                      textStyle:
+                                                          const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          8)),
+                                                    ),
                                                   ),
-                                                  child: Text(
-                                                    'Bulan Ini', 
-                                                    style: TextStyle(
-                                                      color: isDark ? Colors.blue.shade300 : Colors.blue, 
-                                                      fontWeight: FontWeight.bold, 
-                                                      fontSize: 11
-                                                    )
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Tooltip(
+                                                  message: 'Hapus pembayaran',
+                                                  child: ElevatedButton.icon(
+                                                    onPressed: () =>
+                                                        _confirmDeletePayment(
+                                                            p),
+                                                    icon: Icon(
+                                                      Icons.delete,
+                                                      size: 18,
+                                                      color: isDark
+                                                          ? Colors.red.shade300
+                                                          : Colors.red.shade800,
+                                                    ),
+                                                    label: Text(
+                                                      'Hapus',
+                                                      style: TextStyle(
+                                                        color: isDark
+                                                            ? Colors
+                                                                .red.shade300
+                                                            : Colors
+                                                                .red.shade800,
+                                                      ),
+                                                    ),
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor: isDark
+                                                          ? Colors.red.shade900
+                                                          : Colors.red.shade50,
+                                                      foregroundColor: isDark
+                                                          ? Colors.red.shade300
+                                                          : Colors.red.shade800,
+                                                      elevation: 0,
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 16,
+                                                          vertical: 8),
+                                                      textStyle:
+                                                          const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold),
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          8)),
+                                                    ),
                                                   ),
                                                 ),
                                               ],
-                                            ],
-                                          ),
-                                          if (!_showAllPayments) ...[
-                                            const SizedBox(height: 4),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: isDark ? Colors.blue.shade900 : Colors.blue.shade100,
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              child: Text(
-                                                'Filter: ${DateFormat('MMMM yyyy', 'id_ID').format(_selectedMonth)}',
-                                                style: TextStyle(
-                                                  color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
                                             ),
                                           ],
-                                          const SizedBox(height: 8),
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.calendar_today, 
-                                                size: 16, 
-                                                color: isDark ? Colors.grey.shade400 : Colors.blueGrey.shade300
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                'Tanggal: ${DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.parse(paymentDate))}',
-                                                style: TextStyle(
-                                                  fontSize: 13, 
-                                                  color: isDark ? Colors.white70 : Colors.black54
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          if (createdBy.isNotEmpty)
-                                            Padding(
-                                              padding: const EdgeInsets.only(top: 2),
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.person, 
-                                                    size: 15, 
-                                                    color: isDark ? Colors.grey.shade400 : Colors.blueGrey.shade300
-                                                  ),
-                                                  const SizedBox(width: 6),
-                                                  Text(
-                                                    'Oleh: $createdBy', 
-                                                    style: TextStyle(
-                                                      fontSize: 12, 
-                                                      color: isDark ? Colors.white70 : Colors.black45
-                                                    )
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          if (note.isNotEmpty)
-                                            Padding(
-                                              padding: const EdgeInsets.only(top: 2),
-                                              child: Row(
-                                                children: [
-                                                  const Icon(
-                                                    Icons.info_outline, 
-                                                    size: 15, 
-                                                    color: Colors.orange
-                                                  ),
-                                                  const SizedBox(width: 6),
-                                                  Expanded(
-                                                    child: Text(
-                                                      note, 
-                                                      style: TextStyle(
-                                                        fontSize: 12, 
-                                                        color: isDark ? Colors.white70 : Colors.black54
-                                                      )
-                                                    )
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          const SizedBox(height: 12),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.end,
-                                            children: [
-                                              Tooltip(
-                                                message: 'Edit pembayaran',
-                                                child: ElevatedButton.icon(
-                                                  onPressed: () => _showEditPaymentDialog(p, user),
-                                                  icon: Icon(
-                                                    Icons.edit, 
-                                                    size: 18,
-                                                    color: isDark ? Colors.blue.shade300 : Colors.blue.shade800,
-                                                  ),
-                                                  label: Text(
-                                                    'Edit',
-                                                    style: TextStyle(
-                                                      color: isDark ? Colors.blue.shade300 : Colors.blue.shade800,
-                                                    ),
-                                                  ),
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: isDark ? Colors.blue.shade900 : Colors.blue.shade50,
-                                                    foregroundColor: isDark ? Colors.blue.shade300 : Colors.blue.shade800,
-                                                    elevation: 0,
-                                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius: BorderRadius.circular(8)
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Tooltip(
-                                                message: 'Hapus pembayaran',
-                                                child: ElevatedButton.icon(
-                                                  onPressed: () => _confirmDeletePayment(p),
-                                                  icon: Icon(
-                                                    Icons.delete, 
-                                                    size: 18,
-                                                    color: isDark ? Colors.red.shade300 : Colors.red.shade800,
-                                                  ),
-                                                  label: Text(
-                                                    'Hapus',
-                                                    style: TextStyle(
-                                                      color: isDark ? Colors.red.shade300 : Colors.red.shade800,
-                                                    ),
-                                                  ),
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: isDark ? Colors.red.shade900 : Colors.red.shade50,
-                                                    foregroundColor: isDark ? Colors.red.shade300 : Colors.red.shade800,
-                                                    elevation: 0,
-                                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius: BorderRadius.circular(8)
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
+                                );
+                              }).toList(),
+                            ),
                     ),
                     const SizedBox(height: 18),
                     Padding(
@@ -852,22 +1019,22 @@ class _BillingScreenState extends State<BillingScreen> {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: showAddPaymentDialog,
-                          icon: const Icon(Icons.add_circle, color: Colors.white),
-                          label: const Text(
-                            'Tambah Pembayaran', 
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold, 
-                              fontSize: 16,
-                              color: Colors.white,
-                            )
-                          ),
+                          icon:
+                              const Icon(Icons.add_circle, color: Colors.white),
+                          label: const Text('Tambah Pembayaran',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.white,
+                              )),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: isDark ? Colors.green.shade700 : Colors.green.shade700,
+                            backgroundColor: isDark
+                                ? Colors.green.shade700
+                                : Colors.green.shade700,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)
-                            ),
+                                borderRadius: BorderRadius.circular(14)),
                             elevation: 2,
                           ),
                         ),
@@ -911,7 +1078,8 @@ class _BillingScreenState extends State<BillingScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const PaymentSummaryScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const PaymentSummaryScreen()),
                 );
               },
             ),
@@ -925,8 +1093,9 @@ class _BillingScreenState extends State<BillingScreen> {
             } else if (_error != null) {
               final errorMsg = _error!;
               final isTimeout = errorMsg.toLowerCase().contains('timeout');
-              final isServerError = errorMsg.toLowerCase().contains('server error');
-              
+              final isServerError =
+                  errorMsg.toLowerCase().contains('server error');
+
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -957,9 +1126,11 @@ class _BillingScreenState extends State<BillingScreen> {
                         icon: const Icon(Icons.refresh),
                         label: const Text('Coba Lagi'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: isDark ? Colors.blue.shade700 : Colors.blue,
+                          backgroundColor:
+                              isDark ? Colors.blue.shade700 : Colors.blue,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
                         ),
                       ),
                     ],
@@ -990,9 +1161,11 @@ class _BillingScreenState extends State<BillingScreen> {
                       icon: const Icon(Icons.refresh),
                       label: const Text('Refresh'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark ? Colors.blue.shade700 : Colors.blue,
+                        backgroundColor:
+                            isDark ? Colors.blue.shade700 : Colors.blue,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
                       ),
                     ),
                   ],
@@ -1004,17 +1177,21 @@ class _BillingScreenState extends State<BillingScreen> {
               children: [
                 // Search Bar
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Row(
                     children: [
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                            color:
+                                isDark ? const Color(0xFF2D2D2D) : Colors.white,
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
-                                color: isDark ? Colors.black26 : Colors.grey.withOpacity(0.1),
+                                color: isDark
+                                    ? Colors.black26
+                                    : Colors.grey.withOpacity(0.1),
                                 blurRadius: 2,
                                 offset: const Offset(0, 1),
                               ),
@@ -1028,18 +1205,24 @@ class _BillingScreenState extends State<BillingScreen> {
                             decoration: InputDecoration(
                               hintText: 'Cari...',
                               hintStyle: TextStyle(
-                                color: isDark ? Colors.grey.shade400 : Colors.grey.shade500,
+                                color: isDark
+                                    ? Colors.grey.shade400
+                                    : Colors.grey.shade500,
                               ),
                               prefixIcon: Icon(
                                 Icons.search,
-                                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                                color: isDark
+                                    ? Colors.grey.shade400
+                                    : Colors.grey.shade600,
                                 size: 20,
                               ),
                               suffixIcon: _searchQuery.isNotEmpty
                                   ? IconButton(
                                       icon: Icon(
                                         Icons.clear,
-                                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                                        color: isDark
+                                            ? Colors.grey.shade400
+                                            : Colors.grey.shade600,
                                         size: 20,
                                       ),
                                       onPressed: () {
@@ -1050,7 +1233,8 @@ class _BillingScreenState extends State<BillingScreen> {
                                       },
                                     )
                                   : null,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 12),
                               border: InputBorder.none,
                             ),
                             onChanged: (value) {
@@ -1064,17 +1248,23 @@ class _BillingScreenState extends State<BillingScreen> {
                       const SizedBox(width: 8),
                       Container(
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                          color:
+                              isDark ? const Color(0xFF2D2D2D) : Colors.white,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Tooltip(
-                          message: _showFilterPanel ? 'Sembunyikan filter' : 'Tampilkan filter',
+                          message: _showFilterPanel
+                              ? 'Sembunyikan filter'
+                              : 'Tampilkan filter',
                           child: IconButton(
                             icon: Icon(
-                              _showFilterPanel ? Icons.filter_alt_off : Icons.filter_alt, 
-                              color: isDark ? Colors.blue.shade300 : Colors.blue.shade700, 
-                              size: 24
-                            ),
+                                _showFilterPanel
+                                    ? Icons.filter_alt_off
+                                    : Icons.filter_alt,
+                                color: isDark
+                                    ? Colors.blue.shade300
+                                    : Colors.blue.shade700,
+                                size: 24),
                             onPressed: () {
                               setState(() {
                                 _showFilterPanel = !_showFilterPanel;
@@ -1093,22 +1283,28 @@ class _BillingScreenState extends State<BillingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Tombol filter satu baris
-                     
+
                       const SizedBox(height: 8),
                       // Panel filter (expand/collapse)
                       AnimatedCrossFade(
                         duration: const Duration(milliseconds: 250),
-                        crossFadeState: _showFilterPanel ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                        crossFadeState: _showFilterPanel
+                            ? CrossFadeState.showFirst
+                            : CrossFadeState.showSecond,
                         firstChild: Container(
                           width: double.infinity,
                           margin: const EdgeInsets.only(top: 2, bottom: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 6),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                            color:
+                                isDark ? const Color(0xFF2D2D2D) : Colors.white,
                             borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
-                                color: isDark ? Colors.black45 : Colors.blue.shade50,
+                                color: isDark
+                                    ? Colors.black45
+                                    : Colors.blue.shade50,
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -1127,20 +1323,30 @@ class _BillingScreenState extends State<BillingScreen> {
                                     padding: EdgeInsets.zero,
                                     shape: const CircleBorder(),
                                     side: BorderSide(
-                                      color: isDark ? Colors.blue.shade700 : Colors.blue.shade200
-                                    ),
+                                        color: isDark
+                                            ? Colors.blue.shade700
+                                            : Colors.blue.shade200),
                                   ),
                                   onPressed: () {
                                     setState(() {
-                                      _tempSelectedMonth = (_tempSelectedMonth ?? _selectedMonth).subtract(const Duration(days: 31));
-                                      _tempSelectedMonth = DateTime(_tempSelectedMonth!.year, _tempSelectedMonth!.month, 1);
+                                      final current =
+                                          _tempSelectedMonth ?? _selectedMonth;
+                                      // Kurangi 1 bulan dengan benar
+                                      final newMonth = current.month == 1
+                                          ? 12
+                                          : current.month - 1;
+                                      final newYear = current.month == 1
+                                          ? current.year - 1
+                                          : current.year;
+                                      _tempSelectedMonth =
+                                          DateTime(newYear, newMonth, 1);
                                     });
                                   },
-                                  child: Icon(
-                                    Icons.chevron_left, 
-                                    size: 16, 
-                                    color: isDark ? Colors.blue.shade300 : const Color(0xFF1976D2)
-                                  ),
+                                  child: Icon(Icons.chevron_left,
+                                      size: 16,
+                                      color: isDark
+                                          ? Colors.blue.shade300
+                                          : const Color(0xFF1976D2)),
                                 ),
                               ),
                               const SizedBox(width: 6),
@@ -1150,31 +1356,40 @@ class _BillingScreenState extends State<BillingScreen> {
                                   final now = DateTime.now();
                                   final picked = await showMonthPicker(
                                     context: context,
-                                    initialDate: _tempSelectedMonth ?? _selectedMonth,
+                                    initialDate:
+                                        _tempSelectedMonth ?? _selectedMonth,
                                     firstDate: DateTime(2020),
                                     lastDate: DateTime(now.year + 1, 12, 31),
                                   );
                                   if (picked != null) {
                                     setState(() {
-                                      _tempSelectedMonth = DateTime(picked.year, picked.month, 1);
+                                      _tempSelectedMonth = DateTime(
+                                          picked.year, picked.month, 1);
                                     });
                                   }
                                 },
                                 borderRadius: BorderRadius.circular(6),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: isDark ? Colors.blue.shade900 : Colors.blue.shade50,
+                                    color: isDark
+                                        ? Colors.blue.shade900
+                                        : Colors.blue.shade50,
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
-                                      color: isDark ? Colors.blue.shade700 : Colors.blue.shade200
-                                    ),
+                                        color: isDark
+                                            ? Colors.blue.shade700
+                                            : Colors.blue.shade200),
                                   ),
                                   child: Text(
-                                    DateFormat('MMM yyyy', 'id_ID').format((_tempSelectedMonth ?? _selectedMonth)),
+                                    DateFormat('MMM yyyy', 'id_ID').format(
+                                        (_tempSelectedMonth ?? _selectedMonth)),
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: isDark ? Colors.blue.shade300 : const Color(0xFF1976D2),
+                                      color: isDark
+                                          ? Colors.blue.shade300
+                                          : const Color(0xFF1976D2),
                                       fontSize: 12,
                                     ),
                                   ),
@@ -1190,20 +1405,30 @@ class _BillingScreenState extends State<BillingScreen> {
                                     padding: EdgeInsets.zero,
                                     shape: const CircleBorder(),
                                     side: BorderSide(
-                                      color: isDark ? Colors.blue.shade700 : Colors.blue.shade200
-                                    ),
+                                        color: isDark
+                                            ? Colors.blue.shade700
+                                            : Colors.blue.shade200),
                                   ),
                                   onPressed: () {
                                     setState(() {
-                                      _tempSelectedMonth = (_tempSelectedMonth ?? _selectedMonth).add(const Duration(days: 31));
-                                      _tempSelectedMonth = DateTime(_tempSelectedMonth!.year, _tempSelectedMonth!.month, 1);
+                                      final current =
+                                          _tempSelectedMonth ?? _selectedMonth;
+                                      // Tambah 1 bulan dengan benar
+                                      final newMonth = current.month == 12
+                                          ? 1
+                                          : current.month + 1;
+                                      final newYear = current.month == 12
+                                          ? current.year + 1
+                                          : current.year;
+                                      _tempSelectedMonth =
+                                          DateTime(newYear, newMonth, 1);
                                     });
                                   },
-                                  child: Icon(
-                                    Icons.chevron_right, 
-                                    size: 16, 
-                                    color: isDark ? Colors.blue.shade300 : const Color(0xFF1976D2)
-                                  ),
+                                  child: Icon(Icons.chevron_right,
+                                      size: 16,
+                                      color: isDark
+                                          ? Colors.blue.shade300
+                                          : const Color(0xFF1976D2)),
                                 ),
                               ),
                               const SizedBox(width: 6),
@@ -1212,21 +1437,27 @@ class _BillingScreenState extends State<BillingScreen> {
                                 height: 28,
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: isDark ? Colors.blue.shade700 : Colors.blue.shade700,
+                                    backgroundColor: isDark
+                                        ? Colors.blue.shade700
+                                        : Colors.blue.shade700,
                                     foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 0),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(6)
-                                    ),
-                                    textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                        borderRadius: BorderRadius.circular(6)),
+                                    textStyle: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12),
                                   ),
                                   onPressed: () {
                                     setState(() {
                                       if (_tempSelectedMonth != null) {
                                         _selectedMonth = _tempSelectedMonth!;
                                       }
-                                      _showAllPayments = true; // Selalu tampilkan semua pembayaran di popup
-                                      _showFilterPanel = false; // Close the filter panel after applying
+                                      _showAllPayments =
+                                          true; // Selalu tampilkan semua pembayaran di popup
+                                      _showFilterPanel =
+                                          false; // Close the filter panel after applying
                                     });
                                   },
                                   child: const Text('Apply'),
@@ -1248,14 +1479,16 @@ class _BillingScreenState extends State<BillingScreen> {
                         child: RefreshIndicator(
                           onRefresh: () async => _loadUsers(),
                           child: ListView.separated(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 8),
                             itemCount: users.length,
-                            separatorBuilder: (context, index) => const SizedBox(height: 12),
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 12),
                             itemBuilder: (context, i) {
                               final user = users[i];
                               // Status lunas/Belum harus sesuai bulan yang dipilih
                               // (_showAllPayments hanya mempengaruhi popup, bukan status card)
-                              
+
                               return GestureDetector(
                                 onTap: () => _showBillingDetailSheet(user),
                                 child: Card(
@@ -1264,93 +1497,151 @@ class _BillingScreenState extends State<BillingScreen> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                     side: BorderSide(
-                                      color: _hasUserPaidForSelectedMonth(user) 
-                                        ? (isDark ? Colors.green.shade700 : Colors.green.shade100) 
-                                        : (isDark ? Colors.red.shade700 : Colors.red.shade100), 
-                                      width: 1.2
-                                    ),
+                                        color:
+                                            _hasUserPaidForSelectedMonth(user)
+                                                ? (isDark
+                                                    ? Colors.green.shade700
+                                                    : Colors.green.shade100)
+                                                : (isDark
+                                                    ? Colors.red.shade700
+                                                    : Colors.red.shade100),
+                                        width: 1.2),
                                   ),
-                                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                                  color: isDark
+                                      ? const Color(0xFF1E1E1E)
+                                      : Colors.white,
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 14),
                                     child: Row(
                                       children: [
                                         CircleAvatar(
                                           radius: 22,
-                                          backgroundColor: _hasUserPaidForSelectedMonth(user) 
-                                            ? (isDark ? Colors.green.shade900 : Colors.green.shade50) 
-                                            : (isDark ? Colors.red.shade900 : Colors.red.shade50),
-                                          child: Icon(
-                                            Icons.payments, 
-                                            color: _hasUserPaidForSelectedMonth(user) 
-                                              ? (isDark ? Colors.green.shade300 : Colors.green) 
-                                              : (isDark ? Colors.red.shade300 : Colors.red), 
-                                            size: 26
-                                          ),
+                                          backgroundColor:
+                                              _hasUserPaidForSelectedMonth(user)
+                                                  ? (isDark
+                                                      ? Colors.green.shade900
+                                                      : Colors.green.shade50)
+                                                  : (isDark
+                                                      ? Colors.red.shade900
+                                                      : Colors.red.shade50),
+                                          child: Icon(Icons.payments,
+                                              color:
+                                                  _hasUserPaidForSelectedMonth(
+                                                          user)
+                                                      ? (isDark
+                                                          ? Colors
+                                                              .green.shade300
+                                                          : Colors.green)
+                                                      : (isDark
+                                                          ? Colors.red.shade300
+                                                          : Colors.red),
+                                              size: 26),
                                         ),
                                         const SizedBox(width: 14),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 user['username'] ?? '-',
                                                 style: TextStyle(
-                                                  fontWeight: FontWeight.bold, 
+                                                  fontWeight: FontWeight.bold,
                                                   fontSize: 16,
-                                                  color: isDark ? Colors.white : Colors.black87,
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : Colors.black87,
                                                 ),
                                               ),
                                               if (user['profile'] != null)
                                                 Text(
-                                                  'Profile: ${user['profile']}', 
-                                                  style: TextStyle(
-                                                    fontSize: 13, 
-                                                    color: isDark ? Colors.white70 : Colors.black54
-                                                  )
-                                                ),
+                                                    'Profile: ${user['profile']}',
+                                                    style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: isDark
+                                                            ? Colors.white70
+                                                            : Colors.black54)),
                                               if (user['nominal'] != null)
                                                 Text(
-                                                  'Tagihan: Rp ${currencyFormat.format(double.tryParse(user['nominal']) ?? 0)}',
-                                                  style: TextStyle(
-                                                    fontSize: 13, 
-                                                    color: isDark ? Colors.orange.shade300 : Colors.deepOrange, 
-                                                    fontWeight: FontWeight.w600
-                                                  )
-                                                ),
+                                                    'Tagihan: Rp ${currencyFormat.format(double.tryParse(user['nominal']) ?? 0)}',
+                                                    style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: isDark
+                                                            ? Colors
+                                                                .orange.shade300
+                                                            : Colors.deepOrange,
+                                                        fontWeight:
+                                                            FontWeight.w600)),
                                             ],
                                           ),
                                         ),
                                         const SizedBox(width: 10),
                                         Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             CircleAvatar(
                                               radius: 16,
-                                              backgroundColor: _hasUserPaidForSelectedMonth(user) 
-                                                ? (isDark ? Colors.green.shade700 : Colors.green) 
-                                                : (isDark ? Colors.red.shade700 : Colors.red),
+                                              backgroundColor:
+                                                  _hasUserPaidForSelectedMonth(
+                                                          user)
+                                                      ? (isDark
+                                                          ? Colors
+                                                              .green.shade700
+                                                          : Colors.green)
+                                                      : (isDark
+                                                          ? Colors.red.shade700
+                                                          : Colors.red),
                                               child: Icon(
-                                                _hasUserPaidForSelectedMonth(user) ? Icons.check : Icons.close,
+                                                _hasUserPaidForSelectedMonth(
+                                                        user)
+                                                    ? Icons.check
+                                                    : Icons.close,
                                                 color: Colors.white,
                                                 size: 20,
                                               ),
                                             ),
                                             const SizedBox(height: 4),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 2),
                                               decoration: BoxDecoration(
-                                                color: _hasUserPaidForSelectedMonth(user) 
-                                                  ? (isDark ? Colors.green.shade900 : Colors.green.shade50) 
-                                                  : (isDark ? Colors.red.shade900 : Colors.red.shade50),
-                                                borderRadius: BorderRadius.circular(8),
+                                                color:
+                                                    _hasUserPaidForSelectedMonth(
+                                                            user)
+                                                        ? (isDark
+                                                            ? Colors
+                                                                .green.shade900
+                                                            : Colors
+                                                                .green.shade50)
+                                                        : (isDark
+                                                            ? Colors
+                                                                .red.shade900
+                                                            : Colors
+                                                                .red.shade50),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                               ),
                                               child: Text(
-                                                _hasUserPaidForSelectedMonth(user) ? 'Lunas' : 'Belum',
+                                                _hasUserPaidForSelectedMonth(
+                                                        user)
+                                                    ? 'Lunas'
+                                                    : 'Belum',
                                                 style: TextStyle(
-                                                  color: _hasUserPaidForSelectedMonth(user) 
-                                                    ? (isDark ? Colors.green.shade300 : Colors.green) 
-                                                    : (isDark ? Colors.red.shade300 : Colors.red),
+                                                  color:
+                                                      _hasUserPaidForSelectedMonth(
+                                                              user)
+                                                          ? (isDark
+                                                              ? Colors.green
+                                                                  .shade300
+                                                              : Colors.green)
+                                                          : (isDark
+                                                              ? Colors
+                                                                  .red.shade300
+                                                              : Colors.red),
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                 ),
@@ -1369,34 +1660,45 @@ class _BillingScreenState extends State<BillingScreen> {
                       ),
                       // Footer: jumlah user dan total pembayaran
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.people,
-                                color: isDark ? Colors.white70 : Colors.black54, size: 18),
+                                color: isDark ? Colors.white70 : Colors.black54,
+                                size: 18),
                             const SizedBox(width: 4),
                             Text('${users.length} total',
                                 style: TextStyle(
-                                    color: isDark ? Colors.white : Colors.black87, fontSize: 14)),
-                            const Text(' | ',
-                                style: TextStyle(fontSize: 14)),
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
+                                    fontSize: 14)),
+                            const Text(' | ', style: TextStyle(fontSize: 14)),
                             Icon(Icons.check_circle,
-                                color: isDark ? Colors.green.shade300 : Colors.green, size: 18),
+                                color: isDark
+                                    ? Colors.green.shade300
+                                    : Colors.green,
+                                size: 18),
                             const SizedBox(width: 4),
                             Text('${users.length - _countUnpaidUsers()} paid',
                                 style: TextStyle(
-                                    color: isDark ? Colors.green.shade300 : Colors.green,
+                                    color: isDark
+                                        ? Colors.green.shade300
+                                        : Colors.green,
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold)),
-                            const Text(' | ',
-                                style: TextStyle(fontSize: 14)),
-                            Icon(Icons.cancel, 
-                                color: isDark ? Colors.red.shade300 : Colors.red, size: 18),
+                            const Text(' | ', style: TextStyle(fontSize: 14)),
+                            Icon(Icons.cancel,
+                                color:
+                                    isDark ? Colors.red.shade300 : Colors.red,
+                                size: 18),
                             const SizedBox(width: 4),
                             Text('${_countUnpaidUsers()} unpaid',
                                 style: TextStyle(
-                                    color: isDark ? Colors.red.shade300 : Colors.red,
+                                    color: isDark
+                                        ? Colors.red.shade300
+                                        : Colors.red,
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold)),
                           ],
@@ -1422,15 +1724,10 @@ class _BillingScreenState extends State<BillingScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isDark 
-          ? color.withOpacity(0.1) 
-          : color.withOpacity(0.1),
+        color: isDark ? color.withOpacity(0.1) : color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark 
-            ? color.withOpacity(0.3) 
-            : color.withOpacity(0.3)
-        ),
+            color: isDark ? color.withOpacity(0.3) : color.withOpacity(0.3)),
       ),
       child: Text(
         method,
@@ -1442,7 +1739,7 @@ class _BillingScreenState extends State<BillingScreen> {
       ),
     );
   }
-  
+
   Future<void> showSuccessDialog(BuildContext context, String message) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return showDialog(
@@ -1464,7 +1761,9 @@ class _BillingScreenState extends State<BillingScreen> {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.green.withOpacity(0.2) : Colors.green.shade50,
+                  color: isDark
+                      ? Colors.green.withOpacity(0.2)
+                      : Colors.green.shade50,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -1531,16 +1830,21 @@ class _BillingScreenState extends State<BillingScreen> {
       },
     );
   }
-  
-  void _showEditPaymentDialog(Map<String, dynamic> payment, Map<String, dynamic> user) {
+
+  void _showEditPaymentDialog(
+      Map<String, dynamic> payment, Map<String, dynamic> user) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final formKey = GlobalKey<FormState>();
-    final amountController = TextEditingController(text: payment['amount']?.toString() ?? '');
+    final amountController =
+        TextEditingController(text: payment['amount']?.toString() ?? '');
     String selectedMethod = payment['method']?.toString() ?? 'Cash';
-    DateTime paymentDate = DateTime.tryParse(payment['payment_date']?.toString() ?? '') ?? DateTime.now();
-    final noteController = TextEditingController(text: payment['note']?.toString() ?? '');
+    DateTime paymentDate =
+        DateTime.tryParse(payment['payment_date']?.toString() ?? '') ??
+            DateTime.now();
+    final noteController =
+        TextEditingController(text: payment['note']?.toString() ?? '');
     bool isSubmitting = false;
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1549,14 +1853,13 @@ class _BillingScreenState extends State<BillingScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: Text(
-                'Edit Pembayaran', 
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                )
-              ),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              title: Text('Edit Pembayaran',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  )),
               content: Form(
                 key: formKey,
                 child: SingleChildScrollView(
@@ -1582,47 +1885,53 @@ class _BillingScreenState extends State<BillingScreen> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: isDark ? Colors.blue.shade300 : Colors.blue,
+                              color:
+                                  isDark ? Colors.blue.shade300 : Colors.blue,
                             ),
                           ),
                         ),
-                        validator: (v) => v == null || v.isEmpty ? 'Nominal wajib diisi' : null,
+                        validator: (v) => v == null || v.isEmpty
+                            ? 'Nominal wajib diisi'
+                            : null,
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
-                        dropdownColor: isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                        dropdownColor:
+                            isDark ? const Color(0xFF2D2D2D) : Colors.white,
                         value: selectedMethod,
                         items: [
                           DropdownMenuItem(
-                            value: 'Cash', 
-                            child: Text(
-                              'Cash',
-                              style: TextStyle(
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                            )
-                          ),
+                              value: 'Cash',
+                              child: Text(
+                                'Cash',
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              )),
                           DropdownMenuItem(
-                            value: 'Transfer', 
-                            child: Text(
-                              'Transfer',
-                              style: TextStyle(
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                            )
-                          ),
+                              value: 'Transfer',
+                              child: Text(
+                                'Transfer',
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              )),
                         ],
                         onChanged: (v) {
                           setDialogState(() {
@@ -1637,19 +1946,24 @@ class _BillingScreenState extends State<BillingScreen> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: isDark ? Colors.blue.shade300 : Colors.blue,
+                              color:
+                                  isDark ? Colors.blue.shade300 : Colors.blue,
                             ),
                           ),
                         ),
@@ -1661,7 +1975,8 @@ class _BillingScreenState extends State<BillingScreen> {
                             context: context,
                             initialDate: paymentDate,
                             firstDate: DateTime(2020),
-                            lastDate: DateTime.now().add(const Duration(days: 365)),
+                            lastDate:
+                                DateTime.now().add(const Duration(days: 365)),
                           );
                           if (picked != null) {
                             setDialogState(() {
@@ -1678,36 +1993,43 @@ class _BillingScreenState extends State<BillingScreen> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.blue.shade300 : Colors.blue,
+                                color:
+                                    isDark ? Colors.blue.shade300 : Colors.blue,
                               ),
                             ),
                           ),
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.calendar_today, 
-                                size: 18, 
-                                color: isDark ? Colors.grey.shade400 : Colors.blueGrey
-                              ),
+                              Icon(Icons.calendar_today,
+                                  size: 18,
+                                  color: isDark
+                                      ? Colors.grey.shade400
+                                      : Colors.blueGrey),
                               const SizedBox(width: 8),
                               Text(
-                                DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(paymentDate),
+                                DateFormat('EEEE, dd MMMM yyyy', 'id_ID')
+                                    .format(paymentDate),
                                 style: TextStyle(
-                                  fontSize: 13, 
-                                  color: isDark ? Colors.white70 : Colors.black54
-                                ),
+                                    fontSize: 13,
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.black54),
                               ),
                             ],
                           ),
@@ -1727,19 +2049,24 @@ class _BillingScreenState extends State<BillingScreen> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: isDark ? Colors.blue.shade300 : Colors.blue,
+                              color:
+                                  isDark ? Colors.blue.shade300 : Colors.blue,
                             ),
                           ),
                         ),
@@ -1767,45 +2094,54 @@ class _BillingScreenState extends State<BillingScreen> {
                       ? null
                       : () async {
                           if (!formKey.currentState!.validate()) return;
-                          
+
                           setDialogState(() {
                             isSubmitting = true;
                           });
-                          
+
                           try {
                             // Get router_id from RouterSessionProvider
-                            final routerId = Provider.of<RouterSessionProvider>(context, listen: false).routerId;
+                            final routerId = Provider.of<RouterSessionProvider>(
+                                    context,
+                                    listen: false)
+                                .routerId;
                             if (routerId == null || routerId.isEmpty) {
-                              throw Exception('Router belum login. Silakan login dulu.');
+                              throw Exception(
+                                  'Router belum login. Silakan login dulu.');
                             }
-                            
+
                             final paymentId = payment['id'];
                             final userId = user['id'];
-                            final amountRaw = amountController.text.replaceAll('.', '').replaceAll(',', '');
+                            final amountRaw = amountController.text
+                                .replaceAll('.', '')
+                                .replaceAll(',', '');
                             final amount = double.tryParse(amountRaw) ?? 0;
-                            final url = Uri.parse('${ApiService.baseUrl}/payment_operations.php?operation=update');
+                            final url = Uri.parse(
+                                '${ApiService.baseUrl}/payment_operations.php?operation=update');
                             final body = {
                               'router_id': routerId,
                               'id': paymentId,
                               'user_id': userId,
                               'amount': amount,
-                              'payment_date': DateFormat('yyyy-MM-dd').format(paymentDate),
+                              'payment_date':
+                                  DateFormat('yyyy-MM-dd').format(paymentDate),
                               'method': selectedMethod,
                               'note': noteController.text,
                               'created_by': 'Admin',
                             };
-                            
+
                             final resp = await http.put(
                               url,
                               headers: {'Content-Type': 'application/json'},
                               body: jsonEncode(body),
                             );
-                            
+
                             final respData = jsonDecode(resp.body);
                             if (respData['success'] == true) {
                               Navigator.of(dialogContext).pop();
                               if (context.mounted) {
-                                await showSuccessDialog(context, 'Pembayaran berhasil diupdate!');
+                                await showSuccessDialog(
+                                    context, 'Pembayaran berhasil diupdate!');
                                 if (mounted) {
                                   // Refresh data setelah berhasil mengupdate pembayaran
                                   _loadUsers();
@@ -1817,7 +2153,8 @@ class _BillingScreenState extends State<BillingScreen> {
                                 CustomSnackbar.show(
                                   context: context,
                                   message: 'Gagal mengupdate pembayaran',
-                                  additionalInfo: respData['error'] ?? 'Unknown error',
+                                  additionalInfo:
+                                      respData['error'] ?? 'Unknown error',
                                   isSuccess: false,
                                 );
                               }
@@ -1840,9 +2177,12 @@ class _BillingScreenState extends State<BillingScreen> {
                               });
                             }
                           }
-                      },
+                        },
                   child: isSubmitting
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : const Text('SIMPAN'),
                 ),
               ],
@@ -1852,7 +2192,7 @@ class _BillingScreenState extends State<BillingScreen> {
       },
     );
   }
-  
+
   void _confirmDeletePayment(Map<String, dynamic> payment) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
@@ -1860,18 +2200,17 @@ class _BillingScreenState extends State<BillingScreen> {
       builder: (dialogContext) {
         return AlertDialog(
           backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
               const Icon(Icons.warning, color: Colors.red),
               const SizedBox(width: 10),
-              Text(
-                'Konfirmasi Hapus', 
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                )
-              ),
+              Text('Konfirmasi Hapus',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  )),
             ],
           ),
           content: Text(
@@ -1892,31 +2231,34 @@ class _BillingScreenState extends State<BillingScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? Colors.red.shade700 : Colors.red
-              ),
+                  backgroundColor: isDark ? Colors.red.shade700 : Colors.red),
               onPressed: () async {
                 try {
                   // Get router_id from RouterSessionProvider
-                  final routerId = Provider.of<RouterSessionProvider>(context, listen: false).routerId;
+                  final routerId =
+                      Provider.of<RouterSessionProvider>(context, listen: false)
+                          .routerId;
                   if (routerId == null || routerId.isEmpty) {
                     throw Exception('Router belum login. Silakan login dulu.');
                   }
-                  
+
                   final paymentId = payment['id'];
-                  final url = Uri.parse('${ApiService.baseUrl}/payment_operations.php?operation=delete');
+                  final url = Uri.parse(
+                      '${ApiService.baseUrl}/payment_operations.php?operation=delete');
                   final body = {'router_id': routerId, 'id': paymentId};
-                  
+
                   final resp = await http.delete(
                     url,
                     headers: {'Content-Type': 'application/json'},
                     body: jsonEncode(body),
                   );
-                  
+
                   final respData = jsonDecode(resp.body);
                   if (respData['success'] == true) {
                     Navigator.of(dialogContext).pop();
                     if (context.mounted) {
-                      await showSuccessDialog(context, 'Pembayaran berhasil dihapus!');
+                      await showSuccessDialog(
+                          context, 'Pembayaran berhasil dihapus!');
                       if (mounted) {
                         // Refresh data setelah berhasil menghapus pembayaran
                         _loadUsers();
@@ -1952,41 +2294,48 @@ class _BillingScreenState extends State<BillingScreen> {
       },
     );
   }
-  
+
   List<Map<String, dynamic>> _filteredPayments(Map<String, dynamic> user) {
     final payments = user['payments'] as List;
     if (_showAllPayments) {
       // Tampilkan semua pembayaran dengan urutan terbaru dulu
       final sortedPayments = payments.cast<Map<String, dynamic>>().toList();
       sortedPayments.sort((a, b) {
-        final dateA = DateTime.tryParse(a['payment_date'] ?? '') ?? DateTime(2000);
-        final dateB = DateTime.tryParse(b['payment_date'] ?? '') ?? DateTime(2000);
+        final dateA =
+            DateTime.tryParse(a['payment_date'] ?? '') ?? DateTime(2000);
+        final dateB =
+            DateTime.tryParse(b['payment_date'] ?? '') ?? DateTime(2000);
         return dateB.compareTo(dateA); // Terbaru dulu
       });
       return sortedPayments;
     }
-    
+
     // Filter berdasarkan bulan yang dipilih
-    final filtered = payments.where((p) {
-      final paymentDate = DateTime.tryParse(p['payment_date'] ?? '');
-      return paymentDate != null &&
-          paymentDate.year == _selectedMonth.year &&
-          paymentDate.month == _selectedMonth.month;
-    }).cast<Map<String, dynamic>>().toList();
-    
+    final filtered = payments
+        .where((p) {
+          final paymentDate = DateTime.tryParse(p['payment_date'] ?? '');
+          return paymentDate != null &&
+              paymentDate.year == _selectedMonth.year &&
+              paymentDate.month == _selectedMonth.month;
+        })
+        .cast<Map<String, dynamic>>()
+        .toList();
+
     // Urutkan berdasarkan tanggal terbaru dulu
     filtered.sort((a, b) {
-      final dateA = DateTime.tryParse(a['payment_date'] ?? '') ?? DateTime(2000);
-      final dateB = DateTime.tryParse(b['payment_date'] ?? '') ?? DateTime(2000);
+      final dateA =
+          DateTime.tryParse(a['payment_date'] ?? '') ?? DateTime(2000);
+      final dateB =
+          DateTime.tryParse(b['payment_date'] ?? '') ?? DateTime(2000);
       return dateB.compareTo(dateA); // Terbaru dulu
     });
-    
+
     return filtered;
   }
-  
+
   List<Map<String, dynamic>> _filteredSortedUsers() {
     List<Map<String, dynamic>> filtered = _users;
-    
+
     // Filter berdasarkan pencarian
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
@@ -2003,15 +2352,13 @@ class _BillingScreenState extends State<BillingScreen> {
             });
       }).toList();
     }
-    
+
     // Urutkan berdasarkan username A-Z saja (seperti sebelumnya)
-    filtered.sort((a, b) => (a['username'] ?? '').compareTo(b['username'] ?? ''));
+    filtered
+        .sort((a, b) => (a['username'] ?? '').compareTo(b['username'] ?? ''));
     return filtered;
   }
 
-
-
-  
   // Method to check if user has paid for the selected month
   bool _hasUserPaidForSelectedMonth(Map<String, dynamic> user) {
     // Always check based on the selected month, regardless of _showAllPayments
@@ -2019,8 +2366,8 @@ class _BillingScreenState extends State<BillingScreen> {
     return (user['payments'] as List).any((p) {
       final paymentDate = DateTime.tryParse(p['payment_date'] ?? '');
       return paymentDate != null &&
-        paymentDate.year == _selectedMonth.year &&
-        paymentDate.month == _selectedMonth.month;
+          paymentDate.year == _selectedMonth.year &&
+          paymentDate.month == _selectedMonth.month;
     });
   }
 
@@ -2028,7 +2375,7 @@ class _BillingScreenState extends State<BillingScreen> {
     if (lastLogout == null || lastLogout.isEmpty) {
       return '-';
     }
-    
+
     try {
       final dateTime = DateTime.parse(lastLogout);
       return DateFormat('dd/MM/yyyy HH:mm', 'id_ID').format(dateTime);
@@ -2036,9 +2383,7 @@ class _BillingScreenState extends State<BillingScreen> {
       return lastLogout;
     }
   }
-  
 
-  
   int _countUnpaidUsers() {
     int count = 0;
     for (var user in _filteredSortedUsers()) {
@@ -2048,11 +2393,10 @@ class _BillingScreenState extends State<BillingScreen> {
     }
     return count;
   }
-  
+
   @override
   void dispose() {
     _searchUserController.dispose();
     super.dispose();
   }
 }
-

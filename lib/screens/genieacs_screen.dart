@@ -16,14 +16,14 @@ class GenieACSScreen extends StatefulWidget {
 
 class _GenieACSScreenState extends State<GenieACSScreen> {
   final TextEditingController _searchController = TextEditingController();
-  
+
   bool _isLoading = false;
   bool _isRefreshing = false;
   GenieACSService? _service;
   List<Map<String, dynamic>> _devices = [];
   Timer? _searchDebounce;
   Timer? _updateTimer;
-  
+
   // Filter and sort options
   String _sortOption = 'Last Inform (Newest)';
   String _statusFilter = 'Semua';
@@ -37,14 +37,19 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
     'Model (Z-A)',
   ];
   final List<String> _statusOptions = ['Semua', 'Online', 'Idle', 'Offline'];
-  final List<String> _rxOptions = ['Semua', 'RX Bagus', 'RX Lumayan', 'RX Kritis'];
+  final List<String> _rxOptions = [
+    'Semua',
+    'RX Bagus',
+    'RX Lumayan',
+    'RX Kritis'
+  ];
 
   @override
   void initState() {
     super.initState();
     _loadCachedData();
     _refreshDataInBackground();
-    
+
     // Timer untuk update "Baru saja" per detik
     _updateTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
@@ -79,27 +84,27 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
     // Check if configured
     final isConfigured = await GenieACSConfigService.isConfigured();
     if (!isConfigured) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       final url = await GenieACSConfigService.getGenieACSUrl();
       final username = await GenieACSConfigService.getGenieACSUsername();
       final password = await GenieACSConfigService.getGenieACSPassword();
-      
+
       if (url != null && username != null && password != null) {
         _service = GenieACSService(
           baseUrl: url,
           username: username,
           password: password,
         );
-        
+
         print('[GenieACS] Refreshing data...');
         final devices = await _service!.getDevices();
-        
+
         // Cache the data
         await GenieACSConfigService.cacheDeviceData(devices);
-        
+
         if (mounted) {
           setState(() {
             _devices = devices;
@@ -135,22 +140,24 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
 
   List<Map<String, dynamic>> _getFilteredAndSortedDevices() {
     final lowercaseQuery = _searchController.text.toLowerCase();
-    
+
     // First filter by search query
     List<Map<String, dynamic>> filtered = _devices.where((device) {
       if (lowercaseQuery.isEmpty) return true;
-      
-      final pppoeUsername = DeviceInfoExtractor.getPPPoEUsername(device).toLowerCase();
+
+      final pppoeUsername =
+          DeviceInfoExtractor.getPPPoEUsername(device).toLowerCase();
       final deviceId = DeviceInfoExtractor.getDeviceId(device).toLowerCase();
       final pppoeIP = DeviceInfoExtractor.getPPPoEIP(device).toLowerCase();
-      final serialNumber = DeviceInfoExtractor.getSerialNumber(device).toLowerCase();
-      
-      return pppoeUsername.contains(lowercaseQuery) || 
-             pppoeIP.contains(lowercaseQuery) ||
-             deviceId.contains(lowercaseQuery) ||
-             serialNumber.contains(lowercaseQuery);
+      final serialNumber =
+          DeviceInfoExtractor.getSerialNumber(device).toLowerCase();
+
+      return pppoeUsername.contains(lowercaseQuery) ||
+          pppoeIP.contains(lowercaseQuery) ||
+          deviceId.contains(lowercaseQuery) ||
+          serialNumber.contains(lowercaseQuery);
     }).toList();
-    
+
     // Then filter by status
     if (_statusFilter != 'Semua') {
       filtered = filtered.where((device) {
@@ -158,13 +165,13 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
         return status.toLowerCase() == _statusFilter.toLowerCase();
       }).toList();
     }
-    
+
     // Then filter by RX Power
     if (_rxFilter != 'Semua') {
       filtered = filtered.where((device) {
         final rxPowerStr = DeviceInfoExtractor.getRXPower(device);
         if (rxPowerStr == '-') return false;
-        
+
         try {
           final rxPower = double.parse(rxPowerStr);
           switch (_rxFilter) {
@@ -182,34 +189,42 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
         }
       }).toList();
     }
-    
+
     // Then sort
     filtered.sort((a, b) {
       switch (_sortOption) {
         case 'Last Inform (Newest)':
-          final aDate = DateTime.tryParse(a['_lastInform'] ?? '') ?? DateTime(1970);
-          final bDate = DateTime.tryParse(b['_lastInform'] ?? '') ?? DateTime(1970);
+          final aDate =
+              DateTime.tryParse(a['_lastInform'] ?? '') ?? DateTime(1970);
+          final bDate =
+              DateTime.tryParse(b['_lastInform'] ?? '') ?? DateTime(1970);
           return bDate.compareTo(aDate);
         case 'Last Inform (Oldest)':
-          final aDate = DateTime.tryParse(a['_lastInform'] ?? '') ?? DateTime(1970);
-          final bDate = DateTime.tryParse(b['_lastInform'] ?? '') ?? DateTime(1970);
+          final aDate =
+              DateTime.tryParse(a['_lastInform'] ?? '') ?? DateTime(1970);
+          final bDate =
+              DateTime.tryParse(b['_lastInform'] ?? '') ?? DateTime(1970);
           return aDate.compareTo(bDate);
         case 'PPPoE Username (A-Z)':
-          return DeviceInfoExtractor.getPPPoEUsername(a).compareTo(DeviceInfoExtractor.getPPPoEUsername(b));
+          return DeviceInfoExtractor.getPPPoEUsername(a)
+              .compareTo(DeviceInfoExtractor.getPPPoEUsername(b));
         case 'PPPoE Username (Z-A)':
-          return DeviceInfoExtractor.getPPPoEUsername(b).compareTo(DeviceInfoExtractor.getPPPoEUsername(a));
+          return DeviceInfoExtractor.getPPPoEUsername(b)
+              .compareTo(DeviceInfoExtractor.getPPPoEUsername(a));
         case 'Model (A-Z)':
-          return DeviceInfoExtractor.getModel(a).compareTo(DeviceInfoExtractor.getModel(b));
+          return DeviceInfoExtractor.getModel(a)
+              .compareTo(DeviceInfoExtractor.getModel(b));
         case 'Model (Z-A)':
-          return DeviceInfoExtractor.getModel(b).compareTo(DeviceInfoExtractor.getModel(a));
+          return DeviceInfoExtractor.getModel(b)
+              .compareTo(DeviceInfoExtractor.getModel(a));
         default:
           return 0;
       }
     });
-    
+
     return filtered;
   }
-  
+
   void _showFilterDialog() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
@@ -227,7 +242,7 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
             Center(
               child: Text('Filter',
                   style: TextStyle(
-                    fontWeight: FontWeight.bold, 
+                    fontWeight: FontWeight.bold,
                     fontSize: 18,
                     color: isDark ? Colors.white : Colors.black87,
                   )),
@@ -238,13 +253,13 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
               value: _sortOption,
               items: _sortOptions
                   .map((e) => DropdownMenuItem(
-                    value: e, 
-                    child: Text(
-                      e,
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    )))
+                      value: e,
+                      child: Text(
+                        e,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      )))
                   .toList(),
               onChanged: (v) => setState(() => _sortOption = v!),
               decoration: InputDecoration(
@@ -272,13 +287,13 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
               value: _statusFilter,
               items: _statusOptions
                   .map((e) => DropdownMenuItem(
-                    value: e, 
-                    child: Text(
-                      e,
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    )))
+                      value: e,
+                      child: Text(
+                        e,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      )))
                   .toList(),
               onChanged: (v) => setState(() => _statusFilter = v!),
               decoration: InputDecoration(
@@ -306,13 +321,13 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
               value: _rxFilter,
               items: _rxOptions
                   .map((e) => DropdownMenuItem(
-                    value: e, 
-                    child: Text(
-                      e,
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    )))
+                      value: e,
+                      child: Text(
+                        e,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      )))
                   .toList(),
               onChanged: (v) => setState(() => _rxFilter = v!),
               decoration: InputDecoration(
@@ -340,7 +355,8 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? Colors.blue.shade700 : Colors.blue.shade600,
+                  backgroundColor:
+                      isDark ? Colors.blue.shade700 : Colors.blue.shade600,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -360,7 +376,7 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
   void _showChangePasswordDialog(Map<String, dynamic> device) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final passwordController = TextEditingController();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -433,9 +449,9 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
                 );
                 return;
               }
-              
+
               Navigator.pop(context);
-              
+
               // Show loading
               showDialog(
                 context: context,
@@ -456,26 +472,26 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
                   ),
                 ),
               );
-              
+
               final success = await _service!.changePassword(
                 DeviceInfoExtractor.getDeviceId(device),
                 passwordController.text,
               );
-              
+
               if (mounted) {
                 Navigator.pop(context); // Close loading dialog
-                
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      success 
-                        ? 'Password berhasil diganti' 
-                        : 'Gagal mengganti password',
+                      success
+                          ? 'Password berhasil diganti'
+                          : 'Gagal mengganti password',
                     ),
                     backgroundColor: success ? Colors.green : Colors.red,
                   ),
                 );
-                
+
                 if (success) {
                   // Refresh data after password change
                   await _manualRefresh();
@@ -496,7 +512,7 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
 
   void _showDeviceDetails(Map<String, dynamic> device) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -567,8 +583,11 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
                     // Virtual Parameters section (moved to top)
                     _buildDetailSection(
                       'Virtual Parameters',
-                      DeviceInfoExtractor.getVirtualParameters(device).entries.map((entry) {
-                        final displayName = _formatVirtualParameterName(entry.key);
+                      DeviceInfoExtractor.getVirtualParameters(device)
+                          .entries
+                          .map((entry) {
+                        final displayName =
+                            _formatVirtualParameterName(entry.key);
                         return _buildDetailRow(displayName, entry.value);
                       }).toList(),
                       isDark,
@@ -577,12 +596,18 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
                     _buildDetailSection(
                       'Device Information',
                       [
-                        _buildDetailRow('Device ID', DeviceInfoExtractor.getDeviceId(device)),
-                        _buildDetailRow('Serial Number', DeviceInfoExtractor.getSerialNumber(device)),
-                        _buildDetailRow('Manufacturer', DeviceInfoExtractor.getManufacturer(device)),
-                        _buildDetailRow('Model', DeviceInfoExtractor.getModel(device)),
-                        _buildDetailRow('Product Class', DeviceInfoExtractor.getProductClass(device)),
-                        _buildDetailRow('OUI', DeviceInfoExtractor.getOUI(device)),
+                        _buildDetailRow('Device ID',
+                            DeviceInfoExtractor.getDeviceId(device)),
+                        _buildDetailRow('Serial Number',
+                            DeviceInfoExtractor.getSerialNumber(device)),
+                        _buildDetailRow('Manufacturer',
+                            DeviceInfoExtractor.getManufacturer(device)),
+                        _buildDetailRow(
+                            'Model', DeviceInfoExtractor.getModel(device)),
+                        _buildDetailRow('Product Class',
+                            DeviceInfoExtractor.getProductClass(device)),
+                        _buildDetailRow(
+                            'OUI', DeviceInfoExtractor.getOUI(device)),
                       ],
                       isDark,
                     ),
@@ -590,13 +615,20 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
                     _buildDetailSection(
                       'Network',
                       [
-                        _buildDetailRow('Status', DeviceInfoExtractor.getConnectionStatus(device)),
-                        _buildDetailRow('Last Inform', DeviceInfoExtractor.getLastInform(device)),
-                        _buildDetailRow('IP Address', DeviceInfoExtractor.getIPAddress(device) ?? '-'),
-                        _buildDetailRow('PPPoE IP', DeviceInfoExtractor.getPPPoEIP(device)),
-                        _buildDetailRow('PPPoE MAC', DeviceInfoExtractor.getPPPoEMac(device)),
-                        _buildDetailRow('SSID', DeviceInfoExtractor.getSSID(device)),
-                        _buildDetailRow('MAC Address', DeviceInfoExtractor.getMACAddress(device)),
+                        _buildDetailRow('Status',
+                            DeviceInfoExtractor.getConnectionStatus(device)),
+                        _buildDetailRow('Last Inform',
+                            DeviceInfoExtractor.getLastInform(device)),
+                        _buildDetailRow('IP Address',
+                            DeviceInfoExtractor.getIPAddress(device) ?? '-'),
+                        _buildDetailRow(
+                            'PPPoE IP', DeviceInfoExtractor.getPPPoEIP(device)),
+                        _buildDetailRow('PPPoE MAC',
+                            DeviceInfoExtractor.getPPPoEMac(device)),
+                        _buildDetailRow(
+                            'SSID', DeviceInfoExtractor.getSSID(device)),
+                        _buildDetailRow('MAC Address',
+                            DeviceInfoExtractor.getMACAddress(device)),
                       ],
                       isDark,
                     ),
@@ -604,12 +636,20 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
                     _buildDetailSection(
                       'Status & Performance',
                       [
-                        _buildDetailRow('RX Power', DeviceInfoExtractor.getRXPowerWithStatus(device)),
-                        _buildDetailRow('Temperature', DeviceInfoExtractor.getTemperatureWithStatus(device)),
-                        _buildDetailRow('Active Devices', DeviceInfoExtractor.getActiveWithStatus(device)),
-                        _buildDetailRow('Device Uptime', DeviceInfoExtractor.getDeviceUptime(device)),
-                        _buildDetailRow('PPPoE Uptime', DeviceInfoExtractor.getPPPoEUptime(device)),
-                        _buildDetailRow('PON Mode', DeviceInfoExtractor.getPONMode(device)),
+                        _buildDetailRow('RX Power',
+                            DeviceInfoExtractor.getRXPowerWithStatus(device)),
+                        _buildDetailRow(
+                            'Temperature',
+                            DeviceInfoExtractor.getTemperatureWithStatus(
+                                device)),
+                        _buildDetailRow('Active Devices',
+                            DeviceInfoExtractor.getActiveWithStatus(device)),
+                        _buildDetailRow('Device Uptime',
+                            DeviceInfoExtractor.getDeviceUptime(device)),
+                        _buildDetailRow('PPPoE Uptime',
+                            DeviceInfoExtractor.getPPPoEUptime(device)),
+                        _buildDetailRow(
+                            'PON Mode', DeviceInfoExtractor.getPONMode(device)),
                       ],
                       isDark,
                     ),
@@ -617,8 +657,14 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
                     _buildDetailSection(
                       'Firmware',
                       [
-                        _buildDetailRow('Firmware', DeviceInfoExtractor.getFirmwareVersion(device) ?? '-'),
-                        _buildDetailRow('Hardware', DeviceInfoExtractor.getHardwareVersion(device) ?? '-'),
+                        _buildDetailRow(
+                            'Firmware',
+                            DeviceInfoExtractor.getFirmwareVersion(device) ??
+                                '-'),
+                        _buildDetailRow(
+                            'Hardware',
+                            DeviceInfoExtractor.getHardwareVersion(device) ??
+                                '-'),
                       ],
                       isDark,
                     ),
@@ -626,8 +672,10 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
                     _buildDetailSection(
                       'Timing',
                       [
-                        _buildDetailRow('Registered', DeviceInfoExtractor.getRegisteredTime(device)),
-                        _buildDetailRow('Last Communication', DeviceInfoExtractor.getLastCommunication(device)),
+                        _buildDetailRow('Registered',
+                            DeviceInfoExtractor.getRegisteredTime(device)),
+                        _buildDetailRow('Last Communication',
+                            DeviceInfoExtractor.getLastCommunication(device)),
                       ],
                       isDark,
                     ),
@@ -695,7 +743,7 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
         sectionColor = Colors.grey;
         sectionIcon = Icons.category;
     }
-    
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -754,7 +802,7 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
 
   Widget _buildDetailRow(String label, String value) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // Get icon for label
     IconData icon;
     Color iconColor;
@@ -855,22 +903,22 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
         icon = Icons.label_outline;
         iconColor = Colors.grey;
     }
-    
+
     // Determine if value needs badge decoration
-    final hasStatus = value.toLowerCase().contains('bagus') || 
-                      value.toLowerCase().contains('lumayan') ||
-                      value.toLowerCase().contains('kritis') ||
-                      value.toLowerCase().contains('online') ||
-                      value.toLowerCase().contains('offline') ||
-                      value.toLowerCase().contains('idle') ||
-                      value.toLowerCase().contains('anget') ||
-                      value.toLowerCase().contains('adem') ||
-                      value.toLowerCase().contains('panas') ||
-                      value.toLowerCase().contains('normal') ||
-                      value.toLowerCase().contains('medium') ||
-                      value.toLowerCase().contains('over') ||
-                      value.toLowerCase().contains('empty');
-    
+    final hasStatus = value.toLowerCase().contains('bagus') ||
+        value.toLowerCase().contains('lumayan') ||
+        value.toLowerCase().contains('kritis') ||
+        value.toLowerCase().contains('online') ||
+        value.toLowerCase().contains('offline') ||
+        value.toLowerCase().contains('idle') ||
+        value.toLowerCase().contains('anget') ||
+        value.toLowerCase().contains('adem') ||
+        value.toLowerCase().contains('panas') ||
+        value.toLowerCase().contains('normal') ||
+        value.toLowerCase().contains('medium') ||
+        value.toLowerCase().contains('over') ||
+        value.toLowerCase().contains('empty');
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -899,12 +947,15 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
           Expanded(
             child: hasStatus && value != '-'
                 ? Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _getStatusColorForValue(value, isDark).withOpacity(0.15),
+                      color: _getStatusColorForValue(value, isDark)
+                          .withOpacity(0.15),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: _getStatusColorForValue(value, isDark).withOpacity(0.3),
+                        color: _getStatusColorForValue(value, isDark)
+                            .withOpacity(0.3),
                         width: 1,
                       ),
                     ),
@@ -930,14 +981,18 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
       ),
     );
   }
-  
+
   Color _getStatusColorForValue(String value, bool isDark) {
     final lowerValue = value.toLowerCase();
-    if (lowerValue.contains('bagus') || lowerValue.contains('normal') || lowerValue.contains('online')) {
+    if (lowerValue.contains('bagus') ||
+        lowerValue.contains('normal') ||
+        lowerValue.contains('online')) {
       return Colors.green;
-    } else if (lowerValue.contains('lumayan') || lowerValue.contains('medium')) {
+    } else if (lowerValue.contains('lumayan') ||
+        lowerValue.contains('medium')) {
       return Colors.orange;
-    } else if (lowerValue.contains('kritis') || lowerValue.contains('offline')) {
+    } else if (lowerValue.contains('kritis') ||
+        lowerValue.contains('offline')) {
       return Colors.red;
     } else if (lowerValue.contains('adem')) {
       return Colors.blue;
@@ -952,21 +1007,21 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
     }
     return Colors.grey;
   }
-  
+
   Color _getRXPowerColor(String value) {
     if (value.toLowerCase().contains('bagus')) return Colors.green;
     if (value.toLowerCase().contains('lumayan')) return Colors.orange;
     if (value.toLowerCase().contains('kritis')) return Colors.red;
     return Colors.grey;
   }
-  
+
   Color _getTemperatureColor(String value) {
     if (value.toLowerCase().contains('adem')) return Colors.blue;
     if (value.toLowerCase().contains('anget')) return Colors.orange;
     if (value.toLowerCase().contains('panas')) return Colors.red;
     return Colors.grey;
   }
-  
+
   String _formatVirtualParameterName(String key) {
     // Map technical names to user-friendly names
     final nameMap = {
@@ -997,12 +1052,12 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
       'getPPPoEIP': 'PPPoE IP',
       'getPPPoEUsername': 'PPPoE Username',
     };
-    
+
     // Check if direct mapping exists
     if (nameMap.containsKey(key)) {
       return nameMap[key]!;
     }
-    
+
     // Otherwise, format by removing 'get' prefix and converting camelCase to Title Case
     String formatted = key.replaceAll(RegExp(r'^get'), '');
     formatted = formatted.replaceAllMapped(
@@ -1010,12 +1065,12 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
       (match) => ' ${match.group(1)}',
     );
     formatted = formatted.trim();
-    
+
     // Convert first letter to uppercase
     if (formatted.isNotEmpty) {
       formatted = formatted[0].toUpperCase() + formatted.substring(1);
     }
-    
+
     return formatted.isEmpty ? key : formatted;
   }
 
@@ -1023,9 +1078,9 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
-    
+
     final filteredDevices = _getFilteredAndSortedDevices();
-    
+
     return GradientContainer(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -1047,7 +1102,8 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
                     )
                   : const Icon(Icons.refresh),
               onPressed: _isRefreshing ? null : _manualRefresh,
@@ -1074,277 +1130,377 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                    if (_devices.isEmpty)
-                      Card(
-                        elevation: 2,
-                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.cloud_off,
-                                size: 64,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Belum Dikonfigurasi',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black87,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Silakan konfigurasi GenieACS di Settings',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: isDark ? Colors.white70 : Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    else ...[
-                      // Search and Filter Bar
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _searchController,
-                              onChanged: (value) {
-                                // Cancel previous debounce timer
-                                _searchDebounce?.cancel();
-                                
-                                // Create new timer to wait for user to stop typing
-                                _searchDebounce = Timer(const Duration(milliseconds: 500), () {
-                                  setState(() {}); // Rebuild to update filtered list
-                                });
-                              },
-                              decoration: InputDecoration(
-                                hintText: 'Cari...',
-                                prefixIcon: const Icon(Icons.search),
-                                suffixIcon: _searchController.text.isNotEmpty
-                                    ? IconButton(
-                                        icon: const Icon(Icons.clear),
-                                        onPressed: () {
-                                          _searchController.clear();
-                                          setState(() {});
-                                        },
-                                      )
-                                    : null,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                filled: true,
-                                fillColor: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: Icon(
-                              Icons.filter_list,
-                              color: _statusFilter != 'Semua' || _sortOption != 'Last Inform (Newest)' || _rxFilter != 'Semua'
-                                  ? (isDark ? Colors.blue.shade300 : Colors.blue.shade800)
-                                  : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
-                            ),
-                            onPressed: _showFilterDialog,
-                            tooltip: 'Filter',
-                            style: IconButton.styleFrom(
-                              backgroundColor: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
-                              padding: const EdgeInsets.all(12),
+                          if (_devices.isEmpty)
+                            Card(
+                              elevation: 2,
+                              color: isDark
+                                  ? const Color(0xFF1E1E1E)
+                                  : Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Devices List
-                      if (_isLoading)
-                        const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(32.0),
-                            child: CircularProgressIndicator(),
-                          ),
-                        )
-                      else if (filteredDevices.isEmpty)
-                        Card(
-                          elevation: 2,
-                          color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                          child: Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.search_off,
-                                  size: 64,
-                                  color: isDark ? Colors.white38 : Colors.black38,
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.cloud_off,
+                                      size: 64,
+                                      color: Colors.grey,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Belum Dikonfigurasi',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Silakan konfigurasi GenieACS di Settings',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: isDark
+                                            ? Colors.white70
+                                            : Colors.black54,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Tidak ada device ditemukan',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: isDark ? Colors.white70 : Colors.black54,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        ...filteredDevices.map((device) {
-                          return Card(
-                            elevation: 2,
-                            margin: const EdgeInsets.only(bottom: 12),
-                            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              ),
+                            )
+                          else ...[
+                            // Search and Filter Bar
+                            Row(
                               children: [
                                 Expanded(
-                                  child: InkWell(
-                                    onTap: () => _showDeviceDetails(device),
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Container(
-                                                padding: const EdgeInsets.all(8),
-                                                decoration: BoxDecoration(
-                                                  color: _getStatusColor(device)
-                                                      .withOpacity(0.2),
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: Icon(
-                                                  Icons.router,
-                                                  color: _getStatusColor(device),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      DeviceInfoExtractor.getPPPoEUsername(device),
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: isDark ? Colors.white : Colors.black87,
-                                                      ),
-                                                      maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
-                                                    ),
-                                                    const SizedBox(height: 2),
-                                                    Text(
-                                                      DeviceInfoExtractor.getPPPoEIP(device) != '-'
-                                                          ? DeviceInfoExtractor.getPPPoEIP(device)
-                                                          : DeviceInfoExtractor.getModel(device),
-                                                      style: TextStyle(
-                                                        fontSize: 13,
-                                                        color: isDark ? Colors.white70 : Colors.black54,
-                                                      ),
-                                                      maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.wifi_tethering,
-                                                size: 14,
-                                                color: isDark ? Colors.orange.shade300 : Colors.orange.shade700,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                'RX: ${DeviceInfoExtractor.getRXPower(device)} dBm',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: isDark ? Colors.orange.shade300 : Colors.orange.shade700,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Icon(
-                                                Icons.info_outline,
-                                                size: 14,
-                                                color: isDark ? Colors.white54 : Colors.black54,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Expanded(
-                                                child: Text(
-                                                  DeviceInfoExtractor.getLastInform(device),
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: isDark ? Colors.white70 : Colors.black54,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          if (DeviceInfoExtractor.getTags(device).isNotEmpty) ...[
-                                            const SizedBox(height: 4),
-                                            Wrap(
-                                              spacing: 4,
-                                              children: DeviceInfoExtractor.getTags(device)
-                                                  .take(3)
-                                                  .map((tag) => Container(
-                                                        padding: const EdgeInsets.symmetric(
-                                                          horizontal: 6,
-                                                          vertical: 2,
-                                                        ),
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.blue.shade50,
-                                                          borderRadius: BorderRadius.circular(4),
-                                                        ),
-                                                        child: Text(
-                                                          tag,
-                                                          style: TextStyle(
-                                                            fontSize: 10,
-                                                            color: Colors.blue.shade700,
-                                                          ),
-                                                        ),
-                                                      ))
-                                                  .toList(),
-                                            ),
-                                          ],
-                                        ],
+                                  child: TextField(
+                                    controller: _searchController,
+                                    onChanged: (value) {
+                                      // Cancel previous debounce timer
+                                      _searchDebounce?.cancel();
+
+                                      // Create new timer to wait for user to stop typing
+                                      _searchDebounce = Timer(
+                                          const Duration(milliseconds: 500),
+                                          () {
+                                        setState(
+                                            () {}); // Rebuild to update filtered list
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText: 'Cari...',
+                                      prefixIcon: const Icon(Icons.search),
+                                      suffixIcon:
+                                          _searchController.text.isNotEmpty
+                                              ? IconButton(
+                                                  icon: const Icon(Icons.clear),
+                                                  onPressed: () {
+                                                    _searchController.clear();
+                                                    setState(() {});
+                                                  },
+                                                )
+                                              : null,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
+                                      filled: true,
+                                      fillColor: isDark
+                                          ? Colors.grey.shade900
+                                          : Colors.grey.shade100,
                                     ),
                                   ),
                                 ),
+                                const SizedBox(width: 8),
                                 IconButton(
-                                  icon: const Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () => _showChangePasswordDialog(device),
-                                  tooltip: 'Ganti Password',
+                                  icon: Icon(
+                                    Icons.filter_list,
+                                    color: _statusFilter != 'Semua' ||
+                                            _sortOption !=
+                                                'Last Inform (Newest)' ||
+                                            _rxFilter != 'Semua'
+                                        ? (isDark
+                                            ? Colors.blue.shade300
+                                            : Colors.blue.shade800)
+                                        : (isDark
+                                            ? Colors.grey.shade400
+                                            : Colors.grey.shade600),
+                                  ),
+                                  onPressed: _showFilterDialog,
+                                  tooltip: 'Filter',
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: isDark
+                                        ? Colors.grey.shade900
+                                        : Colors.grey.shade100,
+                                    padding: const EdgeInsets.all(12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
-                          );
-                        }),
-                    ],
+                            const SizedBox(height: 16),
+
+                            // Devices List
+                            if (_isLoading)
+                              const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(32.0),
+                                  child: CircularProgressIndicator(),
+                                ),
+                              )
+                            else if (filteredDevices.isEmpty)
+                              Card(
+                                elevation: 2,
+                                color: isDark
+                                    ? const Color(0xFF1E1E1E)
+                                    : Colors.white,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(32.0),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.search_off,
+                                        size: 64,
+                                        color: isDark
+                                            ? Colors.white38
+                                            : Colors.black38,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'Tidak ada device ditemukan',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: isDark
+                                              ? Colors.white70
+                                              : Colors.black54,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            else
+                              ...filteredDevices.map((device) {
+                                return Card(
+                                  elevation: 2,
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  color: isDark
+                                      ? const Color(0xFF1E1E1E)
+                                      : Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: InkWell(
+                                          onTap: () =>
+                                              _showDeviceDetails(device),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(16),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              8),
+                                                      decoration: BoxDecoration(
+                                                        color: _getStatusColor(
+                                                                device)
+                                                            .withOpacity(0.2),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8),
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.router,
+                                                        color: _getStatusColor(
+                                                            device),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            DeviceInfoExtractor
+                                                                .getPPPoEUsername(
+                                                                    device),
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: isDark
+                                                                  ? Colors.white
+                                                                  : Colors
+                                                                      .black87,
+                                                            ),
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
+                                                          const SizedBox(
+                                                              height: 2),
+                                                          Text(
+                                                            DeviceInfoExtractor
+                                                                        .getPPPoEIP(
+                                                                            device) !=
+                                                                    '-'
+                                                                ? DeviceInfoExtractor
+                                                                    .getPPPoEIP(
+                                                                        device)
+                                                                : DeviceInfoExtractor
+                                                                    .getModel(
+                                                                        device),
+                                                            style: TextStyle(
+                                                              fontSize: 13,
+                                                              color: isDark
+                                                                  ? Colors
+                                                                      .white70
+                                                                  : Colors
+                                                                      .black54,
+                                                            ),
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.wifi_tethering,
+                                                      size: 14,
+                                                      color: isDark
+                                                          ? Colors
+                                                              .orange.shade300
+                                                          : Colors
+                                                              .orange.shade700,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      'RX: ${DeviceInfoExtractor.getRXPower(device)} dBm',
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: isDark
+                                                            ? Colors
+                                                                .orange.shade300
+                                                            : Colors.orange
+                                                                .shade700,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Icon(
+                                                      Icons.info_outline,
+                                                      size: 14,
+                                                      color: isDark
+                                                          ? Colors.white54
+                                                          : Colors.black54,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Expanded(
+                                                      child: Text(
+                                                        DeviceInfoExtractor
+                                                            .getLastInform(
+                                                                device),
+                                                        style: TextStyle(
+                                                          fontSize: 11,
+                                                          color: isDark
+                                                              ? Colors.white70
+                                                              : Colors.black54,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                if (DeviceInfoExtractor.getTags(
+                                                        device)
+                                                    .isNotEmpty) ...[
+                                                  const SizedBox(height: 4),
+                                                  Wrap(
+                                                    spacing: 4,
+                                                    children:
+                                                        DeviceInfoExtractor
+                                                                .getTags(device)
+                                                            .take(3)
+                                                            .map(
+                                                                (tag) =>
+                                                                    Container(
+                                                                      padding:
+                                                                          const EdgeInsets
+                                                                              .symmetric(
+                                                                        horizontal:
+                                                                            6,
+                                                                        vertical:
+                                                                            2,
+                                                                      ),
+                                                                      decoration:
+                                                                          BoxDecoration(
+                                                                        color: Colors
+                                                                            .blue
+                                                                            .shade50,
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(4),
+                                                                      ),
+                                                                      child:
+                                                                          Text(
+                                                                        tag,
+                                                                        style:
+                                                                            TextStyle(
+                                                                          fontSize:
+                                                                              10,
+                                                                          color: Colors
+                                                                              .blue
+                                                                              .shade700,
+                                                                        ),
+                                                                      ),
+                                                                    ))
+                                                            .toList(),
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.edit,
+                                            color: Colors.blue),
+                                        onPressed: () =>
+                                            _showChangePasswordDialog(device),
+                                        tooltip: 'Ganti Password',
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                          ],
                         ],
                       ),
                     ),
@@ -1355,17 +1511,17 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
       ),
     );
   }
-  
+
   Widget _buildFooter() {
     if (_devices.isEmpty) return const SizedBox.shrink();
-    
+
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
     final filteredDevices = _getFilteredAndSortedDevices();
-    
+
     final filteredTotal = filteredDevices.length;
     final totalDevices = _devices.length;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
@@ -1381,7 +1537,8 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.router, color: isDark ? Colors.white70 : Colors.black54, size: 18),
+            Icon(Icons.router,
+                color: isDark ? Colors.white70 : Colors.black54, size: 18),
             const SizedBox(width: 6),
             Text(
               '$filteredTotal Total ACS Devices',
@@ -1406,7 +1563,7 @@ class _GenieACSScreenState extends State<GenieACSScreen> {
       ),
     );
   }
-  
+
   Color _getStatusColor(Map<String, dynamic> device) {
     final status = DeviceInfoExtractor.getConnectionStatus(device);
     switch (status.toLowerCase()) {

@@ -10,7 +10,7 @@ import 'package:flutter/widgets.dart';
 
 class SecretsActiveScreen extends StatefulWidget {
   const SecretsActiveScreen({Key? key}) : super(key: key);
- 
+
   @override
   State<SecretsActiveScreen> createState() => _SecretsActiveScreenState();
 }
@@ -66,7 +66,8 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
     _scrollController = ScrollController();
     _scrollController.addListener(() {
       final provider = Provider.of<MikrotikProvider>(context, listen: false);
-      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
         setState(() {
           if (_currentMax < provider.pppSecrets.length) {
             _currentMax += _itemsPerPage;
@@ -81,7 +82,8 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
     super.didChangeDependencies();
     // Check for route arguments only once
     if (!_processedDashboardArgs) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       if (args != null) {
         setState(() {
           _statusFilter = args['statusFilter'] ?? 'Semua';
@@ -105,7 +107,7 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -118,75 +120,75 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
             Center(
               child: Text('Filter',
                   style: TextStyle(
-                    fontWeight: FontWeight.bold, 
+                    fontWeight: FontWeight.bold,
                     fontSize: 18,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white : Colors.black87,
                   )),
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              dropdownColor: Colors.white,
+              dropdownColor: isDark ? const Color(0xFF2D2D2D) : Colors.white,
               value: _sortOption,
               items: _sortOptions
                   .map((e) => DropdownMenuItem(
-                    value: e, 
-                    child: Text(
-                      e,
-                      style: TextStyle(
-                        color: Colors.black87,
-                      ),
-                    )))
+                      value: e,
+                      child: Text(
+                        e,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      )))
                   .toList(),
               onChanged: (v) => setState(() => _sortOption = v!),
               decoration: InputDecoration(
                 labelText: 'Shortlist',
                 labelStyle: TextStyle(
-                  color: Colors.black54,
+                  color: isDark ? Colors.white70 : Colors.black54,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: Colors.grey.shade300,
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: Colors.blue,
+                    color: isDark ? Colors.blue.shade300 : Colors.blue,
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              dropdownColor: Colors.white,
+              dropdownColor: isDark ? const Color(0xFF2D2D2D) : Colors.white,
               value: _statusFilter,
               items: _statusOptions
                   .map((e) => DropdownMenuItem(
-                    value: e, 
-                    child: Text(
-                      e,
-                      style: TextStyle(
-                        color: Colors.black87,
-                      ),
-                    )))
+                      value: e,
+                      child: Text(
+                        e,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      )))
                   .toList(),
               onChanged: (v) => setState(() => _statusFilter = v!),
               decoration: InputDecoration(
                 labelText: 'Status Koneksi',
                 labelStyle: TextStyle(
-                  color: Colors.black54,
+                  color: isDark ? Colors.white70 : Colors.black54,
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: Colors.grey.shade300,
+                    color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color: Colors.blue,
+                    color: isDark ? Colors.blue.shade300 : Colors.blue,
                   ),
                 ),
               ),
@@ -204,7 +206,7 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
     final profile = user['profile-info'] ?? {};
     // Create a timer to update the UI
     Timer? timer;
-    
+
     showModalBottomSheet(
       context: parentContext,
       backgroundColor: Colors.transparent,
@@ -217,63 +219,65 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
             (bottomSheetContext as Element).markNeedsBuild();
           }
         });
-        
+
         return DraggableScrollableSheet(
           initialChildSize: 0.6,
           minChildSize: 0.4,
-        maxChildSize: 0.95,
-        expand: false,
+          maxChildSize: 0.95,
+          expand: false,
           builder: (_, controller) => Container(
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
             child: Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: ListView(
+                Expanded(
+                  child: ListView(
                     controller: controller,
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                     children: [
                       // User header with status
                       Row(
-                children: [
+                        children: [
                           Container(
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: isOnline 
-                                ? Colors.blue.shade50
-                                : Colors.red.shade50,
+                              color: isOnline
+                                  ? Colors.blue.shade50
+                                  : Colors.red.shade50,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.person,
                               color: isOnline
-                                ? Colors.blue.shade700
-                                : Colors.red.shade700,
+                                  ? Colors.blue.shade700
+                                  : Colors.red.shade700,
                             ),
-                  ),
+                          ),
                           const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
                                   user['name'] ?? '-',
-                                style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
                                   ),
                                 ),
                                 Text(
@@ -283,15 +287,20 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                                     fontSize: 14,
                                   ),
                                 ),
-                          ],
-                        ),
+                              ],
+                            ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: isOnline 
-                                ? (isDark ? Colors.green.shade900 : Colors.green.shade50) 
-                                : (isDark ? Colors.red.shade900 : Colors.red.shade50),
+                              color: isOnline
+                                  ? (isDark
+                                      ? Colors.green.shade900
+                                      : Colors.green.shade50)
+                                  : (isDark
+                                      ? Colors.red.shade900
+                                      : Colors.red.shade50),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
@@ -308,30 +317,34 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                                 const SizedBox(width: 4),
                                 Text(
                                   isOnline ? 'Online' : 'Offline',
-                                style: TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: isOnline 
-                                      ? (isDark ? Colors.green.shade300 : Colors.green)
-                                      : (isDark ? Colors.red.shade300 : Colors.red),
+                                    color: isOnline
+                                        ? (isDark
+                                            ? Colors.green.shade300
+                                            : Colors.green)
+                                        : (isDark
+                                            ? Colors.red.shade300
+                                            : Colors.red),
                                     fontWeight: FontWeight.w500,
                                   ),
+                                ),
+                              ],
+                            ),
                           ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                        ],
+                      ),
                       const SizedBox(height: 24),
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: isDark 
-                              ? Colors.grey[700]! 
-                              : Colors.grey[300]!,
+                            color:
+                                isDark ? Colors.grey[700]! : Colors.grey[300]!,
                             width: 1,
                           ),
                           borderRadius: BorderRadius.circular(12),
-                          color: Colors.white,
+                          color:
+                              isDark ? const Color(0xFF1E1E1E) : Colors.white,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,7 +353,9 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                               width: double.infinity,
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDark
+                                    ? const Color(0xFF1E1E1E)
+                                    : Colors.white,
                                 borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(12),
                                 ),
@@ -348,19 +363,19 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                               child: Row(
                                 children: [
                                   Icon(
-                                    Icons.info, 
-                                    color: isOnline 
-                                      ? Colors.blue[700]
-                                      : Colors.red[700],
+                                    Icons.info,
+                                    color: isOnline
+                                        ? Colors.blue[700]
+                                        : Colors.red[700],
                                     size: 18,
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     'User Info',
                                     style: TextStyle(
-                                      color: isOnline 
-                                        ? Colors.blue[700]
-                                        : Colors.red[700],
+                                      color: isOnline
+                                          ? Colors.blue[700]
+                                          : Colors.red[700],
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                     ),
@@ -369,76 +384,143 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                               ),
                             ),
                             _buildDivider(),
-                            _buildDetailItem(Icons.person_outline, 'Name', user['name'] ?? '-', 
+                            _buildDetailItem(
+                              Icons.person_outline,
+                              'Name',
+                              user['name'] ?? '-',
                               canCopy: true,
-                              iconColor: isOnline 
-                                ? (isDark ? Colors.blue.shade300 : Colors.blue.shade700)
-                                : (isDark ? Colors.red.shade300 : Colors.red.shade700),
+                              iconColor: isOnline
+                                  ? (isDark
+                                      ? Colors.blue.shade300
+                                      : Colors.blue.shade700)
+                                  : (isDark
+                                      ? Colors.red.shade300
+                                      : Colors.red.shade700),
                             ),
                             _buildDivider(),
-                            _buildDetailItem(Icons.lock_outline, 'Password', user['password'] ?? '-', 
+                            _buildDetailItem(
+                              Icons.lock_outline,
+                              'Password',
+                              user['password'] ?? '-',
                               isPassword: true,
-                              iconColor: isOnline 
-                                ? (isDark ? Colors.blue.shade300 : Colors.blue.shade700)
-                                : (isDark ? Colors.red.shade300 : Colors.red.shade700),
+                              iconColor: isOnline
+                                  ? (isDark
+                                      ? Colors.blue.shade300
+                                      : Colors.blue.shade700)
+                                  : (isDark
+                                      ? Colors.red.shade300
+                                      : Colors.red.shade700),
                             ),
-                            _buildDetailItem(Icons.settings_outlined, 'Service', user['service'] ?? '-', 
-                              iconColor: isOnline 
-                                ? (isDark ? Colors.blue.shade300 : Colors.blue.shade700)
-                                : (isDark ? Colors.red.shade300 : Colors.red.shade700),
+                            _buildDetailItem(
+                              Icons.settings_outlined,
+                              'Service',
+                              user['service'] ?? '-',
+                              iconColor: isOnline
+                                  ? (isDark
+                                      ? Colors.blue.shade300
+                                      : Colors.blue.shade700)
+                                  : (isDark
+                                      ? Colors.red.shade300
+                                      : Colors.red.shade700),
                             ),
                             _buildDivider(),
-                            _buildDetailItem(Icons.wifi_outlined, 'IP', user['address'] ?? '-', 
+                            _buildDetailItem(
+                              Icons.wifi_outlined,
+                              'IP',
+                              user['address'] ?? '-',
                               canCopy: true,
-                              iconColor: isOnline 
-                                ? (isDark ? Colors.blue.shade300 : Colors.blue.shade700)
-                                : (isDark ? Colors.red.shade300 : Colors.red.shade700),
+                              iconColor: isOnline
+                                  ? (isDark
+                                      ? Colors.blue.shade300
+                                      : Colors.blue.shade700)
+                                  : (isDark
+                                      ? Colors.red.shade300
+                                      : Colors.red.shade700),
                             ),
                             _buildDivider(),
-                            StatefulBuilder(
-                              builder: (context, setState) {
-                                return _buildDetailItem(
-                                  Icons.timer_outlined, 
-                                  'Uptime', 
-                                  _getRealtimeUptime(user['uptime']),
-                                  iconColor: isOnline 
-                                    ? (isDark ? Colors.blue.shade300 : Colors.blue.shade700)
-                                    : (isDark ? Colors.red.shade300 : Colors.red.shade700),
-                                );
-                              }
-                            ),
-                            if (user['caller-id'] != null && user['caller-id'].toString().isNotEmpty) ...[
+                            StatefulBuilder(builder: (context, setState) {
+                              return _buildDetailItem(
+                                Icons.timer_outlined,
+                                'Uptime',
+                                _getRealtimeUptime(user['uptime']),
+                                iconColor: isOnline
+                                    ? (isDark
+                                        ? Colors.blue.shade300
+                                        : Colors.blue.shade700)
+                                    : (isDark
+                                        ? Colors.red.shade300
+                                        : Colors.red.shade700),
+                              );
+                            }),
+                            if (user['caller-id'] != null &&
+                                user['caller-id'].toString().isNotEmpty) ...[
                               _buildDivider(),
-                              _buildDetailItem(Icons.perm_device_info, 'MAC Address', user['caller-id'] ?? '-', 
+                              _buildDetailItem(
+                                Icons.perm_device_info,
+                                'MAC Address',
+                                user['caller-id'] ?? '-',
                                 canCopy: true,
-                                iconColor: isOnline 
-                                  ? (isDark ? Colors.blue.shade300 : Colors.blue.shade700)
-                                  : (isDark ? Colors.red.shade300 : Colors.red.shade700),
+                                iconColor: isOnline
+                                    ? (isDark
+                                        ? Colors.blue.shade300
+                                        : Colors.blue.shade700)
+                                    : (isDark
+                                        ? Colors.red.shade300
+                                        : Colors.red.shade700),
                               ),
                             ],
                             _buildDivider(),
-                            _buildDetailItem(Icons.logout_outlined, 'Last logout', formatLastLogout(user['last-logged-out'] ?? user['last_logout']),
-                              iconColor: isOnline 
-                                ? (isDark ? Colors.blue.shade300 : Colors.blue.shade700)
-                                : (isDark ? Colors.red.shade300 : Colors.red.shade700),
+                            _buildDetailItem(
+                              Icons.logout_outlined,
+                              'Last logout',
+                              formatLastLogout(user['last-logged-out'] ??
+                                  user['last_logout']),
+                              iconColor: isOnline
+                                  ? (isDark
+                                      ? Colors.blue.shade300
+                                      : Colors.blue.shade700)
+                                  : (isDark
+                                      ? Colors.red.shade300
+                                      : Colors.red.shade700),
                             ),
                             _buildDivider(),
-                            _buildDetailItem(Icons.link_off_outlined, 'Last disconnect', user['last-disconnect-reason'] ?? '-',
-                              iconColor: isOnline 
-                                ? (isDark ? Colors.blue.shade300 : Colors.blue.shade700)
-                                : (isDark ? Colors.red.shade300 : Colors.red.shade700),
+                            _buildDetailItem(
+                              Icons.link_off_outlined,
+                              'Last disconnect',
+                              user['last-disconnect-reason'] ?? '-',
+                              iconColor: isOnline
+                                  ? (isDark
+                                      ? Colors.blue.shade300
+                                      : Colors.blue.shade700)
+                                  : (isDark
+                                      ? Colors.red.shade300
+                                      : Colors.red.shade700),
                             ),
                             _buildDivider(),
-                            _buildDetailItem(Icons.block_outlined, 'Disabled', user['disabled'] ?? 'false',
-                              iconColor: isOnline 
-                                ? (isDark ? Colors.blue.shade300 : Colors.blue.shade700)
-                                : (isDark ? Colors.red.shade300 : Colors.red.shade700),
+                            _buildDetailItem(
+                              Icons.block_outlined,
+                              'Disabled',
+                              user['disabled'] ?? 'false',
+                              iconColor: isOnline
+                                  ? (isDark
+                                      ? Colors.blue.shade300
+                                      : Colors.blue.shade700)
+                                  : (isDark
+                                      ? Colors.red.shade300
+                                      : Colors.red.shade700),
                             ),
                             _buildDivider(),
-                            _buildDetailItem(Icons.route_outlined, 'Routes', user['routes'] ?? '-',
-                              iconColor: isOnline 
-                                ? (isDark ? Colors.blue.shade300 : Colors.blue.shade700)
-                                : (isDark ? Colors.red.shade300 : Colors.red.shade700),
+                            _buildDetailItem(
+                              Icons.route_outlined,
+                              'Routes',
+                              user['routes'] ?? '-',
+                              iconColor: isOnline
+                                  ? (isDark
+                                      ? Colors.blue.shade300
+                                      : Colors.blue.shade700)
+                                  : (isDark
+                                      ? Colors.red.shade300
+                                      : Colors.red.shade700),
                             ),
                           ],
                         ),
@@ -447,13 +529,13 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: isDark 
-                              ? Colors.grey[700]! 
-                              : Colors.grey[300]!,
+                            color:
+                                isDark ? Colors.grey[700]! : Colors.grey[300]!,
                             width: 1,
                           ),
                           borderRadius: BorderRadius.circular(12),
-                          color: Colors.white,
+                          color:
+                              isDark ? const Color(0xFF1E1E1E) : Colors.white,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -462,7 +544,9 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                               width: double.infinity,
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDark
+                                    ? const Color(0xFF1E1E1E)
+                                    : Colors.white,
                                 borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(12),
                                 ),
@@ -470,7 +554,7 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                               child: Row(
                                 children: [
                                   Icon(
-                                    Icons.info_outline, 
+                                    Icons.info_outline,
                                     color: Colors.orange[700],
                                     size: 18,
                                   ),
@@ -486,25 +570,50 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                                 ],
                               ),
                             ),
-                            _buildDetailItem(Icons.speed, 'Rate Limit', profile['rate-limit'] ?? '-', 
-                              iconColor: isDark ? Colors.orange.shade300 : Colors.orange[700],
+                            _buildDetailItem(
+                              Icons.speed,
+                              'Rate Limit',
+                              profile['rate-limit'] ?? '-',
+                              iconColor: isDark
+                                  ? Colors.orange.shade300
+                                  : Colors.orange[700],
                             ),
                             _buildDivider(),
-                            _buildDetailItem(Icons.dns, 'DNS Server', profile['dns-server'] ?? '-', 
-                              iconColor: isDark ? Colors.orange.shade300 : Colors.orange[700],
+                            _buildDetailItem(
+                              Icons.dns,
+                              'DNS Server',
+                              profile['dns-server'] ?? '-',
+                              iconColor: isDark
+                                  ? Colors.orange.shade300
+                                  : Colors.orange[700],
                             ),
                             _buildDivider(),
-                            _buildDetailItem(Icons.router, 'Local Address', profile['local-address'] ?? '-', 
-                              iconColor: isDark ? Colors.orange.shade300 : Colors.orange[700],
+                            _buildDetailItem(
+                              Icons.router,
+                              'Local Address',
+                              profile['local-address'] ?? '-',
+                              iconColor: isDark
+                                  ? Colors.orange.shade300
+                                  : Colors.orange[700],
                             ),
                             _buildDivider(),
-                            _buildDetailItem(Icons.public, 'Remote Address', profile['remote-address'] ?? '-', 
-                              iconColor: isDark ? Colors.orange.shade300 : Colors.orange[700],
+                            _buildDetailItem(
+                              Icons.public,
+                              'Remote Address',
+                              profile['remote-address'] ?? '-',
+                              iconColor: isDark
+                                  ? Colors.orange.shade300
+                                  : Colors.orange[700],
                             ),
                             if (profile['parent-queue'] != null) ...[
                               _buildDivider(),
-                              _buildDetailItem(Icons.account_tree, 'Parent Queue', profile['parent-queue'],
-                                iconColor: isDark ? Colors.orange.shade300 : Colors.orange[700],
+                              _buildDetailItem(
+                                Icons.account_tree,
+                                'Parent Queue',
+                                profile['parent-queue'],
+                                iconColor: isDark
+                                    ? Colors.orange.shade300
+                                    : Colors.orange[700],
                               ),
                             ],
                           ],
@@ -517,11 +626,14 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                             child: ElevatedButton.icon(
                               onPressed: () {
                                 Navigator.pop(bottomSheetContext);
-                                final provider = Provider.of<MikrotikProvider>(parentContext, listen: false);
+                                final provider = Provider.of<MikrotikProvider>(
+                                    parentContext,
+                                    listen: false);
                                 Navigator.push(
                                   parentContext,
                                   MaterialPageRoute(
-                                    builder: (context) => ChangeNotifierProvider.value(
+                                    builder: (context) =>
+                                        ChangeNotifierProvider.value(
                                       value: provider,
                                       child: EditScreen(user: user),
                                     ),
@@ -539,10 +651,12 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: isDark ? Colors.blue.shade700 : Colors.blue,
+                                backgroundColor:
+                                    isDark ? Colors.blue.shade700 : Colors.blue,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
@@ -566,9 +680,11 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: isDark ? Colors.red.shade700 : Colors.red,
+                                backgroundColor:
+                                    isDark ? Colors.red.shade700 : Colors.red,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -591,12 +707,13 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
     });
   }
 
-  Widget _buildDetailItem(IconData icon, String label, String value, {bool isPassword = false, bool canCopy = false, Color? iconColor}) {
+  Widget _buildDetailItem(IconData icon, String label, String value,
+      {bool isPassword = false, bool canCopy = false, Color? iconColor}) {
     final ValueNotifier<bool> passwordVisible = ValueNotifier<bool>(false);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final themeColor = isDarkMode ? Colors.blue.shade300 : Colors.blue.shade700;
     final statusColor = iconColor ?? themeColor;
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       child: Row(
@@ -609,10 +726,10 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
           ),
           const SizedBox(width: 8),
           Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-                      children: [
+              children: [
                 Text(
                   label,
                   style: TextStyle(
@@ -627,35 +744,41 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                   children: [
                     Expanded(
                       child: isPassword
-                        ? ValueListenableBuilder<bool>(
-                            valueListenable: passwordVisible,
-                            builder: (context, isVisible, _) {
-                              return Text(
-                                isVisible ? value : '••••••••',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: isDarkMode ? Colors.white : Colors.black87,
-                                ),
-                              );
-                            },
-                          )
-                        : Text(
-                            value,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: isDarkMode ? Colors.white : Colors.black87,
+                          ? ValueListenableBuilder<bool>(
+                              valueListenable: passwordVisible,
+                              builder: (context, isVisible, _) {
+                                return Text(
+                                  isVisible ? value : '••••••••',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black87,
+                                  ),
+                                );
+                              },
+                            )
+                          : Text(
+                              value,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color:
+                                    isDarkMode ? Colors.white : Colors.black87,
+                              ),
                             ),
-                          ),
                     ),
                     if (isPassword)
                       GestureDetector(
-                        onTap: () => passwordVisible.value = !passwordVisible.value,
+                        onTap: () =>
+                            passwordVisible.value = !passwordVisible.value,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: Icon(
-                            passwordVisible.value ? Icons.visibility_off : Icons.visibility,
+                            passwordVisible.value
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             size: 16,
                             color: statusColor,
                           ),
@@ -670,10 +793,14 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                               content: Text(
                                 '$label copied to clipboard',
                                 style: TextStyle(
-                                  color: isDarkMode ? Colors.white : Colors.black87,
+                                  color: isDarkMode
+                                      ? Colors.white
+                                      : Colors.black87,
                                 ),
                               ),
-                              backgroundColor: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                              backgroundColor: isDarkMode
+                                  ? Colors.grey[800]
+                                  : Colors.grey[200],
                               duration: const Duration(seconds: 2),
                             ),
                           );
@@ -702,13 +829,12 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
     return Divider(
       height: 1,
       thickness: 1,
-      color: isDarkMode 
-        ? Colors.grey[700] 
-        : Colors.grey[200],
+      color: isDarkMode ? Colors.grey[700] : Colors.grey[200],
     );
   }
 
-  void _showDeleteConfirmation(BuildContext parentContext, Map<String, dynamic> user) {
+  void _showDeleteConfirmation(
+      BuildContext parentContext, Map<String, dynamic> user) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: parentContext,
@@ -750,7 +876,7 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                 color: isDark ? Colors.white70 : Colors.black87,
               ),
             ),
-                        const SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'This action cannot be undone.',
               style: TextStyle(
@@ -774,9 +900,10 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
           ElevatedButton(
             onPressed: () async {
               try {
-                final provider = Provider.of<MikrotikProvider>(parentContext, listen: false);
+                final provider =
+                    Provider.of<MikrotikProvider>(parentContext, listen: false);
                 await provider.service.deletePPPSecret(user['.id']);
-                
+
                 if (dialogContext.mounted) {
                   Navigator.pop(dialogContext);
                   // Show success snackbar
@@ -873,34 +1000,40 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
         children: [
           Expanded(
             child: Card(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
               elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
                     const SizedBox(width: 12),
-                    Icon(Icons.search, color: Colors.grey.shade600),
+                    Icon(Icons.search,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600),
                     const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
-                        style: const TextStyle(
-                          color: Colors.black87,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                         controller: _searchController,
                         decoration: InputDecoration(
                           hintText: 'Cari username...',
                           hintStyle: TextStyle(
-                            color: Colors.grey.shade500,
+                            color: isDark
+                                ? Colors.grey.shade400
+                                : Colors.grey.shade500,
                           ),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 12),
                         ),
                         onChanged: (value) {
                           setState(() {
@@ -913,7 +1046,9 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                       IconButton(
                         icon: Icon(
                           Icons.clear,
-                          color: Colors.grey.shade600,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
                         ),
                         onPressed: () {
                           _searchController.clear();
@@ -929,22 +1064,23 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
           ),
           const SizedBox(width: 8),
           Card(
-            color: Colors.white,
+            color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
             elevation: 4,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
                 icon: Icon(
                   Icons.filter_list,
-                  color: _statusFilter != 'Semua' || _sortOption != 'Uptime (Shortest)'
-                      ? Colors.blue.shade800
-                      : Colors.grey.shade600,
+                  color: _statusFilter != 'Semua' ||
+                          _sortOption != 'Uptime (Shortest)'
+                      ? (isDark ? Colors.blue.shade300 : Colors.blue.shade800)
+                      : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
                 ),
                 onPressed: _showFilterDialog,
                 tooltip: 'Filter',
@@ -975,502 +1111,604 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
             ),
           ),
           centerTitle: true,
-        actions: [
-          Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () async {
-                final provider =
-                    Provider.of<MikrotikProvider>(context, listen: false);
-                await provider.refreshData(forceRefresh: true);
-                await _fetchInterfaces(provider.service);
-                setState(() {
-                  _currentMax = _itemsPerPage;
-                });
-              },
-            ),
-          ),
-        ],
-      ),
-      body: Consumer<MikrotikProvider>(
-        builder: (context, provider, _) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (provider.error != null) {
-            return Center(
-              child: Text(
-                'Error: ${provider.error}',
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
+          actions: [
+            Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () async {
+                  final provider =
+                      Provider.of<MikrotikProvider>(context, listen: false);
+                  await provider.refreshData(forceRefresh: true);
+                  await _fetchInterfaces(provider.service);
+                  setState(() {
+                    _currentMax = _itemsPerPage;
+                  });
+                },
               ),
-            );
-          }
+            ),
+          ],
+        ),
+        body: Consumer<MikrotikProvider>(
+          builder: (context, provider, _) {
+            if (provider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (provider.error != null) {
+              return Center(
+                child: Text(
+                  'Error: ${provider.error}',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              );
+            }
 
-          // Fetch interface jika belum
-          if (_interfaces.isEmpty && !_loadingInterface) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _fetchInterfaces(provider.service);
-            });
-          }
+            // Fetch interface jika belum
+            if (_interfaces.isEmpty && !_loadingInterface) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _fetchInterfaces(provider.service);
+              });
+            }
 
-          // Set waktu fetch saat data pppSessions berubah
-          final dataHash = provider.pppSessions
-              .map((e) => (e['name'] ?? '') + (e['uptime'] ?? ''))
-              .join(',');
-          if (_lastDataHash != dataHash) {
-            _lastDataHash = dataHash;
-            _fetchTime = DateTime.now();
-          }
+            // Set waktu fetch saat data pppSessions berubah
+            final dataHash = provider.pppSessions
+                .map((e) => (e['name'] ?? '') + (e['uptime'] ?? ''))
+                .join(',');
+            if (_lastDataHash != dataHash) {
+              _lastDataHash = dataHash;
+              _fetchTime = DateTime.now();
+            }
 
-          // Gabungkan secrets dan active
-          final profiles = provider.pppProfiles;
-          final activeMap = {for (var s in provider.pppSessions) s['name']: s};
-          // Konsisten dengan sinkronisasi DB: abaikan secret dengan name kosong
-          final users = provider.pppSecrets
-              .where((s) => (s['name']?.toString().trim().isNotEmpty ?? false))
-              .map((secret) {
-            final session = activeMap[secret['name']];
-            final profileInfo = profiles.firstWhere(
-              (p) => p['name'] == secret['profile'],
-              orElse: () => {},
-            );
-            return {
-              ...secret,
-              if (session != null) ...session,
-              'isOnline': session != null,
-              'profile-info': profileInfo,
+            // Gabungkan secrets dan active
+            final profiles = provider.pppProfiles;
+            final activeMap = {
+              for (var s in provider.pppSessions) s['name']: s
             };
-          }).toList();
+            // Konsisten dengan sinkronisasi DB: abaikan secret dengan name kosong
+            final users = provider.pppSecrets
+                .where(
+                    (s) => (s['name']?.toString().trim().isNotEmpty ?? false))
+                .map((secret) {
+              final session = activeMap[secret['name']];
+              final profileInfo = profiles.firstWhere(
+                (p) => p['name'] == secret['profile'],
+                orElse: () => {},
+              );
+              return {
+                ...secret,
+                if (session != null) ...session,
+                'isOnline': session != null,
+                'profile-info': profileInfo,
+              };
+            }).toList();
 
-                      // Filtering - but don't filter out users when coming from dashboard navigation
-                      List<Map<String, dynamic>> filtered = users.where((u) {
-                        final q = _searchQuery.toLowerCase();
-                        // When from dashboard navigation, show all users (no status filtering)
-                        // Only apply search filter
-                        if (_processedDashboardArgs && _statusFilter != 'Semua') {
-                          // Apply only search filter, not status filter
-                          return (u['name'] ?? '').toLowerCase().contains(q) ||
-                              (u['address'] ?? '').toLowerCase().contains(q) ||
-                              (u['profile'] ?? '').toLowerCase().contains(q);
-                        } else {
-                          // Normal filtering behavior (apply both search and status filters)
-                          if (_statusFilter == 'Online' && !u['isOnline']) {
-                            return false;
-                          }
-                          if (_statusFilter == 'Offline' && u['isOnline']) {
-                            return false;
-                          }
-                          return (u['name'] ?? '').toLowerCase().contains(q) ||
-                              (u['address'] ?? '').toLowerCase().contains(q) ||
-                              (u['profile'] ?? '').toLowerCase().contains(q);
-                        }
-                      }).toList();
+            // Filtering - but don't filter out users when coming from dashboard navigation
+            List<Map<String, dynamic>> filtered = users.where((u) {
+              final q = _searchQuery.toLowerCase();
+              // When from dashboard navigation, show all users (no status filtering)
+              // Only apply search filter
+              if (_processedDashboardArgs && _statusFilter != 'Semua') {
+                // Apply only search filter, not status filter
+                return (u['name'] ?? '').toLowerCase().contains(q) ||
+                    (u['address'] ?? '').toLowerCase().contains(q) ||
+                    (u['profile'] ?? '').toLowerCase().contains(q);
+              } else {
+                // Normal filtering behavior (apply both search and status filters)
+                if (_statusFilter == 'Online' && !u['isOnline']) {
+                  return false;
+                }
+                if (_statusFilter == 'Offline' && u['isOnline']) {
+                  return false;
+                }
+                return (u['name'] ?? '').toLowerCase().contains(q) ||
+                    (u['address'] ?? '').toLowerCase().contains(q) ||
+                    (u['profile'] ?? '').toLowerCase().contains(q);
+              }
+            }).toList();
 
-                      // Sorting
-                      switch (_sortOption) {
-                        case 'Name (A-Z)':
-                          filtered.sort((a, b) =>
-                              (a['name'] ?? '').compareTo(b['name'] ?? ''));
-                          break;
-                        case 'Name (Z-A)':
-                          filtered.sort((a, b) =>
-                              (b['name'] ?? '').compareTo(a['name'] ?? ''));
-                          break;
-                        case 'Uptime (Longest)':
-                          filtered.sort((a, b) =>
-                              _parseFlexibleUptime(b['uptime']).compareTo(
-                                  _parseFlexibleUptime(a['uptime'])));
-                          break;
-                        case 'Uptime (Shortest)':
-                          filtered.sort((a, b) =>
-                              _parseFlexibleUptime(a['uptime']).compareTo(
-                                  _parseFlexibleUptime(b['uptime'])));
-                          break;
-                        case 'Last Logout (Newest)':
-                          filtered.sort((a, b) {
-                            final aLogout = _parseLogoutDate(a['last-logged-out'] ?? a['last_logout']);
-                            final bLogout = _parseLogoutDate(b['last-logged-out'] ?? b['last_logout']);
-                            if (aLogout == null && bLogout == null) return 0;
-                            if (aLogout == null) return 1;
-                            if (bLogout == null) return -1;
-                            return bLogout.compareTo(aLogout); // DESCENDING: terbaru di atas
-                          });
-                          break;
-                        case 'Last Logout (Oldest)':
-                          filtered.sort((a, b) {
-                            final aLogout = _parseLogoutDate(a['last-logged-out'] ?? a['last_logout']);
-                            final bLogout = _parseLogoutDate(b['last-logged-out'] ?? b['last_logout']);
-                            if (aLogout == null && bLogout == null) return 0;
-                            if (aLogout == null) return 1;
-                            if (bLogout == null) return -1;
-                            return aLogout.compareTo(bLogout); // ASCENDING: terlama di atas
-                          });
-                          break;
-                        case 'IP Address (A-Z)':
-                          filtered.sort((a, b) => (a['address'] ?? '')
-                              .compareTo(b['address'] ?? ''));
-                          break;
-                        case 'IP Address (Z-A)':
-                          filtered.sort((a, b) => (b['address'] ?? '')
-                              .compareTo(a['address'] ?? ''));
-                          break;
-                      }
+            // Sorting
+            switch (_sortOption) {
+              case 'Name (A-Z)':
+                filtered.sort(
+                    (a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
+                break;
+              case 'Name (Z-A)':
+                filtered.sort(
+                    (a, b) => (b['name'] ?? '').compareTo(a['name'] ?? ''));
+                break;
+              case 'Uptime (Longest)':
+                filtered.sort((a, b) => _parseFlexibleUptime(b['uptime'])
+                    .compareTo(_parseFlexibleUptime(a['uptime'])));
+                break;
+              case 'Uptime (Shortest)':
+                filtered.sort((a, b) => _parseFlexibleUptime(a['uptime'])
+                    .compareTo(_parseFlexibleUptime(b['uptime'])));
+                break;
+              case 'Last Logout (Newest)':
+                filtered.sort((a, b) {
+                  final aLogout = _parseLogoutDate(
+                      a['last-logged-out'] ?? a['last_logout']);
+                  final bLogout = _parseLogoutDate(
+                      b['last-logged-out'] ?? b['last_logout']);
+                  if (aLogout == null && bLogout == null) return 0;
+                  if (aLogout == null) return 1;
+                  if (bLogout == null) return -1;
+                  return bLogout
+                      .compareTo(aLogout); // DESCENDING: terbaru di atas
+                });
+                break;
+              case 'Last Logout (Oldest)':
+                filtered.sort((a, b) {
+                  final aLogout = _parseLogoutDate(
+                      a['last-logged-out'] ?? a['last_logout']);
+                  final bLogout = _parseLogoutDate(
+                      b['last-logged-out'] ?? b['last_logout']);
+                  if (aLogout == null && bLogout == null) return 0;
+                  if (aLogout == null) return 1;
+                  if (bLogout == null) return -1;
+                  return aLogout
+                      .compareTo(bLogout); // ASCENDING: terlama di atas
+                });
+                break;
+              case 'IP Address (A-Z)':
+                filtered.sort((a, b) =>
+                    (a['address'] ?? '').compareTo(b['address'] ?? ''));
+                break;
+              case 'IP Address (Z-A)':
+                filtered.sort((a, b) =>
+                    (b['address'] ?? '').compareTo(a['address'] ?? ''));
+                break;
+            }
 
-          // Pisahkan offline dan online, sort offline by last-logged-out DESC
-          final offline = filtered.where((u) => u['isOnline'] != true).toList();
-          final online = filtered.where((u) => u['isOnline'] == true).toList();
-          
-          // Sort offline users based on sort option
-          if (_sortOption == 'Last Logout (Newest)') {
-            offline.sort((a, b) {
-              final aLogout = _parseLogoutDate(a['last-logged-out'] ?? a['last_logout']);
-              final bLogout = _parseLogoutDate(b['last-logged-out'] ?? b['last_logout']);
-              if (aLogout == null && bLogout == null) return 0;
-              if (aLogout == null) return 1;
-              if (bLogout == null) return -1;
-              return bLogout.compareTo(aLogout); // DESCENDING: terbaru di atas
-            });
-          } else if (_sortOption == 'Last Logout (Oldest)') {
-            offline.sort((a, b) {
-              final aLogout = _parseLogoutDate(a['last-logged-out'] ?? a['last_logout']);
-              final bLogout = _parseLogoutDate(b['last-logged-out'] ?? b['last_logout']);
-              if (aLogout == null && bLogout == null) return 0;
-              if (aLogout == null) return 1;
-              if (bLogout == null) return -1;
-              return aLogout.compareTo(bLogout); // ASCENDING: terlama di atas
-            });
-          } else {
-            // Default sorting for offline users: A-Z
-            offline.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
-          }
-          
-          // Sort online users by uptime based on sort option
-          if (_sortOption == 'Uptime (Shortest)') {
-            online.sort((a, b) =>
-                _parseFlexibleUptime(a['uptime']).compareTo(
-                    _parseFlexibleUptime(b['uptime'])));
-          } else if (_sortOption == 'Uptime (Longest)') {
-            online.sort((a, b) =>
-                _parseFlexibleUptime(b['uptime']).compareTo(
-                    _parseFlexibleUptime(a['uptime'])));
-          }
-          
-          // Create display list based on filter - show priority users first, then others
-          // When from initial dashboard navigation, prioritize users but show all
-          final displayList = (_processedDashboardArgs && _statusFilter != 'Semua') 
-            ? (_statusFilter == 'Online' 
-                ? [...online, ...offline] 
-                : _statusFilter == 'Offline' 
-                  ? [...offline, ...online] 
-                  : [...offline, ...online])
-            : (_statusFilter == 'Online' 
-                ? [...online] 
-                : _statusFilter == 'Offline' 
-                  ? [...offline] 
-                  : [...offline, ...online]);
+            // Pisahkan offline dan online, sort offline by last-logged-out DESC
+            final offline =
+                filtered.where((u) => u['isOnline'] != true).toList();
+            final online =
+                filtered.where((u) => u['isOnline'] == true).toList();
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            // Sort offline users based on sort option
+            if (_sortOption == 'Last Logout (Newest)') {
+              offline.sort((a, b) {
+                final aLogout =
+                    _parseLogoutDate(a['last-logged-out'] ?? a['last_logout']);
+                final bLogout =
+                    _parseLogoutDate(b['last-logged-out'] ?? b['last_logout']);
+                if (aLogout == null && bLogout == null) return 0;
+                if (aLogout == null) return 1;
+                if (bLogout == null) return -1;
+                return bLogout
+                    .compareTo(aLogout); // DESCENDING: terbaru di atas
+              });
+            } else if (_sortOption == 'Last Logout (Oldest)') {
+              offline.sort((a, b) {
+                final aLogout =
+                    _parseLogoutDate(a['last-logged-out'] ?? a['last_logout']);
+                final bLogout =
+                    _parseLogoutDate(b['last-logged-out'] ?? b['last_logout']);
+                if (aLogout == null && bLogout == null) return 0;
+                if (aLogout == null) return 1;
+                if (bLogout == null) return -1;
+                return aLogout.compareTo(bLogout); // ASCENDING: terlama di atas
+              });
+            } else {
+              // Default sorting for offline users: A-Z
+              offline
+                  .sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
+            }
+
+            // Sort online users by uptime based on sort option
+            if (_sortOption == 'Uptime (Shortest)') {
+              online.sort((a, b) => _parseFlexibleUptime(a['uptime'])
+                  .compareTo(_parseFlexibleUptime(b['uptime'])));
+            } else if (_sortOption == 'Uptime (Longest)') {
+              online.sort((a, b) => _parseFlexibleUptime(b['uptime'])
+                  .compareTo(_parseFlexibleUptime(a['uptime'])));
+            }
+
+            // Create display list based on filter - show priority users first, then others
+            // When from initial dashboard navigation, prioritize users but show all
+            final displayList =
+                (_processedDashboardArgs && _statusFilter != 'Semua')
+                    ? (_statusFilter == 'Online'
+                        ? [...online, ...offline]
+                        : _statusFilter == 'Offline'
+                            ? [...offline, ...online]
+                            : [...offline, ...online])
+                    : (_statusFilter == 'Online'
+                        ? [...online]
+                        : _statusFilter == 'Offline'
+                            ? [...offline]
+                            : [...offline, ...online]);
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 _buildSearchBar(),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () async {
-                    final provider = Provider.of<MikrotikProvider>(context, listen: false);
-                    await provider.refreshData(forceRefresh: true);
-                    await _fetchInterfaces(provider.service);
-                    setState(() {
-                      _currentMax = _itemsPerPage;
-                    });
-                  },
-                  child: Builder(
-                    builder: (context) {
-                      // Calculate totals
-                      final totalUsers = offline.length + online.length;
-                      final totalActive = online.length;
-                      final totalOffline = offline.length;
-                      
-                      // For filtered display (when not from initial dashboard navigation)
-                      final filteredTotal = (_processedDashboardArgs && _statusFilter != 'Semua') 
-                        ? totalUsers 
-                        : filtered.length;
-                      final filteredActive = (_processedDashboardArgs && _statusFilter != 'Semua') 
-                        ? totalActive 
-                        : filtered.where((u) => u['isOnline'] == true).length;
-                      final filteredOffline = filteredTotal - filteredActive;
-                      
-                      return Column(
-                        children: [
-                          Expanded(
-                            child: ListView.builder(
-                              controller: _scrollController,
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 8),
-                              itemCount: displayList.length > _currentMax ? _currentMax + 1 : displayList.length,
-                              itemBuilder: (context, i) {
-                                if (i == _currentMax && displayList.length > _currentMax) {
-                                  return const Center(child: Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 16),
-                                    child: CircularProgressIndicator(),
-                                  ));
-                                }
-                                final user = displayList[i];
-                                final isOnline = user['isOnline'] == true;
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: isOnline
-                                          ? (isDark ? Colors.blue.shade700 : Colors.blue.shade200)
-                                          : (isDark ? Colors.red.shade700 : Colors.red.shade200),
-                                      width: 1.0,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.04),
-                                        blurRadius: 2,
-                                        offset: const Offset(0, 1),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      final provider =
+                          Provider.of<MikrotikProvider>(context, listen: false);
+                      await provider.refreshData(forceRefresh: true);
+                      await _fetchInterfaces(provider.service);
+                      setState(() {
+                        _currentMax = _itemsPerPage;
+                      });
+                    },
+                    child: Builder(
+                      builder: (context) {
+                        // Calculate totals
+                        final totalUsers = offline.length + online.length;
+                        final totalActive = online.length;
+                        final totalOffline = offline.length;
+
+                        // For filtered display (when not from initial dashboard navigation)
+                        final filteredTotal = (_processedDashboardArgs &&
+                                _statusFilter != 'Semua')
+                            ? totalUsers
+                            : filtered.length;
+                        final filteredActive = (_processedDashboardArgs &&
+                                _statusFilter != 'Semua')
+                            ? totalActive
+                            : filtered
+                                .where((u) => u['isOnline'] == true)
+                                .length;
+                        final filteredOffline = filteredTotal - filteredActive;
+
+                        return Column(
+                          children: [
+                            Expanded(
+                              child: ListView.builder(
+                                controller: _scrollController,
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 8, horizontal: 8),
+                                itemCount: displayList.length > _currentMax
+                                    ? _currentMax + 1
+                                    : displayList.length,
+                                itemBuilder: (context, i) {
+                                  if (i == _currentMax &&
+                                      displayList.length > _currentMax) {
+                                    return const Center(
+                                        child: Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 16),
+                                      child: CircularProgressIndicator(),
+                                    ));
+                                  }
+                                  final user = displayList[i];
+                                  final isOnline = user['isOnline'] == true;
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 6),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? const Color(0xFF1E1E1E)
+                                          : Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: isOnline
+                                            ? (isDark
+                                                ? Colors.blue.shade700
+                                                : Colors.blue.shade200)
+                                            : (isDark
+                                                ? Colors.red.shade700
+                                                : Colors.red.shade200),
+                                        width: 1.0,
                                       ),
-                                    ],
-                                  ),
-                                  child: ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 6),
-                                    dense: true,
-                                    leading: Stack(
-                                      children: [
-                                        CircleAvatar(
-                                          backgroundColor: isOnline
-                                              ? (isDark ? Colors.blue.shade900 : Colors.blue[50])
-                                              : (isDark ? Colors.red.shade900 : Colors.red[50]),
-                                          radius: 14,
-                                          child: Icon(Icons.person,
-                                              color: isOnline
-                                                  ? (isDark ? Colors.blue.shade300 : Colors.blue[700])
-                                                  : (isDark ? Colors.red.shade300 : Colors.red[400]),
-                                              size: 16),
-                                        ),
-                                        Positioned(
-                                          bottom: 0,
-                                          right: 0,
-                                          child: CircleAvatar(
-                                            radius: 5,
-                                            backgroundColor: isDark ? Colors.grey[900] : Colors.white,
-                                            child: Icon(
-                                              isOnline
-                                                  ? Icons.circle
-                                                  : Icons.cancel,
-                                              color: isOnline
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                              size: 7,
-                                            ),
-                                          ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black
+                                              .withValues(alpha: 0.04),
+                                          blurRadius: 2,
+                                          offset: const Offset(0, 1),
                                         ),
                                       ],
                                     ),
-                                    title: Text(
-                                      user['name'] ?? '-',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 15,
-                                        letterSpacing: 0.1,
-                                        color: isOnline
-                                            ? (isDark ? Colors.blue.shade300 : Colors.blue[800])
-                                            : (isDark ? Colors.red.shade300 : Colors.red[700]),
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
-                                    subtitle: isOnline
-                                        ? Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(user['profile'] ?? '-',
-                                                  style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: isDark ? Colors.blue.shade400 : Colors.blue[400]),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  maxLines: 1),
-                                              const SizedBox(height: 1),
-                                              Row(
-                                                children: [
-                                                  Icon(Icons.location_on,
-                                                      size: 11,
-                                                      color: isDark ? Colors.blue.shade500 : Colors.blue[300]),
-                                                  const SizedBox(width: 2),
-                                                  Flexible(
-                                                    child: Text(
-                                                        user['address'] ?? '-',
-                                                        style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: isDark ? Colors.blue.shade400 : Colors.blue[400]),
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        maxLines: 1),
-                                                  ),
-                                                  const SizedBox(width: 6),
-                                                  Icon(Icons.access_time,
-                                                      size: 11,
-                                                      color: isDark ? Colors.blue.shade500 : Colors.blue[300]),
-                                                  const SizedBox(width: 2),
-                                                  Flexible(
-                                                    child: Text(
-                                                        _getRealtimeUptime(
-                                                            user['uptime']),
-                                                        style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: isDark ? Colors.blue.shade400 : Colors.blue[400]),
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        maxLines: 1),
-                                                  ),
-                                                ],
+                                    child: ListTile(
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 6),
+                                      dense: true,
+                                      leading: Stack(
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: isOnline
+                                                ? (isDark
+                                                    ? Colors.blue.shade900
+                                                    : Colors.blue[50])
+                                                : (isDark
+                                                    ? Colors.red.shade900
+                                                    : Colors.red[50]),
+                                            radius: 14,
+                                            child: Icon(Icons.person,
+                                                color: isOnline
+                                                    ? (isDark
+                                                        ? Colors.blue.shade300
+                                                        : Colors.blue[700])
+                                                    : (isDark
+                                                        ? Colors.red.shade300
+                                                        : Colors.red[400]),
+                                                size: 16),
+                                          ),
+                                          Positioned(
+                                            bottom: 0,
+                                            right: 0,
+                                            child: CircleAvatar(
+                                              radius: 5,
+                                              backgroundColor: isDark
+                                                  ? Colors.grey[900]
+                                                  : Colors.white,
+                                              child: Icon(
+                                                isOnline
+                                                    ? Icons.circle
+                                                    : Icons.cancel,
+                                                color: isOnline
+                                                    ? Colors.green
+                                                    : Colors.red,
+                                                size: 7,
                                               ),
-                                            ],
-                                          )
-                                        : Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(user['profile'] ?? '-',
-                                                  style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: isDark ? Colors.red.shade400 : Colors.red[400]),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  maxLines: 1),
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                    top: 1),
-                                                child: Text(
-                                                    'Last logout: ' +
-                                                        formatLastLogout(user['last-logged-out'] ?? user['last_logout']),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      title: Text(
+                                        user['name'] ?? '-',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 15,
+                                          letterSpacing: 0.1,
+                                          color: isOnline
+                                              ? (isDark
+                                                  ? Colors.blue.shade300
+                                                  : Colors.blue[800])
+                                              : (isDark
+                                                  ? Colors.red.shade300
+                                                  : Colors.red[700]),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                      subtitle: isOnline
+                                          ? Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(user['profile'] ?? '-',
                                                     style: TextStyle(
-                                                        fontSize: 11,
-                                                        color: isDark ? Colors.red.shade300 : Colors.red[300]),
+                                                        fontSize: 12,
+                                                        color: isDark
+                                                            ? Colors
+                                                                .blue.shade400
+                                                            : Colors.blue[400]),
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                     maxLines: 1),
-                                              ),
-                                            ],
-                                          ),
-                                    trailing: isOnline
-                                        ? (() {
-                                            final ifaceName =
-                                                'pppoe-${user['name']}';
-                                            final iface =
-                                                _interfaces.firstWhere(
-                                              (iface) => ((iface['name'] ?? '')
-                                                      .replaceAll(
-                                                          RegExp(r'[<>]'),
-                                                          '') ==
-                                                  ifaceName),
-                                              orElse: () => <String, dynamic>{},
-                                            );
-                                            final rx = iface['rx-byte'] ?? '0';
-                                            final tx = iface['tx-byte'] ?? '0';
-                                            return SizedBox(
-                                              width: 54,
-                                              child: FittedBox(
-                                                fit: BoxFit.scaleDown,
-                                                alignment: Alignment.topRight,
-                                                child: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.end,
+                                                const SizedBox(height: 1),
+                                                Row(
                                                   children: [
-                                                    Text(
-                                                      _formatBytes(rx),
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        color: isDark ? Colors.blue.shade300 : Colors.blue,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                      textAlign:
-                                                          TextAlign.right,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      maxLines: 1,
+                                                    Icon(Icons.location_on,
+                                                        size: 11,
+                                                        color: isDark
+                                                            ? Colors
+                                                                .blue.shade500
+                                                            : Colors.blue[300]),
+                                                    const SizedBox(width: 2),
+                                                    Flexible(
+                                                      child: Text(
+                                                          user['address'] ??
+                                                              '-',
+                                                          style: TextStyle(
+                                                              fontSize: 11,
+                                                              color: isDark
+                                                                  ? Colors.blue
+                                                                      .shade400
+                                                                  : Colors.blue[
+                                                                      400]),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          maxLines: 1),
                                                     ),
-                                                    Text(
-                                                      _formatBytes(tx),
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        color: isDark ? Colors.green.shade300 : Colors.green,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                      textAlign:
-                                                          TextAlign.right,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      maxLines: 1,
+                                                    const SizedBox(width: 6),
+                                                    Icon(Icons.access_time,
+                                                        size: 11,
+                                                        color: isDark
+                                                            ? Colors
+                                                                .blue.shade500
+                                                            : Colors.blue[300]),
+                                                    const SizedBox(width: 2),
+                                                    Flexible(
+                                                      child: Text(
+                                                          _getRealtimeUptime(
+                                                              user['uptime']),
+                                                          style: TextStyle(
+                                                              fontSize: 11,
+                                                              color: isDark
+                                                                  ? Colors.blue
+                                                                      .shade400
+                                                                  : Colors.blue[
+                                                                      400]),
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          maxLines: 1),
                                                     ),
                                                   ],
                                                 ),
-                                              ),
-                                            );
-                                          })()
-                                        : null,
-                                    onTap: () => _showUserDetail(context, user),
-                                  ),
-                                );
-                              },
+                                              ],
+                                            )
+                                          : Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(user['profile'] ?? '-',
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: isDark
+                                                            ? Colors
+                                                                .red.shade400
+                                                            : Colors.red[400]),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 1),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 1),
+                                                  child: Text(
+                                                      'Last logout: ' +
+                                                          formatLastLogout(user[
+                                                                  'last-logged-out'] ??
+                                                              user[
+                                                                  'last_logout']),
+                                                      style: TextStyle(
+                                                          fontSize: 11,
+                                                          color: isDark
+                                                              ? Colors
+                                                                  .red.shade300
+                                                              : Colors
+                                                                  .red[300]),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      maxLines: 1),
+                                                ),
+                                              ],
+                                            ),
+                                      trailing: isOnline
+                                          ? (() {
+                                              final ifaceName =
+                                                  'pppoe-${user['name']}';
+                                              final iface =
+                                                  _interfaces.firstWhere(
+                                                (iface) =>
+                                                    ((iface['name'] ?? '')
+                                                            .replaceAll(
+                                                                RegExp(r'[<>]'),
+                                                                '') ==
+                                                        ifaceName),
+                                                orElse: () =>
+                                                    <String, dynamic>{},
+                                              );
+                                              final rx =
+                                                  iface['rx-byte'] ?? '0';
+                                              final tx =
+                                                  iface['tx-byte'] ?? '0';
+                                              return SizedBox(
+                                                width: 54,
+                                                child: FittedBox(
+                                                  fit: BoxFit.scaleDown,
+                                                  alignment: Alignment.topRight,
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.end,
+                                                    children: [
+                                                      Text(
+                                                        _formatBytes(rx),
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          color: isDark
+                                                              ? Colors
+                                                                  .blue.shade300
+                                                              : Colors.blue,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                        textAlign:
+                                                            TextAlign.right,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        maxLines: 1,
+                                                      ),
+                                                      Text(
+                                                        _formatBytes(tx),
+                                                        style: TextStyle(
+                                                          fontSize: 16,
+                                                          color: isDark
+                                                              ? Colors.green
+                                                                  .shade300
+                                                              : Colors.green,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                        textAlign:
+                                                            TextAlign.right,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        maxLines: 1,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            })()
+                                          : null,
+                                      onTap: () =>
+                                          _showUserDetail(context, user),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.people,
-                                    color: isDark ? Colors.white70 : Colors.black54, size: 18),
-                                const SizedBox(width: 4),
-                                Text('$filteredTotal total',
-                                    style: TextStyle(
-                                        color: isDark ? Colors.white : Colors.black87, fontSize: 14)),
-                                const Text(' | ',
-                                    style: TextStyle(fontSize: 14)),
-                                Icon(Icons.check_circle,
-                                    color: isDark ? Colors.green.shade300 : Colors.green, size: 18),
-                                const SizedBox(width: 4),
-                                Text('$filteredActive active',
-                                    style: TextStyle(
-                                        color: isDark ? Colors.green.shade300 : Colors.green,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold)),
-                                const Text(' | ',
-                                    style: TextStyle(fontSize: 14)),
-                                Icon(Icons.cancel, 
-                                    color: isDark ? Colors.red.shade300 : Colors.red, size: 18),
-                                const SizedBox(width: 4),
-                                Text('$filteredOffline offline',
-                                    style: TextStyle(
-                                        color: isDark ? Colors.red.shade300 : Colors.red,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold)),
-                              ],
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.people,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black54,
+                                      size: 18),
+                                  const SizedBox(width: 4),
+                                  Text('$filteredTotal total',
+                                      style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white
+                                              : Colors.black87,
+                                          fontSize: 14)),
+                                  const Text(' | ',
+                                      style: TextStyle(fontSize: 14)),
+                                  Icon(Icons.check_circle,
+                                      color: isDark
+                                          ? Colors.green.shade300
+                                          : Colors.green,
+                                      size: 18),
+                                  const SizedBox(width: 4),
+                                  Text('$filteredActive active',
+                                      style: TextStyle(
+                                          color: isDark
+                                              ? Colors.green.shade300
+                                              : Colors.green,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold)),
+                                  const Text(' | ',
+                                      style: TextStyle(fontSize: 14)),
+                                  Icon(Icons.cancel,
+                                      color: isDark
+                                          ? Colors.red.shade300
+                                          : Colors.red,
+                                      size: 18),
+                                  const SizedBox(width: 4),
+                                  Text('$filteredOffline offline',
+                                      style: TextStyle(
+                                          color: isDark
+                                              ? Colors.red.shade300
+                                              : Colors.red,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold)),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      );
-                    },
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
         ),
       ),
     );
@@ -1478,16 +1716,16 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
 
   String _getRealtimeUptime(String? baseUptime) {
     if (baseUptime == null || _fetchTime == null) return '-';
-    
+
     // Parse base uptime ke detik
     final baseSeconds = _parseUptimeToSeconds(baseUptime);
-    
+
     // Hitung selisih waktu sejak terakhir fetch
     final diffSeconds = DateTime.now().difference(_fetchTime!).inSeconds;
-    
+
     // Total uptime dalam detik
     final totalSeconds = baseSeconds + diffSeconds;
-    
+
     // Format hasil
     return _formatUptime(totalSeconds);
   }
@@ -1496,13 +1734,13 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
     final regex = RegExp(r'((\d+)w)?((\d+)d)?((\d+)h)?((\d+)m)?((\d+)s)?');
     final match = regex.firstMatch(uptime);
     if (match == null) return 0;
-    
+
     int w = int.tryParse(match.group(2) ?? '') ?? 0;
     int d = int.tryParse(match.group(4) ?? '') ?? 0;
     int h = int.tryParse(match.group(6) ?? '') ?? 0;
     int m = int.tryParse(match.group(8) ?? '') ?? 0;
     int s = int.tryParse(match.group(10) ?? '') ?? 0;
-    
+
     return w * 604800 + d * 86400 + h * 3600 + m * 60 + s;
   }
 
@@ -1512,14 +1750,14 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
     int h = (seconds % 86400) ~/ 3600;
     int m = (seconds % 3600) ~/ 60;
     int s = seconds % 60;
-    
+
     List<String> parts = [];
     if (w > 0) parts.add('${w}w');
     if (d > 0) parts.add('${d}d');
     if (h > 0) parts.add('${h}h');
     if (m > 0) parts.add('${m}m');
     if (s > 0 || parts.isEmpty) parts.add('${s}s');
-    
+
     return parts.join('');
   }
 
@@ -1548,21 +1786,38 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
   }
 
   String formatLastLogout(String? dateStr) {
-    if (dateStr == null || dateStr.isEmpty || dateStr == 'jan/01/1970 00:00:00') return '-';
+    if (dateStr == null || dateStr.isEmpty || dateStr == 'jan/01/1970 00:00:00')
+      return '-';
     const bulanMap = {
-      'jan': [1, 'Januari'], 'feb': [2, 'Februari'], 'mar': [3, 'Maret'],
-      'apr': [4, 'April'], 'may': [5, 'Mei'], 'jun': [6, 'Juni'],
-      'jul': [7, 'Juli'], 'aug': [8, 'Agustus'], 'sep': [9, 'September'],
-      'oct': [10, 'Oktober'], 'nov': [11, 'November'], 'dec': [12, 'Desember'],
+      'jan': [1, 'Januari'],
+      'feb': [2, 'Februari'],
+      'mar': [3, 'Maret'],
+      'apr': [4, 'April'],
+      'may': [5, 'Mei'],
+      'jun': [6, 'Juni'],
+      'jul': [7, 'Juli'],
+      'aug': [8, 'Agustus'],
+      'sep': [9, 'September'],
+      'oct': [10, 'Oktober'],
+      'nov': [11, 'November'],
+      'dec': [12, 'Desember'],
     };
     const hariMap = [
-      'Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'
+      'Minggu',
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu'
     ];
     try {
       DateTime date;
       String jam = '';
       // Cek format ISO (2025-06-24 16:14:53)
-      final isoMatch = RegExp(r'^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$').firstMatch(dateStr);
+      final isoMatch =
+          RegExp(r'^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$')
+              .firstMatch(dateStr);
       if (isoMatch != null) {
         date = DateTime(
           int.parse(isoMatch.group(1)!),
@@ -1572,7 +1827,8 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
           int.parse(isoMatch.group(5)!),
           int.parse(isoMatch.group(6)!),
         );
-        jam = '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
+        jam =
+            '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
       } else {
         // Format Mikrotik: jun/24/2025 00:59:54
         final parts = dateStr.split(' ');
@@ -1591,8 +1847,19 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
       }
       final hari = hariMap[date.weekday % 7];
       final bulanNama = [
-        '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        '',
+        'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
       ][date.month];
       return '$hari, ${date.day} $bulanNama ${date.year} $jam';
     } catch (_) {
@@ -1601,10 +1868,13 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
   }
 
   DateTime? _parseLogoutDate(String? dateStr) {
-    if (dateStr == null || dateStr.isEmpty || dateStr == 'jan/01/1970 00:00:00') return null;
+    if (dateStr == null || dateStr.isEmpty || dateStr == 'jan/01/1970 00:00:00')
+      return null;
     try {
       // ISO format: 2025-06-24 16:14:53
-      final isoMatch = RegExp(r'^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$').firstMatch(dateStr);
+      final isoMatch =
+          RegExp(r'^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$')
+              .firstMatch(dateStr);
       if (isoMatch != null) {
         return DateTime(
           int.parse(isoMatch.group(1)!),
@@ -1619,8 +1889,18 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
         final parts = dateStr.split(' ');
         final tgl = parts[0].split('/');
         const bulanMap = {
-          'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-          'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+          'jan': 1,
+          'feb': 2,
+          'mar': 3,
+          'apr': 4,
+          'may': 5,
+          'jun': 6,
+          'jul': 7,
+          'aug': 8,
+          'sep': 9,
+          'oct': 10,
+          'nov': 11,
+          'dec': 12,
         };
         final bulan = bulanMap[tgl[0].toLowerCase()];
         if (bulan == null) return null;

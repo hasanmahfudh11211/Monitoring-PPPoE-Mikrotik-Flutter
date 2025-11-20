@@ -410,7 +410,9 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                                 isDark ? const Color(0xFF2D2D2D) : Colors.white,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: Colors.grey.shade200,
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade200,
                             ),
                           ),
                           child: Column(
@@ -476,15 +478,31 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _apiUrlController,
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
                           decoration: InputDecoration(
                             labelText: 'Base URL',
+                            labelStyle: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
                             hintText: 'https://example.com/api',
+                            hintStyle: TextStyle(
+                              color: isDark
+                                  ? Colors.grey.shade600
+                                  : Colors.grey.shade400,
+                            ),
                             prefixIcon: const Icon(Icons.link),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                             helperText:
                                 'Wajib menyertakan skema (http/https) dan tanpa slash di akhir',
+                            helperStyle: TextStyle(
+                              color: isDark
+                                  ? Colors.grey.shade500
+                                  : Colors.grey.shade600,
+                            ),
                             suffixIcon: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -699,15 +717,33 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                             children: [
                               TextFormField(
                                 controller: _genieacsUrlController,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
                                 decoration: InputDecoration(
                                   labelText: 'Server URL',
+                                  labelStyle: TextStyle(
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.black54,
+                                  ),
                                   hintText: 'http://x.x.x.x:7557',
+                                  hintStyle: TextStyle(
+                                    color: isDark
+                                        ? Colors.grey.shade600
+                                        : Colors.grey.shade400,
+                                  ),
                                   prefixIcon: const Icon(Icons.cloud),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   helperText:
                                       'Server URL dengan port 7557 untuk GenieACS',
+                                  helperStyle: TextStyle(
+                                    color: isDark
+                                        ? Colors.grey.shade500
+                                        : Colors.grey.shade600,
+                                  ),
                                 ),
                                 keyboardType: TextInputType.url,
                                 validator: (value) {
@@ -720,9 +756,22 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                               const SizedBox(height: 12),
                               TextFormField(
                                 controller: _genieacsUsernameController,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
                                 decoration: InputDecoration(
                                   labelText: 'Username',
+                                  labelStyle: TextStyle(
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.black54,
+                                  ),
                                   hintText: 'admin',
+                                  hintStyle: TextStyle(
+                                    color: isDark
+                                        ? Colors.grey.shade600
+                                        : Colors.grey.shade400,
+                                  ),
                                   prefixIcon: const Icon(Icons.person),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
@@ -738,9 +787,22 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                               const SizedBox(height: 12),
                               TextFormField(
                                 controller: _genieacsPasswordController,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
                                 decoration: InputDecoration(
                                   labelText: 'Password',
+                                  labelStyle: TextStyle(
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.black54,
+                                  ),
                                   hintText: 'Masukkan password',
+                                  hintStyle: TextStyle(
+                                    color: isDark
+                                        ? Colors.grey.shade600
+                                        : Colors.grey.shade400,
+                                  ),
                                   prefixIcon: const Icon(Icons.lock),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
@@ -898,7 +960,7 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(

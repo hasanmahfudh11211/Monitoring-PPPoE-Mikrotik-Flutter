@@ -809,60 +809,98 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
               icon: const Icon(Icons.refresh),
               onPressed: _loadUsersFromApi,
             ),
-            IconButton(
-              icon: const Icon(Icons.filter_list),
-              tooltip: 'Urutkan/Sort',
-              onPressed: _showSortDialog,
-            ),
           ],
         ),
         body: Column(
           children: [
-            // Search Bar
+            // Search Bar with Filter Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: Card(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  style:
-                      TextStyle(color: isDark ? Colors.white : Colors.black87),
-                  decoration: InputDecoration(
-                    hintText: 'Cari user...',
-                    hintStyle: TextStyle(
-                        color: isDark ? Colors.white54 : Colors.black54),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: isDark ? Colors.white54 : Colors.black54,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 16),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: Icon(
-                              Icons.clear,
-                              color: isDark ? Colors.white54 : Colors.black54,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Card(
+                      color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color:
+                              isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black87),
+                          decoration: InputDecoration(
+                            hintText: 'Cari user...',
+                            hintStyle: TextStyle(
+                                color: isDark
+                                    ? Colors.grey.shade400
+                                    : Colors.black54),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: isDark
+                                  ? Colors.grey.shade400
+                                  : Colors.black54,
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _searchController.clear();
-                                _searchQuery = '';
-                              });
-                            },
-                          )
-                        : null,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 16),
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? IconButton(
+                                    icon: Icon(
+                                      Icons.clear,
+                                      color: isDark
+                                          ? Colors.grey.shade400
+                                          : Colors.black54,
+                                    ),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() {
+                                        _searchQuery = '';
+                                      });
+                                    },
+                                  )
+                                : null,
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
                   ),
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  },
-                ),
+                  const SizedBox(width: 8),
+                  Card(
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.filter_list,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
+                        ),
+                        onPressed: _showSortDialog,
+                        tooltip: 'Filter',
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             // User List
