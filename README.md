@@ -383,18 +383,6 @@ Jika ada error palsu di IDE, jalankan `Dart: Restart Analysis Server` atau `flut
 </p>
 <p align="center"><i>Catatan log aktivitas yang terjadi pada sistem Mikrotik untuk keperluan audit.</i></p>
 
-### Halaman Billing
-<p align="center">
-  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/billing.jpg" width="300" alt="Billing"/>
-</p>
-<p align="center"><i>Manajemen pembayaran user dengan fitur filter berdasarkan bulan.</i></p>
-
-### Halaman Ringkasan Pembayaran
-<p align="center">
-  <img src="https://raw.githubusercontent.com/hasanmahfudh11211/Monitoring-PPPoE-Mikrotik-Flutter/main/screenshot/payment-summary.jpg" width="300" alt="Payment Summary"/>
-</p>
-<p align="center"><i>Ringkasan pembayaran per bulan dengan kemampuan export ke Excel dan PDF.</i></p>
-
 ---
 
 ## Lisensi & Pengembang
