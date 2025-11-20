@@ -1173,11 +1173,16 @@ Solusi:
             left: 0,
             right: 0,
             child: Center(
-              child: Text(
-                _appVersion,
-                style: TextStyle(
+              child: Material(
+                color: Colors.transparent,
+                child: Text(
+                  _appVersion,
+                  style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? Colors.white70 : Colors.black38),
+                    color: isDark ? Colors.white70 : Colors.black38,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
               ),
             ),
           ),

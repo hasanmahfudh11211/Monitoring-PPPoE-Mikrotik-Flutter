@@ -254,7 +254,6 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
 
       print('[DEBUG] Fetching URL: $url');
 
-
       print('[GenieACS] Background fetch started...');
       final devices = await service.getDevices();
 
@@ -378,7 +377,7 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -407,7 +406,8 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color:
+                                isDark ? const Color(0xFF2D2D2D) : Colors.white,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: Colors.grey.shade200,
@@ -449,7 +449,7 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -667,7 +667,7 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -847,7 +847,8 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 14),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         elevation: _genieacsTesting ? 0 : 2,
                                       ),
@@ -863,8 +864,8 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                                       icon: Icon(_genieacsIsDirty
                                           ? Icons.save
                                           : Icons.check),
-                                      label:
-                                          Text(_genieacsIsDirty ? 'Save' : 'Saved'),
+                                      label: Text(
+                                          _genieacsIsDirty ? 'Save' : 'Saved'),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: _genieacsIsDirty
                                             ? Colors.green
@@ -873,7 +874,8 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
                                         padding: const EdgeInsets.symmetric(
                                             vertical: 14),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         elevation: _genieacsIsDirty ? 2 : 0,
                                       ),
@@ -953,7 +955,8 @@ class _ApiConfigScreenState extends State<ApiConfigScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon, Color iconColor, bool isDark) {
+  Widget _buildSectionHeader(
+      String title, IconData icon, Color iconColor, bool isDark) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(

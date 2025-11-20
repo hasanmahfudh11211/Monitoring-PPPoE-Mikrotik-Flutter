@@ -48,16 +48,20 @@ class _SettingScreenState extends State<SettingScreen> {
       _currentUsername = prefs.getString('username') ?? '';
       _showNotifications = prefs.getBool('showNotifications') ?? true;
     });
-    
+
     // Load group info after settings are loaded
-    if (_currentIp.isNotEmpty && _currentPort.isNotEmpty && _currentUsername.isNotEmpty) {
+    if (_currentIp.isNotEmpty &&
+        _currentPort.isNotEmpty &&
+        _currentUsername.isNotEmpty) {
       _loadUserGroupInfo();
     }
   }
 
   Future<void> _loadUserGroupInfo() async {
     // Only try to load group info if we have connection details
-    if (_currentIp.isEmpty || _currentPort.isEmpty || _currentUsername.isEmpty) {
+    if (_currentIp.isEmpty ||
+        _currentPort.isEmpty ||
+        _currentUsername.isEmpty) {
       return;
     }
 
@@ -70,7 +74,7 @@ class _SettingScreenState extends State<SettingScreen> {
       // Create a temporary Mikrotik service to fetch user info
       final prefs = await SharedPreferences.getInstance();
       final password = prefs.getString('password') ?? '';
-      
+
       if (password.isEmpty) {
         setState(() {
           _loadingGroup = false;
@@ -89,10 +93,12 @@ class _SettingScreenState extends State<SettingScreen> {
       try {
         // Try to get system users first (primary method)
         final users = await service.getSystemUsers();
-        
+
         // Find the user that matches the current username
         final currentUser = users.firstWhere(
-          (user) => user['name'] != null && user['name'].toString() == _currentUsername,
+          (user) =>
+              user['name'] != null &&
+              user['name'].toString() == _currentUsername,
           orElse: () => {},
         );
 
@@ -106,13 +112,14 @@ class _SettingScreenState extends State<SettingScreen> {
                 (g) => g['name'] != null && g['name'].toString() == group,
                 orElse: () => {'name': group},
               );
-              
+
               final groupName = groupInfo['name']?.toString() ?? group;
-              final groupDescription = groupInfo['description']?.toString() ?? '';
-              
+              final groupDescription =
+                  groupInfo['description']?.toString() ?? '';
+
               setState(() {
-                _currentUserGroup = groupDescription.isNotEmpty 
-                    ? '$groupName ($groupDescription)' 
+                _currentUserGroup = groupDescription.isNotEmpty
+                    ? '$groupName ($groupDescription)'
                     : groupName;
               });
             } catch (groupError) {
@@ -132,17 +139,19 @@ class _SettingScreenState extends State<SettingScreen> {
         }
       } catch (e) {
         // If system/user endpoint is not available, fallback to PPP secret method
-        if (e.toString().contains('Endpoint not available') || 
-            e.toString().contains('400') || 
+        if (e.toString().contains('Endpoint not available') ||
+            e.toString().contains('400') ||
             e.toString().contains('User not found')) {
           try {
-            final group = await service.getUserGroupFromPPPSecret(_currentUsername);
+            final group =
+                await service.getUserGroupFromPPPSecret(_currentUsername);
             setState(() {
               _currentUserGroup = group;
             });
           } catch (pppError) {
             setState(() {
-              _currentUserGroup = 'Error: ${pppError.toString().split(': ').last}';
+              _currentUserGroup =
+                  'Error: ${pppError.toString().split(': ').last}';
             });
           }
         } else {
@@ -177,11 +186,11 @@ class _SettingScreenState extends State<SettingScreen> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDark = themeProvider.isDarkMode;
-    
+
     return GradientContainer(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-      appBar: AppBar(
+        appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.white),
@@ -212,7 +221,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -244,24 +253,48 @@ class _SettingScreenState extends State<SettingScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildInfoRow(Icons.router, 'IP Address', _currentIp.isEmpty ? 'Not configured' : _currentIp, isDark),
+                                _buildInfoRow(
+                                    Icons.router,
+                                    'IP Address',
+                                    _currentIp.isEmpty
+                                        ? 'Not configured'
+                                        : _currentIp,
+                                    isDark),
                                 const SizedBox(height: 12),
-                                _buildInfoRow(Icons.person, 'Username', _currentUsername.isEmpty ? 'Not configured' : _currentUsername, isDark),
+                                _buildInfoRow(
+                                    Icons.person,
+                                    'Username',
+                                    _currentUsername.isEmpty
+                                        ? 'Not configured'
+                                        : _currentUsername,
+                                    isDark),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 16), // Add some space between columns
+                          const SizedBox(
+                              width: 16), // Add some space between columns
                           // Right column: Username and Group
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                
-                                _buildInfoRow(Icons.settings_ethernet, 'Port', _currentPort.isEmpty ? 'Not configured' : _currentPort, isDark),
+                                _buildInfoRow(
+                                    Icons.settings_ethernet,
+                                    'Port',
+                                    _currentPort.isEmpty
+                                        ? 'Not configured'
+                                        : _currentPort,
+                                    isDark),
                                 const SizedBox(height: 12),
-                                _buildInfoRow(Icons.group, 'Group/Profile', _loadingGroup 
-                                  ? 'Loading...' 
-                                  : (_currentUserGroup.isEmpty ? 'Not loaded' : _currentUserGroup), isDark),
+                                _buildInfoRow(
+                                    Icons.group,
+                                    'Group/Profile',
+                                    _loadingGroup
+                                        ? 'Loading...'
+                                        : (_currentUserGroup.isEmpty
+                                            ? 'Not loaded'
+                                            : _currentUserGroup),
+                                    isDark),
                               ],
                             ),
                           ),
@@ -294,7 +327,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -326,7 +359,8 @@ class _SettingScreenState extends State<SettingScreen> {
                           icon: const Icon(Icons.settings),
                           label: const Text('Buka Konfigurasi API'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: isDark ? Colors.blue[700] : Colors.blue[800],
+                            backgroundColor:
+                                isDark ? Colors.blue[700] : Colors.blue[800],
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
@@ -347,7 +381,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -363,7 +397,8 @@ class _SettingScreenState extends State<SettingScreen> {
                       ),
                       const SizedBox(height: 16),
                       SwitchListTile(
-                        title: Text('Dark Mode', 
+                        title: Text(
+                          'Dark Mode',
                           style: TextStyle(
                             color: isDark ? Colors.white : Colors.black87,
                           ),
@@ -372,7 +407,7 @@ class _SettingScreenState extends State<SettingScreen> {
                           'Mengaktifkan tema gelap',
                           style: TextStyle(
                             color: isDark ? Colors.white70 : Colors.black54,
-      ),
+                          ),
                         ),
                         value: isDark,
                         onChanged: (bool value) {
@@ -380,7 +415,8 @@ class _SettingScreenState extends State<SettingScreen> {
                         },
                       ),
                       SwitchListTile(
-                        title: Text('Notifikasi',
+                        title: Text(
+                          'Notifikasi',
                           style: TextStyle(
                             color: isDark ? Colors.white : Colors.black87,
                           ),
@@ -399,7 +435,6 @@ class _SettingScreenState extends State<SettingScreen> {
                           _saveSettings();
                         },
                       ),
-                     
                       const SizedBox(height: 12),
                       _buildUpdateCheckButton(isDark),
                     ],
@@ -414,7 +449,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -449,8 +484,8 @@ class _SettingScreenState extends State<SettingScreen> {
     return Row(
       children: [
         Icon(
-          icon, 
-          size: 20, 
+          icon,
+          size: 20,
           color: isDark ? Colors.blue[200] : Colors.blue[800],
         ),
         const SizedBox(width: 12),
@@ -487,7 +522,7 @@ class _SettingScreenState extends State<SettingScreen> {
     Color? color,
   }) {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
-    
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
@@ -495,7 +530,8 @@ class _SettingScreenState extends State<SettingScreen> {
         label: Text(label),
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: color ?? (isDark ? Colors.blue[700] : Colors.blue[800]),
+          backgroundColor:
+              color ?? (isDark ? Colors.blue[700] : Colors.blue[800]),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
@@ -588,7 +624,7 @@ class _SettingScreenState extends State<SettingScreen> {
       // Close loading dialog if still open
       if (!mounted) return;
       Navigator.of(context).pop();
-      
+
       // Show error
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -602,11 +638,13 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Future<void> _showLogoutConfirmation(BuildContext context) async {
-    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
-    
+    final isDark =
+        Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
         title: Text(
           'Konfirmasi Logout',
           style: TextStyle(
