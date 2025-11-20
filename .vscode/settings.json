@@ -1,0 +1,10 @@
+{
+  // Disable auto pub get
+  "dart.runPubGetOnPubspecChanges": "never",
+  "dart.runPubGetOnSdkChanges": false,
+  
+  // Flutter settings
+  "dart.flutterRunLogFile": null,
+  "dart.debugExternalPackageLibraries": false,
+  "dart.debugSdkLibraries": false
+}
