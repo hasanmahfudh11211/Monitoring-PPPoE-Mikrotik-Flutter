@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/mikrotik_provider.dart';
+import '../widgets/gradient_container.dart';
 
 import '../main.dart';
 import 'dart:convert';
@@ -26,7 +27,7 @@ class _LogScreenState extends State<LogScreen> {
 
   Future<void> _fetchLogs() async {
     if (_isRefreshing) return;
-    
+
     setState(() {
       _isLoading = true;
       _error = null;
@@ -36,10 +37,10 @@ class _LogScreenState extends State<LogScreen> {
     try {
       final provider = context.read<MikrotikProvider>();
       if (!mounted) return;
-      
+
       final logs = await provider.service.getLog();
       if (!mounted) return;
-      
+
       setState(() {
         _logs = logs;
         _error = null;
@@ -52,19 +53,19 @@ class _LogScreenState extends State<LogScreen> {
       });
     } finally {
       if (mounted) {
-      setState(() {
-        _isLoading = false;
+        setState(() {
+          _isLoading = false;
           _isRefreshing = false;
-      });
+        });
+      }
     }
-  }
   }
 
   void _showLogDetails(Map<String, dynamic> log) {
     try {
       final parsed = _parseLog(log);
-    showModalBottomSheet(
-      context: context,
+      showModalBottomSheet(
+        context: context,
         backgroundColor: Colors.transparent,
         isScrollControlled: true,
         builder: (context) {
@@ -72,13 +73,14 @@ class _LogScreenState extends State<LogScreen> {
           return Container(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.8,
-      ),
+            ),
             decoration: BoxDecoration(
               color: isDark ? Colors.grey[900] : Colors.white,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
             ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Handle bar
                 Container(
@@ -117,13 +119,13 @@ class _LogScreenState extends State<LogScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                  'Log Details',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                          'Log Details',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
                             color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -144,7 +146,8 @@ class _LogScreenState extends State<LogScreen> {
                               color: isDark ? Colors.black12 : Colors.grey[50],
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: isDark ? Colors.white10 : Colors.grey[200]!,
+                                color:
+                                    isDark ? Colors.white10 : Colors.grey[200]!,
                                 width: 1.5,
                               ),
                             ),
@@ -164,7 +167,9 @@ class _LogScreenState extends State<LogScreen> {
                                 Divider(
                                   height: 1,
                                   thickness: 1,
-                                  color: isDark ? Colors.white10 : Colors.grey[200]!,
+                                  color: isDark
+                                      ? Colors.white10
+                                      : Colors.grey[200]!,
                                 ),
                                 // Topics Section
                                 Padding(
@@ -180,7 +185,9 @@ class _LogScreenState extends State<LogScreen> {
                                 Divider(
                                   height: 1,
                                   thickness: 1,
-                                  color: isDark ? Colors.white10 : Colors.grey[200]!,
+                                  color: isDark
+                                      ? Colors.white10
+                                      : Colors.grey[200]!,
                                 ),
                                 // Message Section
                                 Padding(
@@ -214,7 +221,8 @@ class _LogScreenState extends State<LogScreen> {
                               color: isDark ? Colors.black : Colors.grey[50],
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: isDark ? Colors.white10 : Colors.grey[200]!,
+                                color:
+                                    isDark ? Colors.white10 : Colors.grey[200]!,
                                 width: 1.5,
                               ),
                             ),
@@ -263,7 +271,8 @@ class _LogScreenState extends State<LogScreen> {
     }
   }
 
-  Widget _buildInfoRow(String label, String value, IconData icon, bool isDark, Color accentColor) {
+  Widget _buildInfoRow(String label, String value, IconData icon, bool isDark,
+      Color accentColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -401,7 +410,9 @@ class _LogScreenState extends State<LogScreen> {
       // Firewall events
       else if (topics.contains('firewall')) {
         icon = Icons.security;
-        color = msg.contains('blocked') || msg.contains('dropped') ? Colors.red : Colors.orange;
+        color = msg.contains('blocked') || msg.contains('dropped')
+            ? Colors.red
+            : Colors.orange;
       }
       // DNS events
       else if (topics.contains('dns')) {
@@ -450,7 +461,8 @@ class _LogScreenState extends State<LogScreen> {
     if (msg.contains('connected') && !msg.contains('disconnected')) {
       return const Color(0xFF00C853).withOpacity(0.3); // Material Green A700
     } else if (msg.contains('peer is not')) {
-      return const Color(0xFFFF3D00).withOpacity(0.3); // Material Deep Orange A700
+      return const Color(0xFFFF3D00)
+          .withOpacity(0.3); // Material Deep Orange A700
     } else if (msg.contains('disconnected')) {
       return const Color(0xFFD50000).withOpacity(0.3); // Material Red A700
     }
@@ -471,43 +483,52 @@ class _LogScreenState extends State<LogScreen> {
 
   bool _isConnectionEvent(Map<String, dynamic> parsed) {
     final msg = parsed['message']?.toString().toLowerCase() ?? '';
-    return msg.contains('connected') || 
-           msg.contains('disconnected') || 
-           msg.contains('terminating');
+    return msg.contains('connected') ||
+        msg.contains('disconnected') ||
+        msg.contains('terminating');
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
 
-    return Scaffold(
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-      appBar: AppBar(
-        title: const Text('Log'),
-          backgroundColor: Theme.of(context).primaryColor,
-          elevation: 0,
-        actions: [
-          IconButton(
-              icon: _isRefreshing 
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : const Icon(Icons.refresh),
-              onPressed: _isRefreshing ? null : _handleRefresh,
-                ),
-              ],
+    return GradientContainer(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text(
+            'Log',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+          actions: [
+            IconButton(
+              icon: _isRefreshing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Icon(Icons.refresh, color: Colors.white),
+              onPressed: _isRefreshing ? null : _handleRefresh,
+            ),
+          ],
+        ),
         body: RefreshIndicator(
           onRefresh: _handleRefresh,
           child: _isLoading && _logs.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                    ? Center(
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                  ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -545,13 +566,17 @@ class _LogScreenState extends State<LogScreen> {
                                   Icon(
                                     Icons.search_off,
                                     size: 48,
-                                    color: isDark ? Colors.white54 : Colors.black38,
+                                    color: isDark
+                                        ? Colors.white54
+                                        : Colors.black38,
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
                                     'No logs found',
                                     style: TextStyle(
-                                      color: isDark ? Colors.white54 : Colors.black38,
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.black38,
                                       fontSize: 16,
                                     ),
                                   ),
@@ -583,14 +608,17 @@ class _LogScreenState extends State<LogScreen> {
                                   onTap: () => _showLogDetails(log),
                                   borderRadius: BorderRadius.circular(12),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 12),
                                     child: Row(
                                       children: [
                                         Container(
                                           padding: const EdgeInsets.all(8),
                                           decoration: BoxDecoration(
-                                            color: parsed['color'].withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(8),
+                                            color: parsed['color']
+                                                .withOpacity(0.1),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                           ),
                                           child: Icon(
                                             parsed['icon'],
@@ -601,23 +629,30 @@ class _LogScreenState extends State<LogScreen> {
                                         const SizedBox(width: 16),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 parsed['message'],
                                                 style: TextStyle(
-                                                  color: _getTextColor(parsed, isDark),
+                                                  color: _getTextColor(
+                                                      parsed, isDark),
                                                   fontSize: 14,
-                                                  fontWeight: _isConnectionEvent(parsed) ? FontWeight.w500 : null,
+                                                  fontWeight:
+                                                      _isConnectionEvent(parsed)
+                                                          ? FontWeight.w500
+                                                          : null,
                                                 ),
                                                 overflow: TextOverflow.ellipsis,
                                                 maxLines: 2,
-                              ),
+                                              ),
                                               const SizedBox(height: 2),
                                               Text(
                                                 log['time'] ?? '-',
                                                 style: TextStyle(
-                                                  color: isDark ? Colors.white60 : Colors.black54,
+                                                  color: isDark
+                                                      ? Colors.white60
+                                                      : Colors.black54,
                                                   fontSize: 12,
                                                 ),
                                               ),
@@ -626,7 +661,9 @@ class _LogScreenState extends State<LogScreen> {
                                         ),
                                         Icon(
                                           Icons.chevron_right,
-                                          color: isDark ? Colors.white38 : Colors.black38,
+                                          color: isDark
+                                              ? Colors.white38
+                                              : Colors.black38,
                                           size: 20,
                                         ),
                                       ],
@@ -637,8 +674,8 @@ class _LogScreenState extends State<LogScreen> {
                             );
                           },
                         ),
-                      ),
+        ),
+      ),
     );
   }
 }
- 
