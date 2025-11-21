@@ -31,10 +31,10 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
       final provider = context.read<MikrotikProvider>();
       provider.refreshData(forceRefresh: true);
     });
-    
+
     // Initialize the image future with a default value
     _imageFuture = Future.value('assets/mikrotik_product_images/default.png');
-    
+
     // Auto-refresh every 1 second for realtime data
     // Using fetchResourceOnly() to reduce API calls (only identity + resource)
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -58,17 +58,22 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
     if (_lastBoardName != boardName) {
       _lastBoardName = boardName;
       _imageFuture = RouterImageServiceSimple.getRouterImageUrl(boardName);
-      print('SystemResourceScreen: Board name changed from $_lastBoardName to $boardName, updating image');
+      print(
+          'SystemResourceScreen: Board name changed from $_lastBoardName to $boardName, updating image');
     } else {
-      print('SystemResourceScreen: Board name unchanged ($_lastBoardName), using cached image');
+      print(
+          'SystemResourceScreen: Board name unchanged ($_lastBoardName), using cached image');
     }
     return _imageFuture;
   }
 
-  Widget _buildResourceCard(String title, String value, IconData icon, bool isDark) {
+  Widget _buildResourceCard(
+      String title, String value, IconData icon, bool isDark) {
     return Card(
       elevation: isDark ? 2 : 1,
-      color: isDark ? const Color(0xFF1E1E1E) : Colors.white, // Changed to pure white
+      color: isDark
+          ? const Color(0xFF1E1E1E)
+          : Colors.white, // Changed to pure white
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -79,7 +84,9 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? Colors.blue.withValues(alpha: 0.1) : Colors.white, // Changed to pure white
+                color: isDark
+                    ? Colors.blue.withOpacity(0.1)
+                    : Colors.white, // Changed to pure white
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -121,7 +128,7 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
 
   Widget _buildLicenseFeaturesCard(dynamic features, bool isDark) {
     String featuresText = '-';
-    
+
     if (features != null) {
       if (features is List) {
         // Handle list of features
@@ -148,7 +155,9 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? Colors.blue.withValues(alpha: 0.1) : Colors.white, // Changed to pure white
+                color: isDark
+                    ? Colors.blue.withOpacity(0.1)
+                    : Colors.white, // Changed to pure white
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -193,10 +202,10 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
 
   Widget _buildRouterImage(String? boardName, bool isDark) {
     final displayName = RouterImageService.getRouterDisplayName(boardName);
-    
+
     // Create a GlobalKey to access the FutureBuilder state
     final imageKey = GlobalKey();
-    
+
     return Container(
       width: double.infinity,
       height: 120,
@@ -205,7 +214,7 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -227,34 +236,45 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
                 height: double.infinity,
                 color: Colors.transparent, // Make background transparent
                 child: FutureBuilder<String>(
-                  future: _getImageFuture(boardName), // This will now properly cache the image
+                  future: _getImageFuture(
+                      boardName), // This will now properly cache the image
                   builder: (context, snapshot) {
-                    print('SystemResourceScreen: FutureBuilder snapshot state: ${snapshot.connectionState}');
-                    print('SystemResourceScreen: FutureBuilder hasData: ${snapshot.hasData}');
-                    print('SystemResourceScreen: FutureBuilder data: ${snapshot.data}');
-                    print('SystemResourceScreen: FutureBuilder error: ${snapshot.error}');
-                  
+                    print(
+                        'SystemResourceScreen: FutureBuilder snapshot state: ${snapshot.connectionState}');
+                    print(
+                        'SystemResourceScreen: FutureBuilder hasData: ${snapshot.hasData}');
+                    print(
+                        'SystemResourceScreen: FutureBuilder data: ${snapshot.data}');
+                    print(
+                        'SystemResourceScreen: FutureBuilder error: ${snapshot.error}');
+
                     if (snapshot.hasError) {
-                      print('SystemResourceScreen: Error loading router image: ${snapshot.error}');
+                      print(
+                          'SystemResourceScreen: Error loading router image: ${snapshot.error}');
                       // Show default.png when there's an error
-                      return _buildCachedImage('assets/mikrotik_product_images/default.png', isDark, isAsset: true);
+                      return _buildCachedImage(
+                          'assets/mikrotik_product_images/default.png', isDark,
+                          isAsset: true);
                     }
-                    
+
                     // If we already have data, show it immediately without going through loading state
                     if (snapshot.hasData) {
-                      print('SystemResourceScreen: Loading cached image with URL: ${snapshot.data}');
+                      print(
+                          'SystemResourceScreen: Loading cached image with URL: ${snapshot.data}');
                       return _buildCachedImage(snapshot.data!, isDark);
                     }
-                    
+
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       print('SystemResourceScreen: Loading router image...');
                       return Container(
-                        color: Colors.transparent, // Make background transparent
+                        color:
+                            Colors.transparent, // Make background transparent
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             CircularProgressIndicator(
-                              color: isDark ? Colors.blue[200] : Colors.blue[600],
+                              color:
+                                  isDark ? Colors.blue[200] : Colors.blue[600],
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -268,10 +288,13 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
                         ),
                       );
                     }
-                    
-                    print('SystemResourceScreen: No data or empty data, showing default image');
+
+                    print(
+                        'SystemResourceScreen: No data or empty data, showing default image');
                     // Show default.png when no data is available
-                    return _buildCachedImage('assets/mikrotik_product_images/default.png', isDark, isAsset: true);
+                    return _buildCachedImage(
+                        'assets/mikrotik_product_images/default.png', isDark,
+                        isAsset: true);
                   },
                 ),
               ),
@@ -286,7 +309,7 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
                     color: Colors.white, // White background
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
+                        color: Colors.black.withOpacity(0.2),
                         blurRadius: 4,
                         offset: const Offset(0, -2),
                       ),
@@ -295,7 +318,8 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
                   child: Text(
                     displayName,
                     style: TextStyle(
-                      color: Colors.black, // Black text for better contrast on white background
+                      color: Colors
+                          .black, // Black text for better contrast on white background
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -310,12 +334,14 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
     );
   }
 
-  Widget _buildCachedImage(String imageUrl, bool isDark, {bool isAsset = false}) {
+  Widget _buildCachedImage(String imageUrl, bool isDark,
+      {bool isAsset = false}) {
     if (isAsset) {
       // Handle asset images
       return Image.asset(
         imageUrl,
-        fit: BoxFit.contain, // Changed to BoxFit.contain for better zoom experience
+        fit: BoxFit
+            .contain, // Changed to BoxFit.contain for better zoom experience
         width: double.infinity,
         height: double.infinity,
         errorBuilder: (context, error, stackTrace) {
@@ -345,11 +371,12 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
         },
       );
     }
-    
+
     // Handle network images
     return Image.network(
       imageUrl,
-      fit: BoxFit.contain, // Changed to BoxFit.contain for better zoom experience
+      fit: BoxFit
+          .contain, // Changed to BoxFit.contain for better zoom experience
       width: double.infinity,
       height: double.infinity,
       loadingBuilder: (context, child, loadingProgress) {
@@ -377,12 +404,15 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
       errorBuilder: (context, error, stackTrace) {
         print('SystemResourceScreen: Error loading cached image: $error');
         // Show default.png when network image fails
-        return _buildCachedImage('assets/mikrotik_product_images/default.png', isDark, isAsset: true);
+        return _buildCachedImage(
+            'assets/mikrotik_product_images/default.png', isDark,
+            isAsset: true);
       },
     );
   }
 
-  Widget _buildCachedImageForZoom(String imageUrl, bool isDark, {bool isAsset = false}) {
+  Widget _buildCachedImageForZoom(String imageUrl, bool isDark,
+      {bool isAsset = false}) {
     if (isAsset) {
       // Handle asset images with zoom capability
       return Image.asset(
@@ -391,7 +421,8 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
         width: double.infinity,
         height: double.infinity,
         errorBuilder: (context, error, stackTrace) {
-          print('SystemResourceScreen (Zoom): Error loading asset image: $error');
+          print(
+              'SystemResourceScreen (Zoom): Error loading asset image: $error');
           // Fallback to icon if asset also fails
           return Container(
             color: isDark ? Colors.grey[800] : Colors.grey[200],
@@ -417,7 +448,7 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
         },
       );
     }
-    
+
     // Handle network images with zoom capability
     return Image.network(
       imageUrl,
@@ -447,23 +478,28 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
         );
       },
       errorBuilder: (context, error, stackTrace) {
-        print('SystemResourceScreen (Zoom): Error loading cached image: $error');
+        print(
+            'SystemResourceScreen (Zoom): Error loading cached image: $error');
         // Show default.png when network image fails
-        return _buildCachedImageForZoom('assets/mikrotik_product_images/default.png', isDark, isAsset: true);
+        return _buildCachedImageForZoom(
+            'assets/mikrotik_product_images/default.png', isDark,
+            isAsset: true);
       },
     );
   }
 
-  Widget _buildInteractiveImage(String imageUrl, bool isDark, {bool isAsset = false}) {
+  Widget _buildInteractiveImage(String imageUrl, bool isDark,
+      {bool isAsset = false}) {
     Widget imageWidget;
-    
+
     if (isAsset) {
       // Handle asset images with interactive zoom
       imageWidget = Image.asset(
         imageUrl,
         fit: BoxFit.contain,
         errorBuilder: (context, error, stackTrace) {
-          print('SystemResourceScreen (Zoom): Error loading asset image: $error');
+          print(
+              'SystemResourceScreen (Zoom): Error loading asset image: $error');
           // Fallback to icon if asset also fails
           return Container(
             color: isDark ? Colors.grey[800] : Colors.grey[200],
@@ -516,13 +552,16 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
           );
         },
         errorBuilder: (context, error, stackTrace) {
-          print('SystemResourceScreen (Zoom): Error loading cached image: $error');
+          print(
+              'SystemResourceScreen (Zoom): Error loading cached image: $error');
           // Show default.png when network image fails
-          return _buildInteractiveImage('assets/mikrotik_product_images/default.png', isDark, isAsset: true);
+          return _buildInteractiveImage(
+              'assets/mikrotik_product_images/default.png', isDark,
+              isAsset: true);
         },
       );
     }
-    
+
     // Wrap the image with InteractiveViewer for zoom capabilities
     return InteractiveViewer(
       panEnabled: true,
@@ -539,9 +578,10 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
     );
   }
 
-  void _showZoomedImageDialog(BuildContext context, GlobalKey imageKey, String? boardName, bool isDark) {
+  void _showZoomedImageDialog(BuildContext context, GlobalKey imageKey,
+      String? boardName, bool isDark) {
     final displayName = RouterImageService.getRouterDisplayName(boardName);
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -558,31 +598,41 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
                 child: FutureBuilder<String>(
                   future: _getImageFuture(boardName),
                   builder: (context, snapshot) {
-                    print('SystemResourceScreen (Zoom): FutureBuilder snapshot state: ${snapshot.connectionState}');
-                    print('SystemResourceScreen (Zoom): FutureBuilder hasData: ${snapshot.hasData}');
-                    print('SystemResourceScreen (Zoom): FutureBuilder data: ${snapshot.data}');
-                    print('SystemResourceScreen (Zoom): FutureBuilder error: ${snapshot.error}');
-                  
+                    print(
+                        'SystemResourceScreen (Zoom): FutureBuilder snapshot state: ${snapshot.connectionState}');
+                    print(
+                        'SystemResourceScreen (Zoom): FutureBuilder hasData: ${snapshot.hasData}');
+                    print(
+                        'SystemResourceScreen (Zoom): FutureBuilder data: ${snapshot.data}');
+                    print(
+                        'SystemResourceScreen (Zoom): FutureBuilder error: ${snapshot.error}');
+
                     if (snapshot.hasError) {
-                      print('SystemResourceScreen (Zoom): Error loading router image: ${snapshot.error}');
-                      return _buildInteractiveImage('assets/mikrotik_product_images/default.png', isDark, isAsset: true);
+                      print(
+                          'SystemResourceScreen (Zoom): Error loading router image: ${snapshot.error}');
+                      return _buildInteractiveImage(
+                          'assets/mikrotik_product_images/default.png', isDark,
+                          isAsset: true);
                     }
-                    
+
                     // If we already have data, show it immediately without going through loading state
                     if (snapshot.hasData) {
-                      print('SystemResourceScreen (Zoom): Loading cached image with URL: ${snapshot.data}');
+                      print(
+                          'SystemResourceScreen (Zoom): Loading cached image with URL: ${snapshot.data}');
                       return _buildInteractiveImage(snapshot.data!, isDark);
                     }
-                    
+
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      print('SystemResourceScreen (Zoom): Loading router image...');
+                      print(
+                          'SystemResourceScreen (Zoom): Loading router image...');
                       return Container(
                         color: isDark ? Colors.grey[900] : Colors.grey[100],
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             CircularProgressIndicator(
-                              color: isDark ? Colors.blue[200] : Colors.blue[600],
+                              color:
+                                  isDark ? Colors.blue[200] : Colors.blue[600],
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -596,9 +646,12 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
                         ),
                       );
                     }
-                    
-                    print('SystemResourceScreen (Zoom): No data or empty data, showing default image');
-                    return _buildInteractiveImage('assets/mikrotik_product_images/default.png', isDark, isAsset: true);
+
+                    print(
+                        'SystemResourceScreen (Zoom): No data or empty data, showing default image');
+                    return _buildInteractiveImage(
+                        'assets/mikrotik_product_images/default.png', isDark,
+                        isAsset: true);
                   },
                 ),
               ),
@@ -626,7 +679,7 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
                     color: isDark ? Colors.black54 : Colors.white70,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
+                        color: Colors.black.withOpacity(0.3),
                         blurRadius: 8,
                         offset: const Offset(0, -4),
                       ),
@@ -650,7 +703,8 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
     );
   }
 
-  Widget _buildSystemOverview(Map<String, dynamic> resource, String identity, bool isDark) {
+  Widget _buildSystemOverview(
+      Map<String, dynamic> resource, String identity, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -669,7 +723,9 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildMetric(
-                resource['cpu-load'] != null ? '${resource['cpu-load']}%' : '0%',
+                resource['cpu-load'] != null
+                    ? '${resource['cpu-load']}%'
+                    : '0%',
                 'CPU Load',
                 Icons.speed,
                 isDark,
@@ -691,7 +747,9 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildMetric(
-                resource['cpu-frequency'] != null ? '${resource['cpu-frequency']} MHz' : '-',
+                resource['cpu-frequency'] != null
+                    ? '${resource['cpu-frequency']} MHz'
+                    : '-',
                 'CPU Frequency',
                 Icons.memory,
                 isDark,
@@ -711,7 +769,9 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.1),
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withOpacity(0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -722,7 +782,9 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? Colors.blue.withValues(alpha: 0.1) : Colors.white, // Changed to pure white
+              color: isDark
+                  ? Colors.blue.withOpacity(0.1)
+                  : Colors.white, // Changed to pure white
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -766,7 +828,9 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.1),
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withOpacity(0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -804,8 +868,12 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
 
   // ignore: unused_element
   Widget _buildMetricsRow(
-    String value1, String label1, IconData icon1,
-    String value2, String label2, IconData icon2,
+    String value1,
+    String label1,
+    IconData icon1,
+    String value2,
+    String label2,
+    IconData icon2,
     bool isDark,
   ) {
     return Row(
@@ -822,7 +890,8 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
   }
 
   void _showJsonDialog(BuildContext context, MikrotikProvider provider) {
-    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+    final isDark =
+        Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
     final resource = provider.resource ?? {};
     final license = provider.license ?? {};
     final identity = provider.identity ?? 'RouterOS';
@@ -845,7 +914,8 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
         child: Container(
           constraints: const BoxConstraints(
             maxWidth: 600,
@@ -921,7 +991,8 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
                         Clipboard.setData(ClipboardData(text: jsonString));
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Text('JSON data copied to clipboard'),
+                            content:
+                                const Text('JSON data copied to clipboard'),
                             backgroundColor: Colors.green,
                             duration: const Duration(seconds: 2),
                           ),
@@ -946,60 +1017,38 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
-    
+
     return GradientContainer(
       child: Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        title: const Text('System Resource'),
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('System Resource'),
           backgroundColor: Colors.transparent,
           elevation: 0,
-        actions: [
-          Consumer<MikrotikProvider>(
-            builder: (context, provider, _) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 15.0),
-                child: IconButton(
-                  icon: const Icon(Icons.code),
-                  tooltip: 'View JSON Data',
-                  onPressed: () => _showJsonDialog(context, provider),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Consumer<MikrotikProvider>(
-        builder: (context, provider, _) {
-          final resource = provider.resource ?? {};
-          final license = provider.license ?? {};
+          actions: [
+            Consumer<MikrotikProvider>(
+              builder: (context, provider, _) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 15.0),
+                  child: IconButton(
+                    icon: const Icon(Icons.code),
+                    tooltip: 'View JSON Data',
+                    onPressed: () => _showJsonDialog(context, provider),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        body: Consumer<MikrotikProvider>(
+          builder: (context, provider, _) {
+            final resource = provider.resource ?? {};
+            final license = provider.license ?? {};
             final identity = provider.identity ?? 'RouterOS';
 
-          return ListView(
+            return ListView(
               padding: const EdgeInsets.all(16),
-            children: [
-              Card(
-                elevation: isDark ? 2 : 1,
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Router Image at the top
-                      _buildRouterImage(resource['board-name'], isDark),
-                      const SizedBox(height: 16),
-                      // System Overview
-                      _buildSystemOverview(resource, identity, isDark),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (license.isNotEmpty) ...[
+              children: [
                 Card(
                   elevation: isDark ? 2 : 1,
                   color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
@@ -1011,150 +1060,191 @@ class _SystemResourceScreenState extends State<SystemResourceScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'System Details',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildResourceCard('Platform', resource['platform'] ?? '-', Icons.devices, isDark),
-                        _buildResourceCard('Uptime', resource['uptime'] ?? '-', Icons.access_time, isDark),
-                        _buildResourceCard('Version', resource['version'] ?? '-', Icons.verified, isDark),
-                        _buildResourceCard('Architecture', resource['architecture-name'] ?? '-', Icons.architecture, isDark),
-                        _buildResourceCard('CPU Model', resource['cpu'] ?? '-', Icons.memory, isDark),
-                        _buildResourceCard(
-                          'Free Memory',
-                          _formatMemory(resource['free-memory']),
-                          Icons.sd_storage,
-                          isDark,
-                        ),
-                        _buildResourceCard(
-                          'Total Memory',
-                          _formatMemory(resource['total-memory']),
-                          Icons.sd_storage,
-                          isDark,
-                        ),
-                        _buildResourceCard(
-                          'Free HDD Space',
-                          _formatMemory(resource['free-hdd-space']),
-                          Icons.storage,
-                          isDark,
-                        ),
-                        _buildResourceCard(
-                          'Total HDD Space',
-                          _formatMemory(resource['total-hdd-space']),
-                          Icons.storage,
-                          isDark,
-                        ),
-                        if (resource['build-time'] != null)
-                          _buildResourceCard(
-                            'Build Time',
-                            resource['build-time'] ?? '-',
-                            Icons.build,
-                            isDark,
-                          ),
-                        if (resource['factory-software'] != null)
-                          _buildResourceCard(
-                            'Factory Software',
-                            resource['factory-software'] ?? '-',
-                            Icons.business,
-                            isDark,
-                          ),
-                        if (resource['bad-blocks'] != null)
-                          _buildResourceCard(
-                            'Bad Blocks',
-                            resource['bad-blocks'] ?? '0',
-                            Icons.error_outline,
-                            isDark,
-                          ),
-                        if (resource['write-sect-since-reboot'] != null)
-                          _buildResourceCard(
-                            'Write Sectors (Since Reboot)',
-                            _formatNumber(resource['write-sect-since-reboot']),
-                            Icons.edit,
-                            isDark,
-                          ),
-                        if (resource['write-sect-total'] != null)
-                          _buildResourceCard(
-                            'Write Sectors (Total)',
-                            _formatNumber(resource['write-sect-total']),
-                            Icons.data_usage,
-                            isDark,
-                          ),
+                        // Router Image at the top
+                        _buildRouterImage(resource['board-name'], isDark),
+                        const SizedBox(height: 16),
+                        // System Overview
+                        _buildSystemOverview(resource, identity, isDark),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                Card(
-                  elevation: isDark ? 2 : 1,
-                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'License Information',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
-                            letterSpacing: 0.5,
+                if (license.isNotEmpty) ...[
+                  Card(
+                    elevation: isDark ? 2 : 1,
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'System Details',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                              letterSpacing: 0.5,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (license['software-id'] != null)
+                          const SizedBox(height: 12),
                           _buildResourceCard(
-                            'Software ID',
-                            license['software-id']?.toString() ?? '-',
-                            Icons.vpn_key,
-                            isDark,
-                          ),
-                        if (license['serial-number'] != null)
+                              'Platform',
+                              resource['platform'] ?? '-',
+                              Icons.devices,
+                              isDark),
                           _buildResourceCard(
-                            'Serial Number',
-                            license['serial-number']?.toString() ?? '-',
-                            Icons.confirmation_number,
-                            isDark,
-                          ),
-                        if (license['nlevel'] != null)
+                              'Uptime',
+                              resource['uptime'] ?? '-',
+                              Icons.access_time,
+                              isDark),
                           _buildResourceCard(
-                            'License Level',
-                            _formatLicenseLevel(license['nlevel']),
-                            Icons.star,
-                            isDark,
-                          ),
-                        if (license['features'] != null && license['features'].toString().trim().isNotEmpty)
-                          _buildLicenseFeaturesCard(
-                            license['features'],
-                            isDark,
-                          ),
-                        if (license['valid'] != null)
+                              'Version',
+                              resource['version'] ?? '-',
+                              Icons.verified,
+                              isDark),
                           _buildResourceCard(
-                            'License Status',
-                            _formatLicenseStatus(license['valid']),
-                            Icons.check_circle,
+                              'Architecture',
+                              resource['architecture-name'] ?? '-',
+                              Icons.architecture,
+                              isDark),
+                          _buildResourceCard('CPU Model',
+                              resource['cpu'] ?? '-', Icons.memory, isDark),
+                          _buildResourceCard(
+                            'Free Memory',
+                            _formatMemory(resource['free-memory']),
+                            Icons.sd_storage,
                             isDark,
                           ),
-                      ],
+                          _buildResourceCard(
+                            'Total Memory',
+                            _formatMemory(resource['total-memory']),
+                            Icons.sd_storage,
+                            isDark,
+                          ),
+                          _buildResourceCard(
+                            'Free HDD Space',
+                            _formatMemory(resource['free-hdd-space']),
+                            Icons.storage,
+                            isDark,
+                          ),
+                          _buildResourceCard(
+                            'Total HDD Space',
+                            _formatMemory(resource['total-hdd-space']),
+                            Icons.storage,
+                            isDark,
+                          ),
+                          if (resource['build-time'] != null)
+                            _buildResourceCard(
+                              'Build Time',
+                              resource['build-time'] ?? '-',
+                              Icons.build,
+                              isDark,
+                            ),
+                          if (resource['factory-software'] != null)
+                            _buildResourceCard(
+                              'Factory Software',
+                              resource['factory-software'] ?? '-',
+                              Icons.business,
+                              isDark,
+                            ),
+                          if (resource['bad-blocks'] != null)
+                            _buildResourceCard(
+                              'Bad Blocks',
+                              resource['bad-blocks'] ?? '0',
+                              Icons.error_outline,
+                              isDark,
+                            ),
+                          if (resource['write-sect-since-reboot'] != null)
+                            _buildResourceCard(
+                              'Write Sectors (Since Reboot)',
+                              _formatNumber(
+                                  resource['write-sect-since-reboot']),
+                              Icons.edit,
+                              isDark,
+                            ),
+                          if (resource['write-sect-total'] != null)
+                            _buildResourceCard(
+                              'Write Sectors (Total)',
+                              _formatNumber(resource['write-sect-total']),
+                              Icons.data_usage,
+                              isDark,
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  Card(
+                    elevation: isDark ? 2 : 1,
+                    color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'License Information',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          if (license['software-id'] != null)
+                            _buildResourceCard(
+                              'Software ID',
+                              license['software-id']?.toString() ?? '-',
+                              Icons.vpn_key,
+                              isDark,
+                            ),
+                          if (license['serial-number'] != null)
+                            _buildResourceCard(
+                              'Serial Number',
+                              license['serial-number']?.toString() ?? '-',
+                              Icons.confirmation_number,
+                              isDark,
+                            ),
+                          if (license['nlevel'] != null)
+                            _buildResourceCard(
+                              'License Level',
+                              _formatLicenseLevel(license['nlevel']),
+                              Icons.star,
+                              isDark,
+                            ),
+                          if (license['features'] != null &&
+                              license['features'].toString().trim().isNotEmpty)
+                            _buildLicenseFeaturesCard(
+                              license['features'],
+                              isDark,
+                            ),
+                          if (license['valid'] != null)
+                            _buildResourceCard(
+                              'License Status',
+                              _formatLicenseStatus(license['valid']),
+                              Icons.check_circle,
+                              isDark,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
-          );
-        },
+            );
+          },
+        ),
       ),
-    ),
-  );
+    );
   }
 }
 

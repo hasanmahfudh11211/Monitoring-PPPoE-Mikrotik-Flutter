@@ -39,6 +39,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   package_info_plus: ^9.0.0
   pie_chart: ^5.3.2
+  fl_chart: ^1.1.1
   percent_indicator: ^4.2.3
   flutter_markdown: ^0.7.7+1
   url_launcher: ^6.2.4

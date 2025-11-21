@@ -389,8 +389,8 @@ class _ODPScreenState extends State<ODPScreen> {
                       boxShadow: [
                         BoxShadow(
                             color: isDark
-                                ? Colors.black.withValues(alpha: 0.3)
-                                : Colors.black.withValues(alpha: 0.1),
+                                ? Colors.black.withOpacity(0.3)
+                                : Colors.black.withOpacity(0.1),
                             blurRadius: 8,
                             offset: const Offset(0, -4)),
                       ],

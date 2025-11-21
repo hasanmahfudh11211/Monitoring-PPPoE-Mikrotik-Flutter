@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../providers/mikrotik_provider.dart';
 import '../widgets/gradient_container.dart';
 
 class TrafficScreen extends StatefulWidget {
-  const TrafficScreen({Key? key}) : super(key: key);
+  const TrafficScreen({super.key});
 
   @override
   State<TrafficScreen> createState() => _TrafficScreenState();
@@ -17,6 +18,13 @@ class _TrafficScreenState extends State<TrafficScreen> {
   String? _selectedInterfaceId;
   List<Map<String, dynamic>> _interfaces = [];
   Map<String, dynamic>? _selectedInterface;
+  final TextEditingController _searchController = TextEditingController();
+
+  // Graph data
+  final List<FlSpot> _txPoints = [];
+  final List<FlSpot> _rxPoints = [];
+  double _timeCounter = 0;
+  static const int _maxPoints = 20;
 
   @override
   void initState() {
@@ -27,14 +35,179 @@ class _TrafficScreenState extends State<TrafficScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showInterfaceSelector() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    String searchQuery = '';
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final filteredInterfaces = _interfaces.where((interface) {
+              final name = (interface['name'] ?? '').toString().toLowerCase();
+              return name.contains(searchQuery.toLowerCase());
+            }).toList();
+
+            return AlertDialog(
+              backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              title: Text(
+                'Pilih Interface',
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Search Field
+                    TextField(
+                      controller: _searchController,
+                      autofocus: true,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Cari interface...',
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white54 : Colors.black54,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: isDark ? Colors.white70 : Colors.black54,
+                        ),
+                        suffixIcon: searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.clear,
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black54,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchController.clear();
+                                    searchQuery = '';
+                                  });
+                                },
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: isDark ? Colors.grey[800] : Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          searchQuery = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Interface List
+                    Flexible(
+                      child: filteredInterfaces.isEmpty
+                          ? Center(
+                              child: Text(
+                                'Tidak ada interface ditemukan',
+                                style: TextStyle(
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black54,
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: filteredInterfaces.length,
+                              itemBuilder: (context, index) {
+                                final interface = filteredInterfaces[index];
+                                final isSelected =
+                                    interface['.id'] == _selectedInterfaceId;
+                                return ListTile(
+                                  selected: isSelected,
+                                  selectedTileColor: isDark
+                                      ? Colors.blue.withValues(alpha: 0.2)
+                                      : Colors.blue.withValues(alpha: 0.1),
+                                  title: Text(
+                                    interface['name'] ?? 'Unknown',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                  subtitle: interface['type'] != null
+                                      ? Text(
+                                          interface['type'],
+                                          style: TextStyle(
+                                            color: isDark
+                                                ? Colors.white70
+                                                : Colors.black54,
+                                            fontSize: 12,
+                                          ),
+                                        )
+                                      : null,
+                                  trailing: isSelected
+                                      ? const Icon(
+                                          Icons.check_circle,
+                                          color: Colors.blue,
+                                        )
+                                      : null,
+                                  onTap: () {
+                                    this.setState(() {
+                                      _selectedInterfaceId = interface['.id'];
+                                      _selectedInterface = interface;
+                                      _startPolling();
+                                    });
+                                    _searchController.clear();
+                                    Navigator.of(context).pop();
+                                  },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    _searchController.clear();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Batal',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<void> _loadInterfaces() async {
     final provider = Provider.of<MikrotikProvider>(context, listen: false);
     try {
       final interfaces = await provider.service.getInterface();
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _interfaces = interfaces;
         if (interfaces.isNotEmpty) {
@@ -44,7 +217,9 @@ class _TrafficScreenState extends State<TrafficScreen> {
         }
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal memuat interface: $e'),
@@ -56,23 +231,42 @@ class _TrafficScreenState extends State<TrafficScreen> {
 
   void _startPolling() {
     _timer?.cancel();
+    _resetGraph();
     _fetchTrafficData();
-    // Reduced polling frequency to prevent battery drain and memory leaks
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    // Polling every 3 seconds
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _fetchTrafficData();
     });
   }
 
+  void _resetGraph() {
+    _txPoints.clear();
+    _rxPoints.clear();
+    _timeCounter = 0;
+    // Initialize with zeros
+    for (int i = 0; i < _maxPoints; i++) {
+      _txPoints.add(FlSpot(i.toDouble(), 0));
+      _rxPoints.add(FlSpot(i.toDouble(), 0));
+    }
+    _timeCounter = _maxPoints.toDouble();
+  }
+
   Future<void> _fetchTrafficData() async {
-    if (_selectedInterfaceId == null) return;
+    if (_selectedInterfaceId == null) {
+      return;
+    }
 
     final provider = Provider.of<MikrotikProvider>(context, listen: false);
     try {
       final trafficData =
           await provider.service.getTraffic(_selectedInterfaceId!);
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         _trafficData = trafficData;
+        _updateGraphData(trafficData);
       });
     } catch (e) {
       // Silent error for polling to avoid spamming snackbars
@@ -80,11 +274,28 @@ class _TrafficScreenState extends State<TrafficScreen> {
     }
   }
 
-  String _formatRate(double rate) {
-    if (rate < 1) {
-      return '${(rate * 1000).toStringAsFixed(1)}';
+  void _updateGraphData(Map<String, dynamic> data) {
+    final txRate = (data['tx-rate'] as num?)?.toDouble() ?? 0.0;
+    final rxRate = (data['rx-rate'] as num?)?.toDouble() ?? 0.0;
+
+    _txPoints.add(FlSpot(_timeCounter, txRate));
+    _rxPoints.add(FlSpot(_timeCounter, rxRate));
+    _timeCounter++;
+
+    if (_txPoints.length > _maxPoints) {
+      _txPoints.removeAt(0);
+      _rxPoints.removeAt(0);
     }
-    return '${rate.toStringAsFixed(1)}';
+  }
+
+  String _formatRate(double rate) {
+    // API already returns rate in Mbps
+    if (rate < 1) {
+      // Less than 1 Mbps, show in Kbps
+      return (rate * 1000).toStringAsFixed(1);
+    }
+    // 1 Mbps or more, show in Mbps
+    return rate.toStringAsFixed(1);
   }
 
   String _formatRateUnit(double rate) {
@@ -94,8 +305,32 @@ class _TrafficScreenState extends State<TrafficScreen> {
     return 'Mbps';
   }
 
-  String _formatPacketRate(int rate) {
+  String _formatPacketRate(dynamic rate) {
     return '$rate p/s';
+  }
+
+  String _formatBytes(dynamic bytes) {
+    if (bytes == null) {
+      return '-';
+    }
+    int b = int.tryParse(bytes.toString()) ?? 0;
+    if (b < 1024) {
+      return '$b B';
+    }
+    if (b < 1024 * 1024) {
+      return '${(b / 1024).toStringAsFixed(1)} KB';
+    }
+    if (b < 1024 * 1024 * 1024) {
+      return '${(b / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(b / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+  }
+
+  String _formatPackets(dynamic packets) {
+    if (packets == null) {
+      return '-';
+    }
+    return packets.toString();
   }
 
   @override
@@ -126,8 +361,8 @@ class _TrafficScreenState extends State<TrafficScreen> {
                 Card(
                   elevation: 0,
                   color: isDark
-                      ? const Color(0xFF1E1E1E).withOpacity(0.9)
-                      : Colors.white.withOpacity(0.9),
+                      ? const Color(0xFF1E1E1E).withValues(alpha: 0.9)
+                      : Colors.white.withValues(alpha: 0.9),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -136,56 +371,58 @@ class _TrafficScreenState extends State<TrafficScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Interface Selector
-                        Container(
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.grey[800] : Colors.grey[100],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              dropdownColor: isDark
-                                  ? const Color(0xFF2D2D2D)
-                                  : Colors.white,
-                              value: _selectedInterfaceId,
-                              hint: Text(
-                                'Pilih Interface',
-                                style: TextStyle(
-                                  color:
-                                      isDark ? Colors.white70 : Colors.black54,
-                                ),
-                              ),
-                              isExpanded: true,
-                              icon: Icon(
-                                Icons.arrow_drop_down_rounded,
-                                color: isDark ? Colors.white70 : Colors.black54,
-                              ),
-                              items: _interfaces.map((interface) {
-                                return DropdownMenuItem<String>(
-                                  value: interface['.id'],
+                        // Interface Selector with Search
+                        GestureDetector(
+                          onTap: _showInterfaceSelector,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color:
+                                  isDark ? Colors.grey[800] : Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 16),
+                            child: Row(
+                              children: [
+                                Expanded(
                                   child: Text(
-                                    interface['name'] ?? 'Unknown',
+                                    _selectedInterface != null
+                                        ? _selectedInterface!['name'] ??
+                                            'Unknown'
+                                        : 'Pilih Interface',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
-                                      color: isDark
-                                          ? Colors.white
-                                          : Colors.black87,
+                                      color: _selectedInterface != null
+                                          ? (isDark
+                                              ? Colors.white
+                                              : Colors.black87)
+                                          : (isDark
+                                              ? Colors.white70
+                                              : Colors.black54),
                                     ),
                                   ),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  _selectedInterfaceId = newValue;
-                                  _selectedInterface = _interfaces.firstWhere(
-                                    (interface) => interface['.id'] == newValue,
-                                    orElse: () => {},
-                                  );
-                                  _startPolling();
-                                });
-                              },
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.search,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black54,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Icon(
+                                      Icons.arrow_drop_down_rounded,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black54,
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -199,11 +436,11 @@ class _TrafficScreenState extends State<TrafficScreen> {
                             decoration: BoxDecoration(
                               color: _selectedInterface!['running'] == "true"
                                   ? (isDark
-                                      ? Colors.green.withOpacity(0.2)
-                                      : Colors.green.withOpacity(0.1))
+                                      ? Colors.green.withValues(alpha: 0.2)
+                                      : Colors.green.withValues(alpha: 0.1))
                                   : (isDark
-                                      ? Colors.red.withOpacity(0.2)
-                                      : Colors.red.withOpacity(0.1)),
+                                      ? Colors.red.withValues(alpha: 0.2)
+                                      : Colors.red.withValues(alpha: 0.1)),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -235,6 +472,89 @@ class _TrafficScreenState extends State<TrafficScreen> {
                                   ),
                                 ),
                               ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          // Traffic Graph
+                          SizedBox(
+                            height: 200,
+                            child: LineChart(
+                              LineChartData(
+                                gridData: FlGridData(
+                                  show: true,
+                                  drawVerticalLine: false,
+                                  getDrawingHorizontalLine: (value) {
+                                    return FlLine(
+                                      color: isDark
+                                          ? Colors.white10
+                                          : Colors.black12,
+                                      strokeWidth: 1,
+                                    );
+                                  },
+                                ),
+                                titlesData: FlTitlesData(
+                                  show: true,
+                                  rightTitles: AxisTitles(
+                                      sideTitles:
+                                          SideTitles(showTitles: false)),
+                                  topTitles: AxisTitles(
+                                      sideTitles:
+                                          SideTitles(showTitles: false)),
+                                  bottomTitles: AxisTitles(
+                                      sideTitles:
+                                          SideTitles(showTitles: false)),
+                                  leftTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      reservedSize: 40,
+                                      getTitlesWidget: (value, meta) {
+                                        return Text(
+                                          _formatRate(value),
+                                          style: TextStyle(
+                                            color: isDark
+                                                ? Colors.white54
+                                                : Colors.black54,
+                                            fontSize: 10,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                borderData: FlBorderData(show: false),
+                                minX: _timeCounter - _maxPoints,
+                                maxX: _timeCounter,
+                                minY: 0,
+                                lineBarsData: [
+                                  // RX Line (Blue)
+                                  LineChartBarData(
+                                    spots: _rxPoints,
+                                    isCurved: true,
+                                    color: Colors.blue,
+                                    barWidth: 3,
+                                    isStrokeCapRound: true,
+                                    dotData: FlDotData(show: false),
+                                    belowBarData: BarAreaData(
+                                      show: true,
+                                      color: Colors.blue.withValues(alpha: 0.1),
+                                    ),
+                                  ),
+                                  // TX Line (Orange)
+                                  LineChartBarData(
+                                    spots: _txPoints,
+                                    isCurved: true,
+                                    color: Colors.deepOrange,
+                                    barWidth: 3,
+                                    isStrokeCapRound: true,
+                                    dotData: FlDotData(show: false),
+                                    belowBarData: BarAreaData(
+                                      show: true,
+                                      color: Colors.deepOrange
+                                          .withValues(alpha: 0.1),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -373,19 +693,18 @@ class _TrafficScreenState extends State<TrafficScreen> {
               Text(
                 rate,
                 style: TextStyle(
-                  color: isDark ? color.shade300 : color,
-                  fontSize: 42,
+                  fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  height: 1,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
               const SizedBox(width: 4),
               Text(
                 unit,
                 style: TextStyle(
-                  color: isDark ? color.shade400 : color.withOpacity(0.8),
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.white70 : Colors.black54,
                 ),
               ),
             ],
@@ -395,8 +714,8 @@ class _TrafficScreenState extends State<TrafficScreen> {
         Text(
           packetRate,
           style: TextStyle(
-            color: isDark ? color.shade500 : color.withOpacity(0.7),
-            fontSize: 14,
+            fontSize: 12,
+            color: isDark ? Colors.white54 : Colors.black45,
           ),
         ),
       ],
@@ -404,107 +723,29 @@ class _TrafficScreenState extends State<TrafficScreen> {
   }
 
   Widget _buildDetailRow(String label, String value,
-      {bool isTotal = false, bool isDark = false}) {
+      {bool isTotal = false, required bool isDark}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
             style: TextStyle(
-              color: isDark ? Colors.grey.shade400 : Colors.grey[600],
+              color: isDark ? Colors.white70 : Colors.black54,
               fontSize: 14,
             ),
           ),
-          const SizedBox(width: 16),
-          Flexible(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
-                fontSize: isTotal ? 15 : 14,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-              textAlign: TextAlign.end,
+          Text(
+            value,
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+              fontSize: 14,
             ),
           ),
         ],
       ),
     );
-  }
-
-  String _formatBytes(String? bytes) {
-    if (bytes == null) return '0 B';
-    double byte = double.tryParse(bytes) ?? 0;
-
-    // Convert to TB
-    if (byte >= 1099511627776) {
-      // 1024^4
-      double tb = byte / 1099511627776;
-      return '${tb.toStringAsFixed(2)} TB';
-    }
-
-    // Convert to GB
-    if (byte >= 1073741824) {
-      // 1024^3
-      double gb = byte / 1073741824;
-      // Jika lebih dari 100 GB, bulatkan ke GB terdekat
-      if (gb >= 100) {
-        return '${gb.round()} GB';
-      }
-      // Jika lebih dari 10 GB, gunakan 1 desimal
-      if (gb >= 10) {
-        return '${gb.toStringAsFixed(1)} GB';
-      }
-      // Dibawah 10 GB, gunakan 2 desimal
-      return '${gb.toStringAsFixed(2)} GB';
-    }
-
-    // Convert to MB
-    if (byte >= 1048576) {
-      // 1024^2
-      double mb = byte / 1048576;
-      // Jika lebih dari 100 MB, bulatkan ke MB terdekat
-      if (mb >= 100) {
-        return '${mb.round()} MB';
-      }
-      return '${mb.toStringAsFixed(1)} MB';
-    }
-
-    // Convert to KB
-    if (byte >= 1024) {
-      double kb = byte / 1024;
-      if (kb >= 100) {
-        return '${kb.round()} KB';
-      }
-      return '${kb.toStringAsFixed(1)} KB';
-    }
-
-    // Bytes
-    return '${byte.round()} B';
-  }
-
-  String _formatPackets(String? packets) {
-    if (packets == null) return '0';
-    final num = double.tryParse(packets) ?? 0;
-
-    // Convert to billions
-    if (num >= 1000000000) {
-      return '${(num / 1000000000).toStringAsFixed(2)}B';
-    }
-
-    // Convert to millions
-    if (num >= 1000000) {
-      return '${(num / 1000000).toStringAsFixed(2)}M';
-    }
-
-    // Convert to thousands
-    if (num >= 1000) {
-      return '${(num / 1000).toStringAsFixed(2)}K';
-    }
-
-    return num.round().toString();
   }
 }

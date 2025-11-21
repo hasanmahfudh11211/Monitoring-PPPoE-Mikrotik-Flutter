@@ -47,7 +47,7 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
     _waController.text = widget.currentData['wa'] ?? '';
     _mapsController.text = widget.currentData['maps'] ?? '';
     _currentImageUrl = widget.currentData['foto'];
-    
+
     // Set ODP yang sudah terpilih jika ada
     final odpId = widget.currentData['odp_id'];
     if (odpId != null) {
@@ -72,7 +72,8 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
   Future<void> _fetchOdpList() async {
     try {
       // Get router_id from RouterSessionProvider
-      final routerId = Provider.of<RouterSessionProvider>(context, listen: false).routerId;
+      final routerId =
+          Provider.of<RouterSessionProvider>(context, listen: false).routerId;
       if (routerId == null || routerId.isEmpty) {
         setState(() {
           _odpList = [];
@@ -80,16 +81,19 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
         });
         return;
       }
-      
-      final response = await http.get(Uri.parse('${ApiService.baseUrl}/odp_operations.php?router_id=$routerId'));
+
+      final response = await http.get(Uri.parse(
+          '${ApiService.baseUrl}/odp_operations.php?router_id=$routerId'));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true) {
           setState(() {
             _odpList = List<Map<String, dynamic>>.from(data['odp_list']);
             // Pastikan _selectedOdpId valid, bandingkan sebagai integer
-            if (_selectedOdpId != null && !_odpList.any((odp) => int.tryParse(odp['id'].toString()) == _selectedOdpId)) {
-                _selectedOdpId = null;
+            if (_selectedOdpId != null &&
+                !_odpList.any((odp) =>
+                    int.tryParse(odp['id'].toString()) == _selectedOdpId)) {
+              _selectedOdpId = null;
             }
           });
         }
@@ -105,12 +109,13 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-      
+
       if (image != null) {
         // Compress image
         final File imageFile = File(image.path);
-        final img.Image? originalImage = img.decodeImage(await imageFile.readAsBytes());
-        
+        final img.Image? originalImage =
+            img.decodeImage(await imageFile.readAsBytes());
+
         if (originalImage != null) {
           // Resize and compress image
           final img.Image resizedImage = img.copyResize(
@@ -118,9 +123,10 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
             width: 800, // Max width
             height: (800 * originalImage.height / originalImage.width).round(),
           );
-          
-          final List<int> compressedBytes = img.encodeJpg(resizedImage, quality: 85);
-          
+
+          final List<int> compressedBytes =
+              img.encodeJpg(resizedImage, quality: 85);
+
           setState(() {
             _pickedImage = image;
             _imageFile = imageFile;
@@ -160,11 +166,9 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
                   color: isDark ? Colors.blue.shade900 : Colors.blue.shade100,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.help_outline, 
-                  color: isDark ? Colors.blue.shade300 : Colors.blue, 
-                  size: 36
-                ),
+                child: Icon(Icons.help_outline,
+                    color: isDark ? Colors.blue.shade300 : Colors.blue,
+                    size: 36),
               ),
               const SizedBox(height: 18),
               Text(
@@ -180,9 +184,8 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
                 'Apakah data sudah benar?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 16, 
-                  color: isDark ? Colors.white70 : Colors.black87
-                ),
+                    fontSize: 16,
+                    color: isDark ? Colors.white70 : Colors.black87),
               ),
               const SizedBox(height: 28),
               Row(
@@ -191,23 +194,23 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(false),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: isDark ? Colors.white70 : Colors.grey[700],
+                        foregroundColor:
+                            isDark ? Colors.white70 : Colors.grey[700],
                         side: BorderSide(
-                          color: isDark ? Colors.grey.shade700 : Colors.grey.shade400
-                        ),
+                            color: isDark
+                                ? Colors.grey.shade700
+                                : Colors.grey.shade400),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Text(
-                        'BATAL', 
-                        style: TextStyle(
-                          fontSize: 16, 
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white : Colors.grey[700],
-                        )
-                      ),
+                      child: Text('BATAL',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.grey[700],
+                          )),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -215,21 +218,21 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
                     child: ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(true),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark ? Colors.blue.shade700 : Colors.blue.shade800,
+                        backgroundColor: isDark
+                            ? Colors.blue.shade700
+                            : Colors.blue.shade800,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'SIMPAN', 
-                        style: TextStyle(
-                          fontSize: 16, 
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        )
-                      ),
+                      child: const Text('SIMPAN',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          )),
                     ),
                   ),
                 ],
@@ -249,10 +252,12 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
       String? base64Image;
       if (_compressedImageBytes != null) {
         // Convert bytes to base64 string
-        base64Image = 'data:image/jpeg;base64,' + base64Encode(_compressedImageBytes!);
+        base64Image =
+            'data:image/jpeg;base64,' + base64Encode(_compressedImageBytes!);
       }
 
-      final routerId = Provider.of<RouterSessionProvider>(context, listen: false).routerId;
+      final routerId =
+          Provider.of<RouterSessionProvider>(context, listen: false).routerId;
       if (routerId == null) {
         throw Exception('Silakan login router ulang');
       }
@@ -293,333 +298,367 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: const Text(
-            'Edit Data Tambahan',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'Edit Data Tambahan',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
-          iconTheme: const IconThemeData(color: Colors.white),
-          centerTitle: true,
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Info Card
-                Card(
-                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Username: ${widget.username}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
+        iconTheme: const IconThemeData(color: Colors.white),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Info Card
+              Card(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Username: ${widget.username}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 24),
+              ),
+              const SizedBox(height: 24),
 
-                // Form Fields
-                Card(
-                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // WhatsApp Field
-                        TextFormField(
-                          controller: _waController,
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                          decoration: InputDecoration(
-                            labelText: 'Nomor WhatsApp',
-                            labelStyle: TextStyle(
-                              color: isDark ? Colors.white70 : Colors.black54,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.phone,
-                              color: isDark ? Colors.blue.shade300 : Colors.blue,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: isDark ? Colors.blue.shade300 : Colors.blue,
-                              ),
-                            ),
-                          ),
-                          keyboardType: TextInputType.phone,
+              // Form Fields
+              Card(
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // WhatsApp Field
+                      TextFormField(
+                        controller: _waController,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
-                        const SizedBox(height: 16),
-
-                        // Maps Field
-                        TextFormField(
-                          controller: _mapsController,
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black87,
+                        decoration: InputDecoration(
+                          labelText: 'Nomor WhatsApp',
+                          labelStyle: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.black54,
                           ),
-                          decoration: InputDecoration(
-                            labelText: 'Link Google Maps',
-                            labelStyle: TextStyle(
-                              color: isDark ? Colors.white70 : Colors.black54,
+                          prefixIcon: Icon(
+                            Icons.phone,
+                            color: isDark ? Colors.blue.shade300 : Colors.blue,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300,
                             ),
-                            prefixIcon: Icon(
-                              Icons.location_on,
-                              color: isDark ? Colors.blue.shade300 : Colors.blue,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300,
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: isDark ? Colors.blue.shade300 : Colors.blue,
-                              ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color:
+                                  isDark ? Colors.blue.shade300 : Colors.blue,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 16),
 
-                        // ODP Dropdown
-                        Text(
-                          'Hubungkan ke ODP',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
+                      // Maps Field
+                      TextFormField(
+                        controller: _mapsController,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: 'Link Google Maps',
+                          labelStyle: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.location_on,
+                            color: isDark ? Colors.blue.shade300 : Colors.blue,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color:
+                                  isDark ? Colors.blue.shade300 : Colors.blue,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        _isLoadingOdp
-                            ? const Center(child: CircularProgressIndicator())
-                            : DropdownButtonFormField<int>(
-                                value: _selectedOdpId,
-                                isExpanded: true,
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: isDark ? const Color(0xFF2D2D2D) : Colors.white.withValues(alpha: 0.9),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: isDark ? Colors.blue.shade300 : Colors.blue,
-                                    ),
-                                  ),
-                                  prefixIcon: Icon(
-                                    Icons.device_hub,
-                                    color: isDark ? Colors.blue.shade300 : Colors.blue,
-                                  ),
-                                  hintText: 'Pilih ODP',
-                                  hintStyle: TextStyle(
-                                    color: isDark ? Colors.white70 : Colors.black54,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ODP Dropdown
+                      Text(
+                        'Hubungkan ke ODP',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      _isLoadingOdp
+                          ? const Center(child: CircularProgressIndicator())
+                          : DropdownButtonFormField<int>(
+                              value: _selectedOdpId,
+                              isExpanded: true,
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: isDark
+                                    ? const Color(0xFF2D2D2D)
+                                    : Colors.white.withOpacity(0.9),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: isDark
+                                        ? Colors.grey.shade700
+                                        : Colors.grey.shade300,
                                   ),
                                 ),
-                                items: _odpList.map((odp) {
-                                  return DropdownMenuItem<int>(
-                                    // Pastikan value adalah integer
-                                    value: int.parse(odp['id'].toString()),
-                                    child: Text(
-                                      odp['name'],
-                                      style: TextStyle(
-                                        color: isDark ? Colors.white : Colors.black87,
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: isDark
+                                        ? Colors.grey.shade700
+                                        : Colors.grey.shade300,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: isDark
+                                        ? Colors.blue.shade300
+                                        : Colors.blue,
+                                  ),
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.device_hub,
+                                  color: isDark
+                                      ? Colors.blue.shade300
+                                      : Colors.blue,
+                                ),
+                                hintText: 'Pilih ODP',
+                                hintStyle: TextStyle(
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black54,
+                                ),
+                              ),
+                              items: _odpList.map((odp) {
+                                return DropdownMenuItem<int>(
+                                  // Pastikan value adalah integer
+                                  value: int.parse(odp['id'].toString()),
+                                  child: Text(
+                                    odp['name'],
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedOdpId = value;
+                                });
+                              },
+                            ),
+
+                      const SizedBox(height: 16),
+
+                      // Image Picker
+                      Text(
+                        'Foto ',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Column(
+                          children: [
+                            if (_pickedImage != null) ...[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(
+                                  File(_pickedImage!.path),
+                                  height: 200,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ] else if (_currentImageUrl != null &&
+                                _currentImageUrl!.isNotEmpty) ...[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  _currentImageUrl!,
+                                  height: 200,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      height: 200,
+                                      width: double.infinity,
+                                      color: isDark
+                                          ? Colors.grey.shade800
+                                          : Colors.grey[300],
+                                      child: Icon(
+                                        Icons.error_outline,
+                                        size: 50,
+                                        color: isDark
+                                            ? Colors.grey.shade400
+                                            : Colors.grey,
                                       ),
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedOdpId = value;
-                                  });
-                                },
-                              ),
-
-                        const SizedBox(height: 16),
-
-                        // Image Picker
-                        Text(
-                          'Foto ',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Center(
-                          child: Column(
-                            children: [
-                              if (_pickedImage != null) ...[
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.file(
-                                    File(_pickedImage!.path),
-                                    height: 200,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ] else if (_currentImageUrl != null && _currentImageUrl!.isNotEmpty) ...[
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.network(
-                                    _currentImageUrl!,
-                                    height: 200,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        height: 200,
-                                        width: double.infinity,
-                                        color: isDark ? Colors.grey.shade800 : Colors.grey[300],
-                                        child: Icon(
-                                          Icons.error_outline,
-                                          size: 50,
-                                          color: isDark ? Colors.grey.shade400 : Colors.grey,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: _isLoading ? null : _pickImage,
-                                icon: Icon(
-                                  Icons.photo_camera,
-                                  color: isDark ? Colors.white : Colors.white,
-                                ),
-                                label: Text(
-                                  _pickedImage != null || (_currentImageUrl != null && _currentImageUrl!.isNotEmpty)
-                                      ? 'Ganti Foto'
-                                      : 'Pilih Foto',
-                                  style: TextStyle(
-                                    color: isDark ? Colors.white : Colors.white,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: isDark ? Colors.blue.shade700 : Colors.blue.shade700,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                                    );
+                                  },
                                 ),
                               ),
                             ],
-                          ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: _isLoading ? null : _pickImage,
+                              icon: Icon(
+                                Icons.photo_camera,
+                                color: isDark ? Colors.white : Colors.white,
+                              ),
+                              label: Text(
+                                _pickedImage != null ||
+                                        (_currentImageUrl != null &&
+                                            _currentImageUrl!.isNotEmpty)
+                                    ? 'Ganti Foto'
+                                    : 'Pilih Foto',
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.white,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isDark
+                                    ? Colors.blue.shade700
+                                    : Colors.blue.shade700,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Save Button
-                ElevatedButton.icon(
-                  onPressed: _isLoading ? null : _saveChanges,
-                  icon: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Icon(
-                          Icons.save,
-                          color: isDark ? Colors.white : Colors.white,
-                        ),
-                  label: Text(
-                    _isLoading ? 'MENYIMPAN...' : 'SIMPAN PERUBAHAN',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isDark ? Colors.blue.shade700 : Colors.blue.shade700,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-
-                if (_error != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(
-                      _error!,
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 16,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 24),
+
+              // Save Button
+              ElevatedButton.icon(
+                onPressed: _isLoading ? null : _saveChanges,
+                icon: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Icon(
+                        Icons.save,
+                        color: isDark ? Colors.white : Colors.white,
+                      ),
+                label: Text(
+                  _isLoading ? 'MENYIMPAN...' : 'SIMPAN PERUBAHAN',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      isDark ? Colors.blue.shade700 : Colors.blue.shade700,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+            ],
           ),
-      );
+        ),
+      ),
+    );
   }
 }

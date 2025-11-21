@@ -365,8 +365,7 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
                                     GestureDetector(
                                       onTap: () => Navigator.of(context).pop(),
                                       child: Container(
-                                        color:
-                                            Colors.black.withValues(alpha: 0.8),
+                                        color: Colors.black.withOpacity(0.8),
                                         child: Center(
                                           child: InteractiveViewer(
                                             child: Image.network(

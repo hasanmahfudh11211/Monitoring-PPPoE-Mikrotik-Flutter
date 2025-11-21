@@ -33,13 +33,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUsername();
+    _loadUserPreferences();
     _provider = context.read<MikrotikProvider>();
     _service = _provider.service;
     _providerListener = () {
       final resource = _provider.resource ?? {};
       // Buat hash sederhana dari resource (uptime + cpu-load)
-      final resourceHash = (resource['uptime']?.toString() ?? '') + (resource['cpu-load']?.toString() ?? '');
+      final resourceHash = (resource['uptime']?.toString() ?? '') +
+          (resource['cpu-load']?.toString() ?? '');
       if (_lastResourceHash != resourceHash) {
         _lastResourceHash = resourceHash;
         final uptimeStr = resource['uptime'] ?? '0';
@@ -52,10 +53,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _provider.addListener(_providerListener);
     // Inisialisasi nilai awal
     _providerListener();
-    
+
     // Trigger sync ke database di background saat dashboard dibuka
     _triggerBackgroundSync();
-    
+
     // Reduced timer frequency to prevent battery drain and memory leaks
     _timer = Timer.periodic(const Duration(seconds: 1), (_) async {
       if (!mounted) return;
@@ -78,12 +79,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       await _provider.fetchPPPStatusOnly();
     });
   }
-  
+
   Future<void> _triggerBackgroundSync() async {
-    final routerSession = Provider.of<RouterSessionProvider>(context, listen: false);
+    final routerSession =
+        Provider.of<RouterSessionProvider>(context, listen: false);
     final routerId = routerSession.routerId;
-    if (routerId != null && routerSession.ip != null && routerSession.port != null && 
-        routerSession.username != null && routerSession.password != null) {
+    if (routerId != null &&
+        routerSession.ip != null &&
+        routerSession.port != null &&
+        routerSession.username != null &&
+        routerSession.password != null) {
       // ignore: unawaited_futures
       ApiService.syncUsersFromMikrotik(
         routerId: routerId,
@@ -96,16 +101,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<void> _loadUsername() async {
+  Future<void> _loadUserPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     final username = prefs.getString('username') ?? '';
+    final statsVisible = prefs.getBool('stats_visible') ?? true; // Default true
     if (mounted) {
       setState(() {
-        _username = username.isNotEmpty 
+        _username = username.isNotEmpty
             ? username[0].toUpperCase() + username.substring(1)
             : 'User';
+        _isStatsVisible = statsVisible;
       });
     }
+  }
+
+  Future<void> _saveStatsVisibility(bool isVisible) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('stats_visible', isVisible);
   }
 
   @override
@@ -155,7 +167,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           final confirm = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18)),
               title: const Row(
                 children: [
                   Icon(Icons.logout, color: Colors.red, size: 32),
@@ -163,20 +176,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
-              content: const Text('Apakah Anda yakin ingin logout?', style: TextStyle(fontSize: 16)),
+              content: const Text('Apakah Anda yakin ingin logout?',
+                  style: TextStyle(fontSize: 16)),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                  child:
+                      const Text('Batal', style: TextStyle(color: Colors.grey)),
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                   onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text('Logout',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -210,7 +227,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               centerTitle: true,
               actions: [
                 IconButton(
-                      icon: const Icon(Icons.refresh, color: Colors.white),
+                  icon: const Icon(Icons.refresh, color: Colors.white),
                   tooltip: 'Refresh',
                   onPressed: () async {
                     final provider = context.read<MikrotikProvider>();
@@ -226,8 +243,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       builder: (context) => AlertDialog(
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18)),
-                            title: const Row(
-                              children: [
+                        title: const Row(
+                          children: [
                             Icon(Icons.logout, color: Colors.red, size: 32),
                             SizedBox(width: 10),
                             Text('Logout',
@@ -277,7 +294,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             DrawerHeader(
                               decoration: const BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: [Color(0xFF1976D2), Color(0xFF42A5F5)],
+                                  colors: [
+                                    Color(0xFF1976D2),
+                                    Color(0xFF42A5F5)
+                                  ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -320,8 +340,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: const Text('Semua User'),
                               onTap: () {
                                 Navigator.of(context).pop();
-                                Future.delayed(const Duration(milliseconds: 250), () {
-                                  Navigator.of(context, rootNavigator: true).pushNamed('/all-users');
+                                Future.delayed(
+                                    const Duration(milliseconds: 250), () {
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pushNamed('/all-users');
                                 });
                               },
                             ),
@@ -332,33 +354,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ListTile(
                                   leading: const Icon(Icons.people),
                                   title: const Text('PPP Users'),
-                                  contentPadding: const EdgeInsets.only(left: 72),
+                                  contentPadding:
+                                      const EdgeInsets.only(left: 72),
                                   onTap: () {
                                     Navigator.of(context).pop();
-                                    Future.delayed(const Duration(milliseconds: 250), () {
-                                      Navigator.of(context, rootNavigator: true).pushNamed('/secrets-active');
+                                    Future.delayed(
+                                        const Duration(milliseconds: 250), () {
+                                      Navigator.of(context, rootNavigator: true)
+                                          .pushNamed('/secrets-active');
                                     });
                                   },
                                 ),
                                 ListTile(
                                   leading: const Icon(Icons.account_box),
                                   title: const Text('PPP Profile'),
-                                  contentPadding: const EdgeInsets.only(left: 72),
+                                  contentPadding:
+                                      const EdgeInsets.only(left: 72),
                                   onTap: () {
                                     Navigator.of(context).pop();
-                                    Future.delayed(const Duration(milliseconds: 250), () {
-                                      Navigator.of(context, rootNavigator: true).pushNamed('/ppp-profile');
+                                    Future.delayed(
+                                        const Duration(milliseconds: 250), () {
+                                      Navigator.of(context, rootNavigator: true)
+                                          .pushNamed('/ppp-profile');
                                     });
                                   },
                                 ),
                                 ListTile(
                                   leading: const Icon(Icons.add),
                                   title: const Text('Tambah'),
-                                  contentPadding: const EdgeInsets.only(left: 72),
+                                  contentPadding:
+                                      const EdgeInsets.only(left: 72),
                                   onTap: () {
                                     Navigator.of(context).pop();
-                                    Future.delayed(const Duration(milliseconds: 250), () {
-                                      Navigator.of(context, rootNavigator: true).pushNamed('/tambah');
+                                    Future.delayed(
+                                        const Duration(milliseconds: 250), () {
+                                      Navigator.of(context, rootNavigator: true)
+                                          .pushNamed('/tambah');
                                     });
                                   },
                                 ),
@@ -369,8 +400,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: const Text('System Resource'),
                               onTap: () {
                                 Navigator.of(context).pop();
-                                Future.delayed(const Duration(milliseconds: 250), () {
-                                  Navigator.of(context, rootNavigator: true).pushNamed('/system-resource');
+                                Future.delayed(
+                                    const Duration(milliseconds: 250), () {
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pushNamed('/system-resource');
                                 });
                               },
                             ),
@@ -379,8 +412,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: const Text('Traffic'),
                               onTap: () {
                                 Navigator.of(context).pop();
-                                Future.delayed(const Duration(milliseconds: 250), () {
-                                  Navigator.of(context, rootNavigator: true).pushNamed('/traffic');
+                                Future.delayed(
+                                    const Duration(milliseconds: 250), () {
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pushNamed('/traffic');
                                 });
                               },
                             ),
@@ -389,8 +424,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: const Text('ODP Management'),
                               onTap: () {
                                 Navigator.of(context).pop();
-                                Future.delayed(const Duration(milliseconds: 250), () {
-                                  Navigator.of(context, rootNavigator: true).pushNamed('/odp');
+                                Future.delayed(
+                                    const Duration(milliseconds: 250), () {
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pushNamed('/odp');
                                 });
                               },
                             ),
@@ -399,8 +436,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: const Text('Billing'),
                               onTap: () {
                                 Navigator.of(context).pop();
-                                Future.delayed(const Duration(milliseconds: 250), () {
-                                  Navigator.of(context, rootNavigator: true).pushNamed('/billing');
+                                Future.delayed(
+                                    const Duration(milliseconds: 250), () {
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pushNamed('/billing');
                                 });
                               },
                             ),
@@ -409,8 +448,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: const Text('GenieACS'),
                               onTap: () {
                                 Navigator.of(context).pop();
-                                Future.delayed(const Duration(milliseconds: 250), () {
-                                  Navigator.of(context, rootNavigator: true).pushNamed('/genieacs');
+                                Future.delayed(
+                                    const Duration(milliseconds: 250), () {
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pushNamed('/genieacs');
                                 });
                               },
                             ),
@@ -426,7 +467,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     onTap: () {
                       Navigator.of(context).pop();
                       Future.delayed(const Duration(milliseconds: 250), () {
-                        Navigator.of(context, rootNavigator: true).pushNamed('/setting');
+                        Navigator.of(context, rootNavigator: true)
+                            .pushNamed('/setting');
                       });
                     },
                   ),
@@ -469,7 +511,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     await provider.refreshData(forceRefresh: true);
                   },
                   child: ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     children: [
                       // HEADER DENGAN GRADIENT DAN ICON
                       InkWell(
@@ -478,8 +521,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         },
                         child: Container(
                           width: double.infinity,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 28, horizontal: 20),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [Color(0xFF1976D2), Color(0xFF42A5F5)],
@@ -498,7 +541,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       fontWeight: FontWeight.bold)),
                               const SizedBox(height: 10),
                               Row(children: [
-                                const Icon(Icons.developer_board, color: Colors.white70, size: 18),
+                                const Icon(Icons.developer_board,
+                                    color: Colors.white70, size: 18),
                                 const SizedBox(width: 6),
                                 Text('Board Name : $boardName',
                                     style: const TextStyle(
@@ -506,7 +550,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ]),
                               const SizedBox(height: 2),
                               Row(children: [
-                                const Icon(Icons.router, color: Colors.white70, size: 18),
+                                const Icon(Icons.router,
+                                    color: Colors.white70, size: 18),
                                 const SizedBox(width: 6),
                                 Text('RouterOS : $version',
                                     style: const TextStyle(
@@ -514,7 +559,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ]),
                               const SizedBox(height: 2),
                               Row(children: [
-                                const Icon(Icons.memory, color: Colors.white70, size: 18),
+                                const Icon(Icons.memory,
+                                    color: Colors.white70, size: 18),
                                 const SizedBox(width: 6),
                                 Text('Model : $model',
                                     style: const TextStyle(
@@ -555,11 +601,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   child: AspectRatio(
                                     aspectRatio: 1,
                                     child: _statGridBox(
-                                      context, 
-                                      Icons.wifi, 
+                                      context,
+                                      Icons.wifi,
                                       'Active',
-                                      _isStatsVisible ? provider.pppSessions.length : -1,
-                                      Colors.blue, 
+                                      _isStatsVisible
+                                          ? provider.pppSessions.length
+                                          : -1,
+                                      Colors.blue,
                                       '/secrets-active',
                                       statusFilter: 'Online',
                                       sortOption: 'Uptime (Shortest)',
@@ -571,11 +619,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   child: AspectRatio(
                                     aspectRatio: 1,
                                     child: _statGridBox(
-                                      context, 
-                                      Icons.wifi_off, 
+                                      context,
+                                      Icons.wifi_off,
                                       'Offline',
-                                      _isStatsVisible ? provider.totalOfflineUsers : -1,
-                                      Colors.red, 
+                                      _isStatsVisible
+                                          ? provider.totalOfflineUsers
+                                          : -1,
+                                      Colors.red,
                                       '/secrets-active',
                                       statusFilter: 'Offline',
                                       sortOption: 'Last Logout (Newest)',
@@ -586,6 +636,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             const SizedBox(height: 16),
                             _logBox(context),
+                            const SizedBox(height: 16),
+                            _billingBox(context),
                           ],
                         ),
                       ),
@@ -601,8 +653,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 BottomNavigationBarItem(
                     icon: Icon(Icons.dashboard), label: 'Dashboard'),
                 BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Tambah'),
-                BottomNavigationBarItem(icon: Icon(Icons.vpn_key), label: 'Profile'),
-                BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Setting'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.vpn_key), label: 'Profile'),
+                BottomNavigationBarItem(
+                    icon: Icon(Icons.settings), label: 'Setting'),
               ],
               onTap: (index) {
                 if (index == 1) {
@@ -620,14 +674,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-
   Widget _statGridBox(BuildContext context, IconData icon, String label,
-      int value, Color color, String route, {String? statusFilter, String? sortOption}) {
+      int value, Color color, String route,
+      {String? statusFilter, String? sortOption}) {
     return InkWell(
       onTap: () {
         if (route == '/secrets-active') {
           Navigator.pushNamed(
-            context, 
+            context,
             route,
             arguments: {
               'statusFilter': statusFilter,
@@ -641,19 +695,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: label == 'Active' ? [
-              const Color(0xFF42A5F5),
-              const Color(0xFF1976D2),
-            ] : label == 'Offline' ? [
-              const Color(0xFFF44336),
-              const Color(0xFFD32F2F),
-            ] : label == 'Secret' ? [
-              const Color(0xFF4CAF50),
-              const Color(0xFF388E3C),
-            ] : [
-              const Color(0xFFFFA726),
-              const Color(0xFFF57C00),
-            ],
+            colors: label == 'Active'
+                ? [
+                    const Color(0xFF42A5F5),
+                    const Color(0xFF1976D2),
+                  ]
+                : label == 'Offline'
+                    ? [
+                        const Color(0xFFF44336),
+                        const Color(0xFFD32F2F),
+                      ]
+                    : label == 'Secret'
+                        ? [
+                            const Color(0xFF4CAF50),
+                            const Color(0xFF388E3C),
+                          ]
+                        : [
+                            const Color(0xFFFFA726),
+                            const Color(0xFFF57C00),
+                          ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -696,7 +756,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
 
   Widget _secretBox(BuildContext context, MikrotikProvider provider) {
     return InkWell(
@@ -758,7 +817,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          _isStatsVisible ? '${provider.pppSecrets.length}' : '***',
+                          _isStatsVisible
+                              ? '${provider.pppSecrets.length}'
+                              : '***',
                           style: const TextStyle(
                             fontSize: 36,
                             color: Colors.white,
@@ -771,9 +832,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
+                    final newValue = !_isStatsVisible;
                     setState(() {
-                      _isStatsVisible = !_isStatsVisible;
+                      _isStatsVisible = newValue;
                     });
+                    _saveStatsVisibility(newValue);
                   },
                   child: Container(
                     padding: const EdgeInsets.all(10),
@@ -860,4 +923,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _billingBox(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.green.withValues(alpha: 0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, '/billing'),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.receipt_long,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: Text(
+                  'Billing',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.arrow_forward,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

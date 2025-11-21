@@ -23,7 +23,8 @@ class PaymentSummaryScreen extends StatefulWidget {
   State<PaymentSummaryScreen> createState() => _PaymentSummaryScreenState();
 }
 
-class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with SingleTickerProviderStateMixin {
+class _PaymentSummaryScreenState extends State<PaymentSummaryScreen>
+    with SingleTickerProviderStateMixin {
   late Future<List<Map<String, dynamic>>> _summaryFuture;
   final currencyFormat = NumberFormat('#,##0', 'id_ID');
   bool showPrintPanel = false;
@@ -62,7 +63,9 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with Single
         final item = summaryList[i];
         final month = item['month'] as int? ?? 0;
         final year = item['year'] as int? ?? 0;
-        final total = (item['total'] ?? 0) is int ? (item['total'] ?? 0).toDouble() : (item['total'] ?? 0);
+        final total = (item['total'] ?? 0) is int
+            ? (item['total'] ?? 0).toDouble()
+            : (item['total'] ?? 0);
         final count = (item['count'] ?? 0) as int? ?? 0;
         totalNominal += total;
         totalCount += count;
@@ -99,11 +102,14 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with Single
     _showSnackBar('Berhasil mengirim ke printer!');
   }
 
-  Future<pw.Document> _buildPdfDocument(List<Map<String, dynamic>> summaryList) async {
+  Future<pw.Document> _buildPdfDocument(
+      List<Map<String, dynamic>> summaryList) async {
     final pdf = pw.Document();
-    final wmLogo = pw.MemoryImage((await rootBundle.load('assets/Mikrotik-logo.png')).buffer.asUint8List());
-    pdf.addPage(
-      pw.Page(
+    final wmLogo = pw.MemoryImage(
+        (await rootBundle.load('assets/Mikrotik-logo.png'))
+            .buffer
+            .asUint8List());
+    pdf.addPage(pw.Page(
         margin: const pw.EdgeInsets.all(32),
         build: (context) {
           final now = DateTime.now();
@@ -114,7 +120,7 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with Single
               pw.Positioned.fill(
                 child: pw.Center(
                   child: pw.Opacity(
-                    opacity: 0.07, 
+                    opacity: 0.07,
                     child: pw.Image(wmLogo, width: 350),
                   ),
                 ),
@@ -125,16 +131,24 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with Single
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.end,
                     children: [
-                      pw.Text('Dicetak: $dateStr', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                      pw.Text('Dicetak: $dateStr',
+                          style: pw.TextStyle(
+                              fontSize: 10, color: PdfColors.grey700)),
                     ],
                   ),
                   pw.SizedBox(height: 8),
                   pw.Center(
-                    child: pw.Text('Ringkasan Pembayaran', style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
+                    child: pw.Text('Ringkasan Pembayaran',
+                        style: pw.TextStyle(
+                            fontSize: 22, fontWeight: pw.FontWeight.bold)),
                   ),
                   pw.SizedBox(height: 24),
                   pw.Table(
-                    border: pw.TableBorder.symmetric(inside: pw.BorderSide(width: 0.7, color: PdfColors.grey400), outside: pw.BorderSide(width: 1, color: PdfColors.grey400)),
+                    border: pw.TableBorder.symmetric(
+                        inside:
+                            pw.BorderSide(width: 0.7, color: PdfColors.grey400),
+                        outside:
+                            pw.BorderSide(width: 1, color: PdfColors.grey400)),
                     columnWidths: {
                       0: const pw.FlexColumnWidth(1),
                       1: const pw.FlexColumnWidth(2),
@@ -143,23 +157,32 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with Single
                     },
                     children: [
                       pw.TableRow(
-                        decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                        decoration:
+                            const pw.BoxDecoration(color: PdfColors.grey300),
                         children: [
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text('No', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                            child: pw.Text('No',
+                                style: pw.TextStyle(
+                                    fontWeight: pw.FontWeight.bold)),
                           ),
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text('Bulan', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                            child: pw.Text('Bulan',
+                                style: pw.TextStyle(
+                                    fontWeight: pw.FontWeight.bold)),
                           ),
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text('Total Pembayaran', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                            child: pw.Text('Total Pembayaran',
+                                style: pw.TextStyle(
+                                    fontWeight: pw.FontWeight.bold)),
                           ),
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text('Jumlah Pembayaran', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                            child: pw.Text('Jumlah Pembayaran',
+                                style: pw.TextStyle(
+                                    fontWeight: pw.FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -168,7 +191,9 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with Single
                         final item = entry.value;
                         final month = item['month'] as int? ?? 0;
                         final year = item['year'] as int? ?? 0;
-                        final total = (item['total'] ?? 0) is int ? (item['total'] ?? 0).toDouble() : (item['total'] ?? 0);
+                        final total = (item['total'] ?? 0) is int
+                            ? (item['total'] ?? 0).toDouble()
+                            : (item['total'] ?? 0);
                         final count = (item['count'] ?? 0) as int? ?? 0;
                         final monthName = _getMonthName(month, year);
                         final totalFormatted = _formatCurrency(total);
@@ -196,29 +221,42 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with Single
                       }), // Convert to list to avoid potential issues
                       // Baris total
                       (() {
-                        final totalNominal = summaryList.fold<double>(0.0, (sum, item) {
-                          final total = (item['total'] ?? 0) is int ? (item['total'] ?? 0).toDouble() : (item['total'] ?? 0);
+                        final totalNominal =
+                            summaryList.fold<double>(0.0, (sum, item) {
+                          final total = (item['total'] ?? 0) is int
+                              ? (item['total'] ?? 0).toDouble()
+                              : (item['total'] ?? 0);
                           return sum + (total as num).toDouble();
                         });
-                        final totalCount = summaryList.fold<int>(0, (sum, item) => sum + ((item['count'] ?? 0) as int));
+                        final totalCount = summaryList.fold<int>(0,
+                            (sum, item) => sum + ((item['count'] ?? 0) as int));
                         return pw.TableRow(
-                          decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                          decoration:
+                              const pw.BoxDecoration(color: PdfColors.grey200),
                           children: [
                             pw.Padding(
                               padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text('', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              child: pw.Text('',
+                                  style: pw.TextStyle(
+                                      fontWeight: pw.FontWeight.bold)),
                             ),
                             pw.Padding(
                               padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text('Total', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              child: pw.Text('Total',
+                                  style: pw.TextStyle(
+                                      fontWeight: pw.FontWeight.bold)),
                             ),
                             pw.Padding(
                               padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(_formatCurrency(totalNominal), style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              child: pw.Text(_formatCurrency(totalNominal),
+                                  style: pw.TextStyle(
+                                      fontWeight: pw.FontWeight.bold)),
                             ),
                             pw.Padding(
                               padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text('$totalCount pembayaran', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                              child: pw.Text('$totalCount pembayaran',
+                                  style: pw.TextStyle(
+                                      fontWeight: pw.FontWeight.bold)),
                             ),
                           ],
                         );
@@ -228,15 +266,16 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with Single
                   pw.SizedBox(height: 24),
                   pw.Divider(),
                   pw.Center(
-                    child: pw.Text('Data diambil dari Aplikasi Mikrotik PPPoE Monitor', style: pw.TextStyle(fontSize: 11, color: PdfColors.grey700)),
+                    child: pw.Text(
+                        'Data diambil dari Aplikasi Mikrotik PPPoE Monitor',
+                        style: pw.TextStyle(
+                            fontSize: 11, color: PdfColors.grey700)),
                   ),
                 ],
               ),
             ],
           );
-        }
-      )
-    );
+        }));
     return pdf;
   }
 
@@ -249,7 +288,8 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with Single
   }
 
   String _formatCurrency(dynamic value) {
-    final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final formatter =
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     return formatter.format(value);
   }
 
@@ -263,10 +303,12 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with Single
   }
 
   void _initSummaryFuture() {
-    final routerId = Provider.of<RouterSessionProvider>(context, listen: false).routerId;
+    final routerId =
+        Provider.of<RouterSessionProvider>(context, listen: false).routerId;
     if (routerId == null) {
       setState(() {
-        _summaryFuture = Future.error('Silakan login router ulang (serial-number tidak ditemukan)');
+        _summaryFuture = Future.error(
+            'Silakan login router ulang (serial-number tidak ditemukan)');
       });
     } else {
       setState(() {
@@ -283,7 +325,8 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with Single
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+    _fadeAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
   }
 
   @override
@@ -296,775 +339,349 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen> with Single
   Widget build(BuildContext context) {
     // Check if dark mode is enabled
     final isDark = Provider.of<ThemeProvider>(context).isDarkMode;
-    
+
     return GradientContainer(
-      child: Scaffold(
+        child: Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: const Text('Ringkasan Pembayaran'),
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text('Ringkasan Pembayaran'),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            tooltip: 'Kembali',
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Kembali',
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.white),
+        titleTextStyle: TextStyle(
+          color: isDark ? Colors.white : Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.print),
+            tooltip: 'Export Data',
             onPressed: () {
-              Navigator.pop(context);
+              setState(() {
+                showPrintPanel = !showPrintPanel;
+                if (showPrintPanel) {
+                  _animationController.forward();
+                } else {
+                  _animationController.reverse();
+                }
+              });
             },
           ),
-          iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.white),
-          titleTextStyle: TextStyle(
-            color: isDark ? Colors.white : Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.print),
-              tooltip: 'Export Data',
-              onPressed: () {
-                setState(() {
-                  showPrintPanel = !showPrintPanel;
-                  if (showPrintPanel) {
-                    _animationController.forward();
-                  } else {
-                    _animationController.reverse();
-                  }
-                });
-              },
-            ),
-          ],
-        ),
-        body: Column(
-          children: [
-            if (showPrintPanel)
-              SizeTransition(
-                sizeFactor: _fadeAnimation,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isDark ? Colors.black26 : Colors.grey.withValues(alpha: 0.1),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.file_download_outlined,
-                                color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
-                                size: 24,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Export Data',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black87,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Pilih format ekspor untuk data ringkasan pembayaran',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark ? Colors.white70 : Colors.black54,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
-                                  label: const Text('Export PDF'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFD32F2F),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                  onPressed: isProcessing ? null : () async {
-                                    try {
-                                      final data = await _summaryFuture;
-                                      await _printSummary(data);
-                                    } catch (e) {
-                                      _showSnackBar('Gagal export PDF: $e', success: false);
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  icon: const Icon(Icons.table_chart, color: Colors.white),
-                                  label: const Text('Export Excel'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green.shade700,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                  onPressed: isProcessing ? null : () async {
-                                    try {
-                                      final data = await _summaryFuture;
-                                      await _exportExcel(data);
-                                    } catch (e) {
-                                      _showSnackBar('Gagal export Excel: $e', success: false);
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (isProcessing)
-                            const Padding(
-                              padding: EdgeInsets.only(top: 16),
-                              child: LinearProgressIndicator(),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            Expanded(
-              child: FutureBuilder<List<Map<String, dynamic>>>(
-                future: _summaryFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                            color: isDark ? Colors.blue[200] : Colors.blue[600],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Memuat data ringkasan pembayaran...',
-                            style: TextStyle(
-                              color: isDark ? Colors.white70 : Colors.black54,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Mohon tunggu sebentar',
-                            style: TextStyle(
-                              color: isDark ? Colors.white54 : Colors.black38,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: isDark ? Colors.red.shade900 : Colors.red.shade50,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.error_outline, 
-                              color: isDark ? Colors.red.shade300 : Colors.red,
-                              size: 50,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Gagal memuat data', 
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.red.shade200 : Colors.red,
-                            )
-                          ),
-                          const SizedBox(height: 8),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Text(
-                              snapshot.error.toString(), 
-                              style: TextStyle(
-                                color: isDark ? Colors.white70 : Colors.black54,
-                                fontSize: 13,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: 150,
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                setState(() {
-                                  _initSummaryFuture();
-                                });
-                              },
-                              icon: const Icon(Icons.refresh, size: 18),
-                              label: const Text('Coba Lagi'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isDark ? Colors.grey[700] : Colors.blue,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.payment_outlined, 
-                              color: isDark ? Colors.grey.shade600 : Colors.grey,
-                              size: 50,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Tidak ada data pembayaran.', 
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white70 : Colors.black54,
-                            )
-                          ),
-                          const SizedBox(height: 8),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Text(
-                              'Belum ada pembayaran yang dicatat.',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: isDark ? Colors.white54 : Colors.black38,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: 150,
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                setState(() {
-                                  _initSummaryFuture();
-                                });
-                              },
-                              icon: const Icon(Icons.refresh, size: 18),
-                              label: const Text('Refresh'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isDark ? Colors.grey[700] : Colors.blue,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  final summaryList = snapshot.data!;
-                  
-                  // Calculate totals for header
-                  final totalNominal = summaryList.fold<double>(0.0, (sum, item) {
-                    final total = (item['total'] ?? 0) is int ? (item['total'] ?? 0).toDouble() : (item['total'] ?? 0);
-                    return sum + (total as num).toDouble();
-                  });
-                  final totalCount = summaryList.fold<int>(0, (sum, item) => sum + ((item['count'] ?? 0) as int));
-                  
-                  return Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.blueGrey.withValues(alpha: 0.06),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                            border: Border.all(
-                              color: Colors.grey.shade200,
-                              width: 1,
-                            ),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          child: Row(
-                            children: [
-                              Icon(Icons.summarize, color: isDark ? Colors.blue.shade300 : const Color(0xFF1565C0)),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Total Semua Pembayaran',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: isDark ? Colors.white : Colors.black87,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Rp ${currencyFormat.format(totalNominal)}',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark ? Colors.green.shade300 : const Color(0xFF2E7D32),
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: isDark ? Colors.blue.shade900 : Colors.blue.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  '$totalCount pembayaran',
-                                  style: TextStyle(
-                                    color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      // List of monthly summaries
-                      Expanded(
-                        child: ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
-                          itemCount: summaryList.length,
-                          separatorBuilder: (context, i) => const SizedBox(height: 12),
-                          itemBuilder: (context, i) {
-                            final item = summaryList[i];
-                            final month = item['month'] as int? ?? 0;
-                            final year = item['year'] as int? ?? 0;
-                            final monthName = _getMonthName(month, year);
-                            return InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => MonthlyPaymentDetailScreen(
-                                      month: month,
-                                      year: year,
-                                      isDark: isDark,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.blueGrey.withValues(alpha: 0.08),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                  border: Border.all(
-                                    color: Colors.grey.shade200,
-                                    width: 1,
-                                  ),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: isDark ? Colors.blue.shade900 : Colors.blue.shade50,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Icon(
-                                        Icons.calendar_month, 
-                                        color: isDark ? Colors.blue.shade300 : Colors.blue.shade700, 
-                                        size: 24
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            monthName, 
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w600, 
-                                              fontSize: 16, 
-                                              color: isDark ? Colors.blue.shade200 : const Color(0xFF1565C0)
-                                            )
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Wrap(
-                                            spacing: 12,
-                                            runSpacing: 6,
-                                            children: [
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: isDark ? Colors.green.shade900 : Colors.green.shade100,
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.payments, 
-                                                      size: 14, 
-                                                      color: isDark ? Colors.green.shade300 : Colors.green.shade700
-                                                    ),
-                                                    const SizedBox(width: 4),
-                                                    Text(
-                                                      'Rp ${currencyFormat.format(item['total'] ?? 0)}', 
-                                                      style: TextStyle(
-                                                        fontWeight: FontWeight.bold, 
-                                                        color: isDark ? Colors.green.shade200 : const Color(0xFF388E3C), 
-                                                        fontSize: 14
-                                                      )
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: isDark ? Colors.orange.shade900 : Colors.orange.shade100,
-                                                  borderRadius: BorderRadius.circular(8),
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.confirmation_number, 
-                                                      size: 14, 
-                                                      color: isDark ? Colors.orange.shade300 : Colors.orange.shade700
-                                                    ),
-                                                    const SizedBox(width: 4),
-                                                    Text(
-                                                      '${item['count'] ?? 0} pembayaran', 
-                                                      style: TextStyle(
-                                                        fontWeight: FontWeight.w600,
-                                                        color: isDark ? Colors.orange.shade200 : const Color(0xFFF57C00), 
-                                                        fontSize: 14
-                                                      )
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.arrow_forward_ios, 
-                                      color: isDark ? Colors.grey[400] : const Color(0xFF90CAF9), 
-                                      size: 18
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      )
-    );
-  }
-}
-
-class MonthlyPaymentDetailScreen extends StatelessWidget {
-  final int month;
-  final int year;
-  final bool isDark;
-  
-  const MonthlyPaymentDetailScreen({
-    super.key, 
-    required this.month, 
-    required this.year,
-    this.isDark = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final String monthYearTitle = DateFormat('MMMM yyyy', 'id_ID').format(DateTime(year, month));
-    final currencyFormat = NumberFormat('#,##0', 'id_ID');
-    final routerId = Provider.of<RouterSessionProvider>(context, listen: false).routerId;
-    if (routerId == null) {
-      return Scaffold(
-        appBar: AppBar(title: Text(monthYearTitle), backgroundColor: Theme.of(context).primaryColor),
-        body: const Center(child: Text('Silakan login router ulang')),
-      );
-    }
-    return GradientContainer(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: Text(monthYearTitle),
-          backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.white),
+        ],
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: ApiService.fetchAllPaymentsForMonthYear(month, year, routerId: routerId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    color: isDark ? Colors.blue[200] : Colors.blue[600],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Memuat detail pembayaran...',
-                    style: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.black54,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
+      body: Column(
+        children: [
+          if (showPrintPanel)
+            SizeTransition(
+              sizeFactor: _fadeAnimation,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Container(
                     decoration: BoxDecoration(
-                      color: isDark ? Colors.red.shade900 : Colors.red.shade50,
-                      shape: BoxShape.circle,
+                      color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDark
+                              ? Colors.black26
+                              : Colors.grey.withOpacity(0.1),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: Icon(
-                      Icons.error_outline, 
-                      color: isDark ? Colors.red.shade300 : Colors.red,
-                      size: 50,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Gagal memuat data', 
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.red.shade200 : Colors.red,
-                    )
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      snapshot.error.toString(), 
-                      style: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.black54,
-                        fontSize: 13,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: 150,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        // Rebuild the widget to retry
-                        (context as Element).markNeedsBuild();
-                      },
-                      icon: const Icon(Icons.refresh, size: 18),
-                      label: const Text('Coba Lagi'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark ? Colors.grey[700] : Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.payment_outlined, 
-                    color: isDark ? Colors.grey.shade600 : Colors.grey,
-                    size: 60,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Tidak ada pembayaran.', 
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isDark ? Colors.white70 : Colors.black54,
-                    )
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Belum ada pembayaran yang dicatat untuk bulan ini.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? Colors.white54 : Colors.black38,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          }
-          final payments = snapshot.data!;
-          
-          // Calculate total for this month
-          final totalAmount = payments.fold<double>(0.0, (sum, p) {
-            return sum + (double.tryParse(p['amount'].toString()) ?? 0);
-          });
-          
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.blueGrey.withValues(alpha: 0.06),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                    border: Border.all(
-                      color: Colors.grey.shade200,
-                      width: 1,
-                    ),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      Icon(Icons.analytics, color: isDark ? Colors.blue.shade300 : const Color(0xFF1565C0)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Text(
-                              'Total Bulan Ini',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: isDark ? Colors.white : Colors.black87,
-                                fontSize: 13,
-                              ),
+                            Icon(
+                              Icons.file_download_outlined,
+                              color: isDark
+                                  ? Colors.blue.shade300
+                                  : Colors.blue.shade700,
+                              size: 24,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(width: 12),
                             Text(
-                              'Rp ${currencyFormat.format(totalAmount)}',
+                              'Export Data',
                               style: TextStyle(
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.green.shade300 : const Color(0xFF2E7D32),
-                                fontSize: 16,
+                                color: isDark ? Colors.white : Colors.black87,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isDark ? Colors.blue.shade900 : Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '${payments.length} pembayaran',
+                        const SizedBox(height: 12),
+                        Text(
+                          'Pilih format ekspor untuk data ringkasan pembayaran',
                           style: TextStyle(
-                            color: isDark ? Colors.blue.shade300 : Colors.blue.shade700,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
+                            fontSize: 13,
+                            color: isDark ? Colors.white70 : Colors.black54,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                icon: const Icon(Icons.picture_as_pdf,
+                                    color: Colors.white),
+                                label: const Text('Export PDF'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFD32F2F),
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: isProcessing
+                                    ? null
+                                    : () async {
+                                        try {
+                                          final data = await _summaryFuture;
+                                          await _printSummary(data);
+                                        } catch (e) {
+                                          _showSnackBar('Gagal export PDF: $e',
+                                              success: false);
+                                        }
+                                      },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                icon: const Icon(Icons.table_chart,
+                                    color: Colors.white),
+                                label: const Text('Export Excel'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green.shade700,
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                ),
+                                onPressed: isProcessing
+                                    ? null
+                                    : () async {
+                                        try {
+                                          final data = await _summaryFuture;
+                                          await _exportExcel(data);
+                                        } catch (e) {
+                                          _showSnackBar(
+                                              'Gagal export Excel: $e',
+                                              success: false);
+                                        }
+                                      },
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (isProcessing)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 16),
+                            child: LinearProgressIndicator(),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              // List of payments
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                  itemCount: payments.length,
-                  itemBuilder: (context, i) {
-                    final p = payments[i];
-                    final username = (p['username'] ?? p['user_id'] ?? '-').toString();
-                    final nominal = double.tryParse(p['amount'].toString()) ?? 0;
-                    final method = (p['method'] ?? '-').toString();
-                    final paymentDate = p['payment_date'] ?? '-';
-                    final note = (p['note'] ?? '').toString();
-                    final avatarColor = Colors.primaries[username.hashCode % Colors.primaries.length].shade300;
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 14),
+            ),
+          Expanded(
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: _summaryFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(
+                          color: isDark ? Colors.blue[200] : Colors.blue[600],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Memuat data ringkasan pembayaran...',
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.black54,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Mohon tunggu sebentar',
+                          style: TextStyle(
+                            color: isDark ? Colors.white54 : Colors.black38,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.red.shade900
+                                : Colors.red.shade50,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.error_outline,
+                            color: isDark ? Colors.red.shade300 : Colors.red,
+                            size: 50,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text('Gagal memuat data',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.red.shade200 : Colors.red,
+                            )),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Text(
+                            snapshot.error.toString(),
+                            style: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                              fontSize: 13,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: 150,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _initSummaryFuture();
+                              });
+                            },
+                            icon: const Icon(Icons.refresh, size: 18),
+                            label: const Text('Coba Lagi'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  isDark ? Colors.grey[700] : Colors.blue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.grey.shade900
+                                : Colors.grey.shade100,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.payment_outlined,
+                            color: isDark ? Colors.grey.shade600 : Colors.grey,
+                            size: 50,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text('Tidak ada data pembayaran.',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            )),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Text(
+                            'Belum ada pembayaran yang dicatat.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? Colors.white54 : Colors.black38,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: 150,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _initSummaryFuture();
+                              });
+                            },
+                            icon: const Icon(Icons.refresh, size: 18),
+                            label: const Text('Refresh'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  isDark ? Colors.grey[700] : Colors.blue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                final summaryList = snapshot.data!;
+
+                // Calculate totals for header
+                final totalNominal = summaryList.fold<double>(0.0, (sum, item) {
+                  final total = (item['total'] ?? 0) is int
+                      ? (item['total'] ?? 0).toDouble()
+                      : (item['total'] ?? 0);
+                  return sum + (total as num).toDouble();
+                });
+                final totalCount = summaryList.fold<int>(
+                    0, (sum, item) => sum + ((item['count'] ?? 0) as int));
+
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      child: Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.blueGrey.withValues(alpha: 0.08),
+                              color: Colors.blueGrey.withOpacity(0.06),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -1074,133 +691,668 @@ class MonthlyPaymentDetailScreen extends StatelessWidget {
                             width: 1,
                           ),
                         ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Header with user info and amount
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: avatarColor,
-                                  radius: 24,
-                                  child: Text(
-                                    username.isNotEmpty ? username[0].toUpperCase() : '-',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.white),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        username,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w600, 
-                                          fontSize: 16, 
-                                          color: isDark ? Colors.blue.shade200 : const Color(0xFF1565C0)
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Rp ${currencyFormat.format(nominal)}',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold, 
-                                          fontSize: 18, 
-                                          color: isDark ? Colors.green.shade300 : const Color(0xFF43A047)
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: method.toLowerCase() == 'cash' 
-                                      ? (isDark ? Colors.green.shade900 : Colors.green.shade100) 
-                                      : (isDark ? Colors.blue.shade900 : Colors.blue.shade100),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    method,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: method.toLowerCase() == 'cash' 
-                                        ? (isDark ? Colors.green.shade300 : Colors.green.shade700) 
-                                        : (isDark ? Colors.blue.shade300 : Colors.blue.shade700),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Payment details
-                          Container(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF2D2D2D) : Colors.grey.shade50,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        child: Row(
+                          children: [
+                            Icon(Icons.summarize,
+                                color: isDark
+                                    ? Colors.blue.shade300
+                                    : const Color(0xFF1565C0)),
+                            const SizedBox(width: 10),
+                            Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.calendar_today, size: 16, color: isDark ? Colors.grey.shade400 : Colors.blueGrey.shade300),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        paymentDate, 
-                                        style: TextStyle(
-                                          fontSize: 14, 
-                                          color: isDark ? Colors.white70 : Colors.black87
-                                        )
-                                      ),
-                                      const Spacer(),
-                                    ],
-                                  ),
-                                  if (note.isNotEmpty)
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 10),
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Icon(Icons.sticky_note_2, size: 16, color: isDark ? Colors.orange.shade300 : Colors.orange.shade400),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              note, 
-                                              style: TextStyle(
-                                                fontSize: 13, 
-                                                color: isDark ? Colors.white70 : Colors.black87
-                                              )
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                  Text(
+                                    'Total Semua Pembayaran',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                      fontSize: 13,
                                     ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Rp ${currencyFormat.format(totalNominal)}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? Colors.green.shade300
+                                          : const Color(0xFF2E7D32),
+                                      fontSize: 16,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                          ),
-                        ],
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.blue.shade900
+                                    : Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '$totalCount pembayaran',
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.blue.shade300
+                                      : Colors.blue.shade700,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          );
-        },
+                    ),
+                    // List of monthly summaries
+                    Expanded(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
+                        itemCount: summaryList.length,
+                        separatorBuilder: (context, i) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, i) {
+                          final item = summaryList[i];
+                          final month = item['month'] as int? ?? 0;
+                          final year = item['year'] as int? ?? 0;
+                          final monthName = _getMonthName(month, year);
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      MonthlyPaymentDetailScreen(
+                                    month: month,
+                                    year: year,
+                                    isDark: isDark,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.blueGrey.withOpacity(0.08),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: Colors.grey.shade200,
+                                  width: 1,
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 16),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? Colors.blue.shade900
+                                          : Colors.blue.shade50,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Icons.calendar_month,
+                                        color: isDark
+                                            ? Colors.blue.shade300
+                                            : Colors.blue.shade700,
+                                        size: 24),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(monthName,
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 16,
+                                                color: isDark
+                                                    ? Colors.blue.shade200
+                                                    : const Color(0xFF1565C0))),
+                                        const SizedBox(height: 8),
+                                        Wrap(
+                                          spacing: 12,
+                                          runSpacing: 6,
+                                          children: [
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: isDark
+                                                    ? Colors.green.shade900
+                                                    : Colors.green.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.payments,
+                                                      size: 14,
+                                                      color: isDark
+                                                          ? Colors
+                                                              .green.shade300
+                                                          : Colors
+                                                              .green.shade700),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                      'Rp ${currencyFormat.format(item['total'] ?? 0)}',
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: isDark
+                                                              ? Colors.green
+                                                                  .shade200
+                                                              : const Color(
+                                                                  0xFF388E3C),
+                                                          fontSize: 14)),
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: isDark
+                                                    ? Colors.orange.shade900
+                                                    : Colors.orange.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                      Icons.confirmation_number,
+                                                      size: 14,
+                                                      color: isDark
+                                                          ? Colors
+                                                              .orange.shade300
+                                                          : Colors
+                                                              .orange.shade700),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                      '${item['count'] ?? 0} pembayaran',
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          color: isDark
+                                                              ? Colors.orange
+                                                                  .shade200
+                                                              : const Color(
+                                                                  0xFFF57C00),
+                                                          fontSize: 14)),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(Icons.arrow_forward_ios,
+                                      color: isDark
+                                          ? Colors.grey[400]
+                                          : const Color(0xFF90CAF9),
+                                      size: 18),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
-    ),
+    ));
+  }
+}
+
+class MonthlyPaymentDetailScreen extends StatelessWidget {
+  final int month;
+  final int year;
+  final bool isDark;
+
+  const MonthlyPaymentDetailScreen({
+    super.key,
+    required this.month,
+    required this.year,
+    this.isDark = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final String monthYearTitle =
+        DateFormat('MMMM yyyy', 'id_ID').format(DateTime(year, month));
+    final currencyFormat = NumberFormat('#,##0', 'id_ID');
+    final routerId =
+        Provider.of<RouterSessionProvider>(context, listen: false).routerId;
+    if (routerId == null) {
+      return Scaffold(
+        appBar: AppBar(
+            title: Text(monthYearTitle),
+            backgroundColor: Theme.of(context).primaryColor),
+        body: const Center(child: Text('Silakan login router ulang')),
+      );
+    }
+    return GradientContainer(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: Text(monthYearTitle),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.white),
+        ),
+        body: FutureBuilder<List<Map<String, dynamic>>>(
+          future: ApiService.fetchAllPaymentsForMonthYear(month, year,
+              routerId: routerId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      color: isDark ? Colors.blue[200] : Colors.blue[600],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Memuat detail pembayaran...',
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.black54,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color:
+                            isDark ? Colors.red.shade900 : Colors.red.shade50,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.error_outline,
+                        color: isDark ? Colors.red.shade300 : Colors.red,
+                        size: 50,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Gagal memuat data',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.red.shade200 : Colors.red,
+                        )),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        snapshot.error.toString(),
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.black54,
+                          fontSize: 13,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: 150,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          // Rebuild the widget to retry
+                          (context as Element).markNeedsBuild();
+                        },
+                        icon: const Icon(Icons.refresh, size: 18),
+                        label: const Text('Coba Lagi'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              isDark ? Colors.grey[700] : Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.payment_outlined,
+                      color: isDark ? Colors.grey.shade600 : Colors.grey,
+                      size: 60,
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Tidak ada pembayaran.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDark ? Colors.white70 : Colors.black54,
+                        )),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Belum ada pembayaran yang dicatat untuk bulan ini.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.white54 : Colors.black38,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            }
+            final payments = snapshot.data!;
+
+            // Calculate total for this month
+            final totalAmount = payments.fold<double>(0.0, (sum, p) {
+              return sum + (double.tryParse(p['amount'].toString()) ?? 0);
+            });
+
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blueGrey.withOpacity(0.06),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: Colors.grey.shade200,
+                        width: 1,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        Icon(Icons.analytics,
+                            color: isDark
+                                ? Colors.blue.shade300
+                                : const Color(0xFF1565C0)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Total Bulan Ini',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Rp ${currencyFormat.format(totalAmount)}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? Colors.green.shade300
+                                      : const Color(0xFF2E7D32),
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.blue.shade900
+                                : Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${payments.length} pembayaran',
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.blue.shade300
+                                  : Colors.blue.shade700,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // List of payments
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 18),
+                    itemCount: payments.length,
+                    itemBuilder: (context, i) {
+                      final p = payments[i];
+                      final username =
+                          (p['username'] ?? p['user_id'] ?? '-').toString();
+                      final nominal =
+                          double.tryParse(p['amount'].toString()) ?? 0;
+                      final method = (p['method'] ?? '-').toString();
+                      final paymentDate = p['payment_date'] ?? '-';
+                      final note = (p['note'] ?? '').toString();
+                      final avatarColor = Colors
+                          .primaries[
+                              username.hashCode % Colors.primaries.length]
+                          .shade300;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blueGrey.withOpacity(0.08),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: Colors.grey.shade200,
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Header with user info and amount
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: avatarColor,
+                                    radius: 24,
+                                    child: Text(
+                                      username.isNotEmpty
+                                          ? username[0].toUpperCase()
+                                          : '-',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20,
+                                          color: Colors.white),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          username,
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 16,
+                                              color: isDark
+                                                  ? Colors.blue.shade200
+                                                  : const Color(0xFF1565C0)),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Rp ${currencyFormat.format(nominal)}',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                              color: isDark
+                                                  ? Colors.green.shade300
+                                                  : const Color(0xFF43A047)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: method.toLowerCase() == 'cash'
+                                          ? (isDark
+                                              ? Colors.green.shade900
+                                              : Colors.green.shade100)
+                                          : (isDark
+                                              ? Colors.blue.shade900
+                                              : Colors.blue.shade100),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      method,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: method.toLowerCase() == 'cash'
+                                            ? (isDark
+                                                ? Colors.green.shade300
+                                                : Colors.green.shade700)
+                                            : (isDark
+                                                ? Colors.blue.shade300
+                                                : Colors.blue.shade700),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Payment details
+                            Container(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? const Color(0xFF2D2D2D)
+                                      : Colors.grey.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.calendar_today,
+                                            size: 16,
+                                            color: isDark
+                                                ? Colors.grey.shade400
+                                                : Colors.blueGrey.shade300),
+                                        const SizedBox(width: 8),
+                                        Text(paymentDate,
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                color: isDark
+                                                    ? Colors.white70
+                                                    : Colors.black87)),
+                                        const Spacer(),
+                                      ],
+                                    ),
+                                    if (note.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 10),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Icon(Icons.sticky_note_2,
+                                                size: 16,
+                                                color: isDark
+                                                    ? Colors.orange.shade300
+                                                    : Colors.orange.shade400),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(note,
+                                                  style: TextStyle(
+                                                      fontSize: 13,
+                                                      color: isDark
+                                                          ? Colors.white70
+                                                          : Colors.black87)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 }
