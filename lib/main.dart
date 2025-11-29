@@ -16,6 +16,7 @@ import 'screens/export_ppp_screen.dart';
 import 'screens/odp_screen.dart';
 import 'screens/billing_screen.dart';
 import 'screens/genieacs_screen.dart';
+import 'screens/database_sync_screen.dart';
 // import 'screens/changelog_screen.dart'; // Remove this import
 import 'services/mikrotik_service.dart';
 import 'providers/mikrotik_provider.dart';
@@ -26,9 +27,9 @@ import 'services/scheduled_backup_service.dart';
 // Reusable widget to eliminate code duplication
 class MikrotikScreenWrapper extends StatelessWidget {
   final Widget child;
-  
+
   const MikrotikScreenWrapper({super.key, required this.child});
-  
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<MikrotikService>(
@@ -83,10 +84,10 @@ class ThemeProvider with ChangeNotifier {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
-  
+
   // Initialize scheduled backups
   ScheduledBackupService().initializeScheduledBackups();
-  
+
   runApp(const MyApp());
 }
 
@@ -102,9 +103,9 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
-    return MaterialApp(
-      title: 'Mikrotik Monitor',
-      theme: ThemeData(
+          return MaterialApp(
+            title: 'Mikrotik Monitor',
+            theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(
                 seedColor: Colors.blue,
                 brightness: Brightness.light,
@@ -173,7 +174,10 @@ class MyApp extends StatelessWidget {
               ),
               dialogTheme: const DialogThemeData(
                 backgroundColor: Color(0xFF1E1E1E),
-                titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                titleTextStyle: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
                 contentTextStyle: TextStyle(color: Colors.white),
               ),
               snackBarTheme: const SnackBarThemeData(
@@ -190,65 +194,69 @@ class MyApp extends StatelessWidget {
                   borderSide: BorderSide(color: Colors.blue),
                 ),
               ),
-        useMaterial3: true,
-      ),
-            themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      home: const LoginScreen(),
-      routes: {
-        '/dashboard': (context) => const MikrotikScreenWrapper(
-              child: DashboardScreen(),
+              useMaterial3: true,
             ),
-        '/secrets-active': (context) => const MikrotikScreenWrapper(
-              child: SecretsActiveScreen(),
-            ),
-        '/tambah': (context) => const MikrotikScreenWrapper(
-              child: TambahScreen(),
+            themeMode:
+                themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            home: const LoginScreen(),
+            routes: {
+              '/dashboard': (context) => const MikrotikScreenWrapper(
+                    child: DashboardScreen(),
                   ),
-        '/setting': (context) => const SettingScreen(),
-        '/api-config': (context) => const ApiConfigScreen(),
-        '/system-resource': (context) => const MikrotikScreenWrapper(
-              child: SystemResourceScreen(),
-            ),
-        '/traffic': (context) => const MikrotikScreenWrapper(
-              child: TrafficScreen(),
-            ),
-        '/log': (context) => const MikrotikScreenWrapper(
-              child: LogScreen(),
-            ),
-        '/ppp-profile': (context) => const MikrotikScreenWrapper(
-              child: PPPProfilePage(),
-            ),
-        '/all-users': (context) => const MikrotikScreenWrapper(
-              child: AllUsersScreen(),
-            ),
-        '/export-ppp': (context) => const MikrotikScreenWrapper(
-              child: ExportPPPScreen(),
-            ),
-        '/odp': (context) => const ODPScreen(),
-        '/billing': (context) => const BillingScreen(), // Ganti userId sesuai kebutuhan
-        '/genieacs': (context) => const MikrotikScreenWrapper(
-              child: GenieACSScreen(),
-            ),
-        // '/changelog': (context) => const MikrotikScreenWrapper(
-        //       child: ChangelogScreen(),
-        //     ), // Remove this route
-        // '/backup-management': (context) => const MikrotikScreenWrapper(
-        //       child: BackupManagementScreen(),
-        //     ), // Remove this route
-      },
-      onGenerateRoute: (settings) {
-        if (settings.name == '/secrets-active') {
-          return MaterialPageRoute(
-            builder: (context) => const MikrotikScreenWrapper(
-              child: SecretsActiveScreen(),
-            ),
-            settings: settings,
+              '/secrets-active': (context) => const MikrotikScreenWrapper(
+                    child: SecretsActiveScreen(),
+                  ),
+              '/tambah': (context) => const MikrotikScreenWrapper(
+                    child: TambahScreen(),
+                  ),
+              '/setting': (context) => const SettingScreen(),
+              '/api-config': (context) => const ApiConfigScreen(),
+              '/system-resource': (context) => const MikrotikScreenWrapper(
+                    child: SystemResourceScreen(),
+                  ),
+              '/traffic': (context) => const MikrotikScreenWrapper(
+                    child: TrafficScreen(),
+                  ),
+              '/log': (context) => const MikrotikScreenWrapper(
+                    child: LogScreen(),
+                  ),
+              '/ppp-profile': (context) => const MikrotikScreenWrapper(
+                    child: PPPProfilePage(),
+                  ),
+              '/all-users': (context) => const MikrotikScreenWrapper(
+                    child: AllUsersScreen(),
+                  ),
+              '/export-ppp': (context) => const MikrotikScreenWrapper(
+                    child: ExportPPPScreen(),
+                  ),
+              '/odp': (context) => const ODPScreen(),
+              '/billing': (context) =>
+                  const BillingScreen(), // Ganti userId sesuai kebutuhan
+              '/genieacs': (context) => const MikrotikScreenWrapper(
+                    child: GenieACSScreen(),
+                  ),
+              '/database-sync': (context) => const MikrotikScreenWrapper(
+                    child: DatabaseSyncScreen(),
+                  ),
+              // '/changelog': (context) => const MikrotikScreenWrapper(
+              //       child: ChangelogScreen(),
+              //     ), // Remove this route
+              // '/backup-management': (context) => const MikrotikScreenWrapper(
+              //       child: BackupManagementScreen(),
+              //     ), // Remove this route
+            },
+            onGenerateRoute: (settings) {
+              if (settings.name == '/secrets-active') {
+                return MaterialPageRoute(
+                  builder: (context) => const MikrotikScreenWrapper(
+                    child: SecretsActiveScreen(),
+                  ),
+                  settings: settings,
+                );
+              }
+              return null;
+            },
           );
-        }
-        return null;
-      },
-
-    );
         },
       ),
     );

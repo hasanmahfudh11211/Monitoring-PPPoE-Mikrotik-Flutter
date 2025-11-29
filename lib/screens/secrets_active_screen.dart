@@ -7,6 +7,8 @@ import '../services/mikrotik_service.dart';
 import '../widgets/gradient_container.dart';
 import '../screens/edit_screen.dart';
 import 'package:flutter/widgets.dart';
+import '../providers/router_session_provider.dart';
+import '../services/api_service.dart';
 
 class SecretsActiveScreen extends StatefulWidget {
   const SecretsActiveScreen({Key? key}) : super(key: key);
@@ -902,7 +904,56 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
               try {
                 final provider =
                     Provider.of<MikrotikProvider>(parentContext, listen: false);
+
+                // Check if user is online and disconnect first
+                final isOnline = user['isOnline'] == true;
+                if (isOnline) {
+                  print(
+                      '[PPP Delete] User ${user['name']} is online, disconnecting first...');
+                  try {
+                    // Find the active session ID
+                    final sessions = provider.pppSessions;
+                    final session = sessions.firstWhere(
+                      (s) => s['name'] == user['name'],
+                      orElse: () => {},
+                    );
+
+                    if (session.isNotEmpty && session['.id'] != null) {
+                      await provider.service.disconnectSession(session['.id']);
+                      print(
+                          '[PPP Delete] User ${user['name']} disconnected successfully');
+                      // Wait a bit for the disconnection to complete
+                      await Future.delayed(const Duration(milliseconds: 500));
+                    }
+                  } catch (disconnectError) {
+                    print(
+                        '[PPP Delete] Failed to disconnect: $disconnectError');
+                    // Continue with delete attempt anyway
+                  }
+                }
+
+                // Delete from MikroTik
                 await provider.service.deletePPPSecret(user['.id']);
+
+                // Also delete from database for synchronization
+                try {
+                  final routerSession = Provider.of<RouterSessionProvider>(
+                      parentContext,
+                      listen: false);
+                  final routerId = routerSession.routerId;
+
+                  if (routerId != null && routerId.isNotEmpty) {
+                    await ApiService.deleteUser(
+                      routerId: routerId,
+                      username: user['name'] as String,
+                    );
+                    print(
+                        '[PPP Delete] User ${user['name']} deleted from database');
+                  }
+                } catch (dbError) {
+                  // Log database delete error but don't fail the operation
+                  print('[PPP Delete] Database delete failed: $dbError');
+                }
 
                 if (dialogContext.mounted) {
                   Navigator.pop(dialogContext);
@@ -943,34 +994,79 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
               } catch (e) {
                 if (dialogContext.mounted) {
                   Navigator.pop(dialogContext);
+
+                  // Parse error message to provide better feedback
+                  String errorMessage = 'Gagal menghapus user ${user['name']}';
+                  String errorDetail = e.toString();
+
+                  // Check for common error patterns
+                  if (errorDetail.contains('in use') ||
+                      errorDetail.contains('active')) {
+                    errorMessage = 'User ${user['name']} sedang aktif/online';
+                    errorDetail =
+                        'Disconnect user terlebih dahulu sebelum menghapus';
+                  } else if (errorDetail.contains('not found') ||
+                      errorDetail.contains('no such')) {
+                    errorMessage = 'User ${user['name']} tidak ditemukan';
+                    errorDetail = 'User mungkin sudah dihapus';
+                  } else if (errorDetail.contains('timeout') ||
+                      errorDetail.contains('connection')) {
+                    errorMessage = 'Koneksi ke MikroTik gagal';
+                    errorDetail = 'Periksa koneksi internet atau router';
+                  }
+
+                  print('[PPP Delete Error] $errorDetail');
+
                   ScaffoldMessenger.of(parentContext).showSnackBar(
                     SnackBar(
-                      content: Row(
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: isDark ? Colors.grey[800] : Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              color: Colors.red,
-                              size: 20,
-                            ),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color:
+                                      isDark ? Colors.grey[800] : Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  errorMessage,
+                                  style: TextStyle(
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Gagal menghapus user ${user['name']}',
-                            style: TextStyle(
-                              color: isDark ? Colors.white : Colors.black87,
+                          const SizedBox(height: 4),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 36),
+                            child: Text(
+                              errorDetail,
+                              style: TextStyle(
+                                color: isDark ? Colors.white70 : Colors.black54,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ],
                       ),
                       backgroundColor: isDark ? Colors.grey[900] : Colors.red,
-                      duration: const Duration(seconds: 3),
-                      behavior: SnackBarBehavior.fixed,
+                      duration: const Duration(seconds: 5),
+                      behavior: SnackBarBehavior.floating,
                     ),
                   );
                 }

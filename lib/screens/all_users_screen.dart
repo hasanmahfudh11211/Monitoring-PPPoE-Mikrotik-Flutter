@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import '../providers/router_session_provider.dart';
+import '../providers/mikrotik_provider.dart';
 import '../widgets/gradient_container.dart';
 
 class AllUsersScreen extends StatefulWidget {
@@ -163,8 +164,28 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
     );
   }
 
-  List<Map<String, dynamic>> get _filteredUsers {
-    List<Map<String, dynamic>> users = _users;
+  List<Map<String, dynamic>> _getFilteredUsersByPPP(
+      List<Map<String, dynamic>> pppSecrets) {
+    // Create a Set of usernames that exist in PPP (for fast lookup)
+    final pppUsernames = pppSecrets
+        .where((s) => (s['name']?.toString().trim().isNotEmpty ?? false))
+        .map((s) => s['name'].toString())
+        .toSet();
+
+    // Filter database users to only show those that exist in PPP
+    List<Map<String, dynamic>> users = _users.where((user) {
+      final username = user['username']?.toString() ?? '';
+      return username.isNotEmpty && pppUsernames.contains(username);
+    }).toList();
+
+    // Debug logging
+    print('[AllUsers] Total from DB: ${_users.length}');
+    print('[AllUsers] Total in PPP: ${pppUsernames.length}');
+    print('[AllUsers] After filtering by PPP: ${users.length}');
+    print(
+        '[AllUsers] Hidden (not in PPP): ${_users.length - users.length} users');
+
+    // Apply search filter
     if (_searchQuery.isNotEmpty) {
       users = users.where((user) {
         final username = user['username'].toString().toLowerCase();
@@ -177,7 +198,9 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
             wa.contains(query) ||
             odpName.contains(query);
       }).toList();
+      print('[AllUsers] After search filter: ${users.length}');
     }
+
     // Sorting
     users.sort((a, b) {
       switch (_sortOption) {
@@ -205,6 +228,8 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
           return 0;
       }
     });
+
+    print('[AllUsers] Final count: ${users.length}');
     return users;
   }
 
@@ -938,197 +963,224 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
                               ],
                             ),
                           )
-                        : _filteredUsers.isEmpty
-                            ? const Center(
-                                child: Text(
-                                  'Tidak ada user yang ditemukan',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              )
-                            : ListView.separated(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 8),
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                itemCount: _filteredUsers.length,
-                                separatorBuilder: (context, index) =>
-                                    const SizedBox(height: 8),
-                                itemBuilder: (context, index) {
-                                  final user = _filteredUsers[index];
-                                  return GestureDetector(
-                                    onTap: () => _showUserDetailSheet(user),
-                                    child: AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 200),
-                                      curve: Curves.easeInOut,
-                                      child: Card(
-                                        elevation: 1,
-                                        margin: EdgeInsets.zero,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(14),
-                                          side: BorderSide(
-                                              color: isDark
-                                                  ? Colors.grey.shade700
-                                                  : Colors.grey.shade200,
-                                              width: 1),
+                        : Consumer<MikrotikProvider>(
+                            builder: (context, mikrotikProvider, child) {
+                              final filteredUsers = _getFilteredUsersByPPP(
+                                  mikrotikProvider.pppSecrets);
+                              return filteredUsers.isEmpty
+                                  ? const Center(
+                                      child: Text(
+                                        'Tidak ada user yang ditemukan',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey,
                                         ),
-                                        color: isDark
-                                            ? const Color(0xFF1E1E1E)
-                                            : Colors.white,
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 12, vertical: 10),
-                                          child: Row(
-                                            children: [
-                                              CircleAvatar(
-                                                radius: 20,
-                                                backgroundColor: isDark
-                                                    ? Colors.blue.shade900
-                                                    : Colors.blue.shade50,
-                                                child: Icon(Icons.person,
+                                      ),
+                                    )
+                                  : ListView.separated(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 8),
+                                      physics:
+                                          const AlwaysScrollableScrollPhysics(),
+                                      itemCount: filteredUsers.length,
+                                      separatorBuilder: (context, index) =>
+                                          const SizedBox(height: 8),
+                                      itemBuilder: (context, index) {
+                                        final user = filteredUsers[index];
+                                        return GestureDetector(
+                                          onTap: () =>
+                                              _showUserDetailSheet(user),
+                                          child: AnimatedContainer(
+                                            duration: const Duration(
+                                                milliseconds: 200),
+                                            curve: Curves.easeInOut,
+                                            child: Card(
+                                              elevation: 1,
+                                              margin: EdgeInsets.zero,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(14),
+                                                side: BorderSide(
                                                     color: isDark
-                                                        ? Colors.blue.shade300
-                                                        : Colors.blue.shade700,
-                                                    size: 22),
+                                                        ? Colors.grey.shade700
+                                                        : Colors.grey.shade200,
+                                                    width: 1),
                                               ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                              color: isDark
+                                                  ? const Color(0xFF1E1E1E)
+                                                  : Colors.white,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 10),
+                                                child: Row(
                                                   children: [
-                                                    Text(
-                                                      user['username'],
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 15,
-                                                        color: isDark
-                                                            ? Colors.white
-                                                            : Colors.black87,
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      'Profile: ${user['profile']}',
-                                                      style: TextStyle(
-                                                          fontSize: 13,
+                                                    CircleAvatar(
+                                                      radius: 20,
+                                                      backgroundColor: isDark
+                                                          ? Colors.blue.shade900
+                                                          : Colors.blue.shade50,
+                                                      child: Icon(Icons.person,
                                                           color: isDark
-                                                              ? Colors.white70
-                                                              : Colors.black54),
+                                                              ? Colors
+                                                                  .blue.shade300
+                                                              : Colors.blue
+                                                                  .shade700,
+                                                          size: 22),
                                                     ),
-                                                    if (user['odp_name']
-                                                            ?.isNotEmpty ??
-                                                        false)
-                                                      Row(
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
                                                         children: [
-                                                          Icon(Icons.call_split,
-                                                              size: 16,
-                                                              color: isDark
-                                                                  ? Colors.blue
-                                                                      .shade300
-                                                                  : Colors.blue
-                                                                      .shade800),
-                                                          const SizedBox(
-                                                              width: 4),
                                                           Text(
-                                                            'ODP: ${user['odp_name']}',
+                                                            user['username'],
                                                             style: TextStyle(
-                                                                fontSize: 12,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              fontSize: 15,
+                                                              color: isDark
+                                                                  ? Colors.white
+                                                                  : Colors
+                                                                      .black87,
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            'Profile: ${user['profile']}',
+                                                            style: TextStyle(
+                                                                fontSize: 13,
                                                                 color: isDark
                                                                     ? Colors
                                                                         .white70
                                                                     : Colors
-                                                                        .black),
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .visible,
-                                                            maxLines: null,
+                                                                        .black54),
                                                           ),
-                                                        ],
-                                                      ),
-                                                    if (user['wa']
-                                                            ?.isNotEmpty ??
-                                                        false)
-                                                      Row(
-                                                        children: [
-                                                          Image.asset(
-                                                              'assets/WhatsApp.svg.png',
-                                                              width: 16,
-                                                              height: 16),
-                                                          const SizedBox(
-                                                              width: 4),
-                                                          Text('WA: ',
-                                                              style: TextStyle(
-                                                                  fontSize: 12,
-                                                                  color: isDark
-                                                                      ? Colors
-                                                                          .white70
-                                                                      : Colors
-                                                                          .black)),
-                                                          Text('${user['wa']}',
-                                                              style: TextStyle(
-                                                                  fontSize: 12,
-                                                                  color: isDark
-                                                                      ? Colors
-                                                                          .white70
-                                                                      : Colors
-                                                                          .black)),
-                                                        ],
-                                                      ),
-                                                    if (user['maps']
-                                                            ?.isNotEmpty ??
-                                                        false)
-                                                      Row(
-                                                        children: [
-                                                          Image.asset(
-                                                              'assets/pngimg.com - google_maps_pin_PNG26.png',
-                                                              width: 16,
-                                                              height: 16),
-                                                          const SizedBox(
-                                                              width: 4),
-                                                          Flexible(
-                                                            child: Text(
-                                                              'Maps: ${user['maps']}',
-                                                              style: TextStyle(
-                                                                  fontSize: 12,
-                                                                  color: isDark
-                                                                      ? Colors
-                                                                          .white70
-                                                                      : Colors
-                                                                          .black),
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
+                                                          if (user['odp_name']
+                                                                  ?.isNotEmpty ??
+                                                              false)
+                                                            Row(
+                                                              children: [
+                                                                Icon(
+                                                                    Icons
+                                                                        .call_split,
+                                                                    size: 16,
+                                                                    color: isDark
+                                                                        ? Colors
+                                                                            .blue
+                                                                            .shade300
+                                                                        : Colors
+                                                                            .blue
+                                                                            .shade800),
+                                                                const SizedBox(
+                                                                    width: 4),
+                                                                Text(
+                                                                  'ODP: ${user['odp_name']}',
+                                                                  style: TextStyle(
+                                                                      fontSize:
+                                                                          12,
+                                                                      color: isDark
+                                                                          ? Colors
+                                                                              .white70
+                                                                          : Colors
+                                                                              .black),
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .visible,
+                                                                  maxLines:
+                                                                      null,
+                                                                ),
+                                                              ],
                                                             ),
-                                                          ),
+                                                          if (user['wa']
+                                                                  ?.isNotEmpty ??
+                                                              false)
+                                                            Row(
+                                                              children: [
+                                                                Image.asset(
+                                                                    'assets/WhatsApp.svg.png',
+                                                                    width: 16,
+                                                                    height: 16),
+                                                                const SizedBox(
+                                                                    width: 4),
+                                                                Text('WA: ',
+                                                                    style: TextStyle(
+                                                                        fontSize:
+                                                                            12,
+                                                                        color: isDark
+                                                                            ? Colors.white70
+                                                                            : Colors.black)),
+                                                                Text(
+                                                                    '${user['wa']}',
+                                                                    style: TextStyle(
+                                                                        fontSize:
+                                                                            12,
+                                                                        color: isDark
+                                                                            ? Colors.white70
+                                                                            : Colors.black)),
+                                                              ],
+                                                            ),
+                                                          if (user['maps']
+                                                                  ?.isNotEmpty ??
+                                                              false)
+                                                            Row(
+                                                              children: [
+                                                                Image.asset(
+                                                                    'assets/pngimg.com - google_maps_pin_PNG26.png',
+                                                                    width: 16,
+                                                                    height: 16),
+                                                                const SizedBox(
+                                                                    width: 4),
+                                                                Flexible(
+                                                                  child: Text(
+                                                                    'Maps: ${user['maps']}',
+                                                                    style: TextStyle(
+                                                                        fontSize:
+                                                                            12,
+                                                                        color: isDark
+                                                                            ? Colors.white70
+                                                                            : Colors.black),
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
                                                         ],
                                                       ),
+                                                    ),
                                                   ],
                                                 ),
                                               ),
-                                            ],
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
+                                        );
+                                      },
+                                    );
+                            },
+                          ),
               ),
             ),
             // Footer jumlah user
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'Total User: $_totalCount${_searchQuery.isNotEmpty ? ' (${_filteredUsers.length} ditampilkan)' : ''}',
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
+            Consumer<MikrotikProvider>(
+              builder: (context, mikrotikProvider, child) {
+                final filteredUsers =
+                    _getFilteredUsersByPPP(mikrotikProvider.pppSecrets);
+                return Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'Total User: ${filteredUsers.length}${_searchQuery.isNotEmpty ? ' (${filteredUsers.length} ditampilkan)' : ''}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
