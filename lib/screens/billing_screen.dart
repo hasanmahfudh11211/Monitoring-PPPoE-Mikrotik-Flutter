@@ -10,6 +10,7 @@ import 'payment_summary_screen.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:provider/provider.dart';
 import '../providers/router_session_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CurrencyInputFormatter extends TextInputFormatter {
   @override
@@ -1040,11 +1041,429 @@ class _BillingScreenState extends State<BillingScreen> {
                         ),
                       ),
                     ),
+                    // Send Message Button
+                    Padding(
+                      padding: const EdgeInsets.only(top: 0, bottom: 8),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            print('=== KIRIM PESAN BUTTON CLICKED ===');
+                            print('User data: ${user.toString()}');
+                            print('Phone: ${user['phone']}');
+                            _showSendMessageDialog(user);
+                          },
+                          icon: const Icon(Icons.message, color: Colors.white),
+                          label: const Text('Kirim Pesan WhatsApp',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.white,
+                              )),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isDark
+                                ? Colors.blue.shade700
+                                : Colors.blue.shade700,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
+                            elevation: 2,
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
           ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showSendMessageDialog(Map<String, dynamic> user) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Check if user has phone number (using 'wa' field)
+    final phoneNumber = user['wa']?.toString() ?? '';
+    print('=== SEND MESSAGE DIALOG ===');
+    print('Phone from wa field: $phoneNumber');
+    if (phoneNumber.isEmpty) {
+      if (mounted) {
+        await showDialog(
+          context: context,
+          builder: (dialogContext) {
+            return AlertDialog(
+              backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              contentPadding: const EdgeInsets.all(24),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.orange.shade900.withOpacity(0.3)
+                          : Colors.orange.shade50,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.phone_disabled,
+                      color: Colors.orange,
+                      size: 36,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Nomor WhatsApp Tidak Tersedia',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'User ${user['username']} belum memiliki nomor WhatsApp.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Silakan tambahkan nomor WhatsApp terlebih dahulu di halaman Semua User.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? Colors.white60 : Colors.black45,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor:
+                                isDark ? Colors.white70 : Colors.grey[700],
+                            side: BorderSide(
+                              color: isDark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade400,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'TUTUP',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : Colors.grey[700],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                            // Navigate to All Users screen
+                            Navigator.pushNamed(context, '/all-users');
+                          },
+                          icon: const Icon(Icons.people, size: 18),
+                          label: const Text(
+                            'BUKA',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange.shade700,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      }
+      return;
+    }
+
+    // Calculate payment status ONLY for selected month (ignore _showAllPayments for message)
+    // This ensures accurate status per month
+    final paymentsForSelectedMonth = (user['payments'] as List)
+        .where((p) {
+          final paymentDate = DateTime.tryParse(p['payment_date'] ?? '');
+          return paymentDate != null &&
+              paymentDate.year == _selectedMonth.year &&
+              paymentDate.month == _selectedMonth.month;
+        })
+        .cast<Map<String, dynamic>>()
+        .toList();
+
+    final totalPayments = paymentsForSelectedMonth.fold<double>(
+      0,
+      (sum, p) => sum + (double.tryParse(p['amount']?.toString() ?? '0') ?? 0),
+    );
+
+    // Status LUNAS hanya jika ada pembayaran di bulan yang dipilih
+    final isLunas = totalPayments > 0;
+
+    // Determine period text for message (always show selected month for individual message)
+    final periodText =
+        'Pembayaran ${DateFormat('MMMM yyyy', 'id_ID').format(_selectedMonth)}';
+
+    // Set automatic message based on payment status
+    String message;
+    if (isLunas) {
+      message = '''Halo ${user['username']},
+
+Terima kasih atas pembayaran Anda. Status pembayaran Anda sudah *LUNAS*.
+
+*$periodText*
+Total Pembayaran: Rp ${currencyFormat.format(totalPayments)}
+
+Terima kasih telah menjadi pelanggan setia kami! 🙏''';
+    } else {
+      message = '''Assalamu'alaikum Pelanggan Yth,
+
+Kami sampaikan bahwa tagihan anda sudah maksimal.
+Segera lakukan pembayaran agar tidak otomatis terisolir.
+
+*$periodText*
+
+Pembayaran bisa melalui transfer ke:
+
+*Rekening*
+*BCA 8035048398*
+*BRI 061301016088508*
+*BSI 7211623556*
+Atas nama *M Zidni ilman*
+
+Terimakasih''';
+    }
+
+    // Show confirmation dialog
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Icon(
+                Icons.message,
+                color: isDark ? Colors.green.shade300 : Colors.green.shade700,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Kirim Pesan WhatsApp',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // User info
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.person,
+                              size: 16,
+                              color: isDark ? Colors.white70 : Colors.black54),
+                          const SizedBox(width: 6),
+                          Text(
+                            user['username'] ?? '-',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.phone,
+                              size: 16,
+                              color: isDark ? Colors.white70 : Colors.black54),
+                          const SizedBox(width: 6),
+                          Text(
+                            phoneNumber,
+                            style: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            isLunas ? Icons.check_circle : Icons.warning,
+                            size: 16,
+                            color: isLunas ? Colors.green : Colors.orange,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            isLunas ? 'LUNAS' : 'BELUM LUNAS',
+                            style: TextStyle(
+                              color: isLunas ? Colors.green : Colors.orange,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Pesan yang akan dikirim:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  constraints: const BoxConstraints(
+                    maxHeight: 300, // Batasi tinggi maksimal
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color:
+                          isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.black87,
+                        fontSize: 13,
+                        height: 1.5, // Line height untuk readability
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'BATAL',
+                style: TextStyle(
+                  color: isDark ? Colors.blue.shade300 : Colors.blue,
+                ),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                // Format phone number for WhatsApp (remove leading 0, add 62)
+                String formattedPhone =
+                    phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+                if (formattedPhone.startsWith('0')) {
+                  formattedPhone = '62${formattedPhone.substring(1)}';
+                } else if (!formattedPhone.startsWith('62')) {
+                  formattedPhone = '62$formattedPhone';
+                }
+
+                // Create WhatsApp URL
+                final whatsappUrl = Uri.parse(
+                  'https://wa.me/$formattedPhone?text=${Uri.encodeComponent(message)}',
+                );
+
+                try {
+                  if (await canLaunchUrl(whatsappUrl)) {
+                    await launchUrl(whatsappUrl,
+                        mode: LaunchMode.externalApplication);
+                    if (dialogContext.mounted) {
+                      Navigator.of(dialogContext).pop();
+                    }
+                    if (mounted) {
+                      CustomSnackbar.show(
+                        context: context,
+                        message: 'Membuka WhatsApp...',
+                        isSuccess: true,
+                      );
+                    }
+                  } else {
+                    throw Exception('Tidak dapat membuka WhatsApp');
+                  }
+                } catch (e) {
+                  if (dialogContext.mounted) {
+                    CustomSnackbar.show(
+                      context: dialogContext,
+                      message: 'Gagal membuka WhatsApp',
+                      additionalInfo: e.toString(),
+                      isSuccess: false,
+                    );
+                  }
+                }
+              },
+              icon: const Icon(Icons.send, color: Colors.white),
+              label: const Text(
+                'KIRIM',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green.shade700,
+              ),
+            ),
+          ],
         );
       },
     );

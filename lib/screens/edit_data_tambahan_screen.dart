@@ -9,6 +9,7 @@ import 'package:image/image.dart' as img;
 import '../services/api_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/router_session_provider.dart';
+import '../widgets/gradient_container.dart';
 
 class EditDataTambahanScreen extends StatefulWidget {
   final String username;
@@ -297,365 +298,370 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-      appBar: AppBar(
+    return GradientContainer(
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Edit Data Tambahan',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: const Text(
+            'Edit Data Tambahan',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          iconTheme: const IconThemeData(color: Colors.white),
+          centerTitle: true,
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Info Card
-              Card(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Username: ${widget.username}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Info Card
+                Card(
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Username: ${widget.username}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // Form Fields
-              Card(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // WhatsApp Field
-                      TextFormField(
-                        controller: _waController,
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        decoration: InputDecoration(
-                          labelText: 'Nomor WhatsApp',
-                          labelStyle: TextStyle(
-                            color: isDark ? Colors.white70 : Colors.black54,
+                // Form Fields
+                Card(
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // WhatsApp Field
+                        TextFormField(
+                          controller: _waController,
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
-                          prefixIcon: Icon(
-                            Icons.phone,
-                            color: isDark ? Colors.blue.shade300 : Colors.blue,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isDark
-                                  ? Colors.grey.shade700
-                                  : Colors.grey.shade300,
+                          decoration: InputDecoration(
+                            labelText: 'Nomor WhatsApp',
+                            labelStyle: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
                             ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isDark
-                                  ? Colors.grey.shade700
-                                  : Colors.grey.shade300,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
+                            prefixIcon: Icon(
+                              Icons.phone,
                               color:
                                   isDark ? Colors.blue.shade300 : Colors.blue,
                             ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color:
+                                    isDark ? Colors.blue.shade300 : Colors.blue,
+                              ),
+                            ),
                           ),
+                          keyboardType: TextInputType.phone,
                         ),
-                        keyboardType: TextInputType.phone,
-                      ),
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                      // Maps Field
-                      TextFormField(
-                        controller: _mapsController,
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        decoration: InputDecoration(
-                          labelText: 'Link Google Maps',
-                          labelStyle: TextStyle(
-                            color: isDark ? Colors.white70 : Colors.black54,
+                        // Maps Field
+                        TextFormField(
+                          controller: _mapsController,
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
-                          prefixIcon: Icon(
-                            Icons.location_on,
-                            color: isDark ? Colors.blue.shade300 : Colors.blue,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isDark
-                                  ? Colors.grey.shade700
-                                  : Colors.grey.shade300,
+                          decoration: InputDecoration(
+                            labelText: 'Link Google Maps',
+                            labelStyle: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
                             ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isDark
-                                  ? Colors.grey.shade700
-                                  : Colors.grey.shade300,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
+                            prefixIcon: Icon(
+                              Icons.location_on,
                               color:
                                   isDark ? Colors.blue.shade300 : Colors.blue,
                             ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color:
+                                    isDark ? Colors.blue.shade300 : Colors.blue,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                      // ODP Dropdown
-                      Text(
-                        'Hubungkan ke ODP',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
+                        // ODP Dropdown
+                        Text(
+                          'Hubungkan ke ODP',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      _isLoadingOdp
-                          ? const Center(child: CircularProgressIndicator())
-                          : DropdownButtonFormField<int>(
-                              value: _selectedOdpId,
-                              isExpanded: true,
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: isDark
-                                    ? const Color(0xFF2D2D2D)
-                                    : Colors.white.withOpacity(0.9),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: isDark
-                                        ? Colors.grey.shade700
-                                        : Colors.grey.shade300,
+                        const SizedBox(height: 10),
+                        _isLoadingOdp
+                            ? const Center(child: CircularProgressIndicator())
+                            : DropdownButtonFormField<int>(
+                                value: _selectedOdpId,
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: isDark
+                                      ? const Color(0xFF2D2D2D)
+                                      : Colors.white.withOpacity(0.9),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? Colors.grey.shade700
+                                          : Colors.grey.shade300,
+                                    ),
                                   ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
-                                    color: isDark
-                                        ? Colors.grey.shade700
-                                        : Colors.grey.shade300,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? Colors.grey.shade700
+                                          : Colors.grey.shade300,
+                                    ),
                                   ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: isDark
+                                          ? Colors.blue.shade300
+                                          : Colors.blue,
+                                    ),
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.device_hub,
                                     color: isDark
                                         ? Colors.blue.shade300
                                         : Colors.blue,
                                   ),
-                                ),
-                                prefixIcon: Icon(
-                                  Icons.device_hub,
-                                  color: isDark
-                                      ? Colors.blue.shade300
-                                      : Colors.blue,
-                                ),
-                                hintText: 'Pilih ODP',
-                                hintStyle: TextStyle(
-                                  color:
-                                      isDark ? Colors.white70 : Colors.black54,
-                                ),
-                              ),
-                              items: _odpList.map((odp) {
-                                return DropdownMenuItem<int>(
-                                  // Pastikan value adalah integer
-                                  value: int.parse(odp['id'].toString()),
-                                  child: Text(
-                                    odp['name'],
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
+                                  hintText: 'Pilih ODP',
+                                  hintStyle: TextStyle(
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.black54,
                                   ),
-                                );
-                              }).toList(),
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedOdpId = value;
-                                });
-                              },
-                            ),
-
-                      const SizedBox(height: 16),
-
-                      // Image Picker
-                      Text(
-                        'Foto ',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Center(
-                        child: Column(
-                          children: [
-                            if (_pickedImage != null) ...[
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  File(_pickedImage!.path),
-                                  height: 200,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
                                 ),
-                              ),
-                            ] else if (_currentImageUrl != null &&
-                                _currentImageUrl!.isNotEmpty) ...[
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.network(
-                                  _currentImageUrl!,
-                                  height: 200,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      height: 200,
-                                      width: double.infinity,
-                                      color: isDark
-                                          ? Colors.grey.shade800
-                                          : Colors.grey[300],
-                                      child: Icon(
-                                        Icons.error_outline,
-                                        size: 50,
+                                items: _odpList.map((odp) {
+                                  return DropdownMenuItem<int>(
+                                    // Pastikan value adalah integer
+                                    value: int.parse(odp['id'].toString()),
+                                    child: Text(
+                                      odp['name'],
+                                      style: TextStyle(
                                         color: isDark
-                                            ? Colors.grey.shade400
-                                            : Colors.grey,
+                                            ? Colors.white
+                                            : Colors.black87,
                                       ),
-                                    );
-                                  },
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedOdpId = value;
+                                  });
+                                },
+                              ),
+
+                        const SizedBox(height: 16),
+
+                        // Image Picker
+                        Text(
+                          'Foto ',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Center(
+                          child: Column(
+                            children: [
+                              if (_pickedImage != null) ...[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.file(
+                                    File(_pickedImage!.path),
+                                    height: 200,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ] else if (_currentImageUrl != null &&
+                                  _currentImageUrl!.isNotEmpty) ...[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    _currentImageUrl!,
+                                    height: 200,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        height: 200,
+                                        width: double.infinity,
+                                        color: isDark
+                                            ? Colors.grey.shade800
+                                            : Colors.grey[300],
+                                        child: Icon(
+                                          Icons.error_outline,
+                                          size: 50,
+                                          color: isDark
+                                              ? Colors.grey.shade400
+                                              : Colors.grey,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: _isLoading ? null : _pickImage,
+                                icon: Icon(
+                                  Icons.photo_camera,
+                                  color: isDark ? Colors.white : Colors.white,
+                                ),
+                                label: Text(
+                                  _pickedImage != null ||
+                                          (_currentImageUrl != null &&
+                                              _currentImageUrl!.isNotEmpty)
+                                      ? 'Ganti Foto'
+                                      : 'Pilih Foto',
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white : Colors.white,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isDark
+                                      ? Colors.blue.shade700
+                                      : Colors.blue.shade700,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
                               ),
                             ],
-                            const SizedBox(height: 16),
-                            ElevatedButton.icon(
-                              onPressed: _isLoading ? null : _pickImage,
-                              icon: Icon(
-                                Icons.photo_camera,
-                                color: isDark ? Colors.white : Colors.white,
-                              ),
-                              label: Text(
-                                _pickedImage != null ||
-                                        (_currentImageUrl != null &&
-                                            _currentImageUrl!.isNotEmpty)
-                                    ? 'Ganti Foto'
-                                    : 'Pilih Foto',
-                                style: TextStyle(
-                                  color: isDark ? Colors.white : Colors.white,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isDark
-                                    ? Colors.blue.shade700
-                                    : Colors.blue.shade700,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Save Button
-              ElevatedButton.icon(
-                onPressed: _isLoading ? null : _saveChanges,
-                icon: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : Icon(
-                        Icons.save,
-                        color: isDark ? Colors.white : Colors.white,
-                      ),
-                label: Text(
-                  _isLoading ? 'MENYIMPAN...' : 'SIMPAN PERUBAHAN',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      isDark ? Colors.blue.shade700 : Colors.blue.shade700,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              if (_error != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: Text(
-                    _error!,
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 16,
+                      ],
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ),
-            ],
+                const SizedBox(height: 24),
+
+                // Save Button
+                ElevatedButton.icon(
+                  onPressed: _isLoading ? null : _saveChanges,
+                  icon: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Icon(
+                          Icons.save,
+                          color: isDark ? Colors.white : Colors.white,
+                        ),
+                  label: Text(
+                    _isLoading ? 'MENYIMPAN...' : 'SIMPAN PERUBAHAN',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        isDark ? Colors.blue.shade700 : Colors.blue.shade700,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+
+                if (_error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Text(
+                      _error!,
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 16,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

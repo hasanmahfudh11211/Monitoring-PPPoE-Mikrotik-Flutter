@@ -33,11 +33,10 @@ class MikrotikService {
     }
     final credentials = '$username:$password';
     final encoded = base64Encode(utf8.encode(credentials));
-    // Untuk GET request, kita tidak perlu Content-Type
-    // API client biasanya tidak mengirim Content-Type untuk GET
     return {
       'Authorization': 'Basic $encoded',
       'Accept': 'application/json',
+      'Content-Type': 'application/json',
     };
   }
 

@@ -511,8 +511,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     await provider.refreshData(forceRefresh: true);
                   },
                   child: ListView(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.only(
+                        left: 12, right: 12, top: 8, bottom: 100),
                     children: [
                       // HEADER DENGAN GRADIENT DAN ICON
                       InkWell(

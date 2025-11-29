@@ -6,6 +6,9 @@ import 'dart:convert';
 import '../widgets/custom_snackbar.dart';
 import 'package:image/image.dart' as img;
 import '../services/api_service.dart';
+import '../widgets/gradient_container.dart';
+import 'package:provider/provider.dart';
+import '../providers/router_session_provider.dart';
 
 class TambahDataScreen extends StatefulWidget {
   final String username;
@@ -41,17 +44,46 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
   }
 
   Future<bool> saveUserToServer(Map<String, dynamic> userData) async {
-    final url = Uri.parse('${ApiService.baseUrl}/save_user.php');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(userData),
-    );
-    if (response.statusCode == 200) {
-      final result = jsonDecode(response.body);
-      return result['success'] == true;
-    } else {
-      return false;
+    try {
+      final url = Uri.parse('${ApiService.baseUrl}/save_user.php');
+      print('[TambahData] Sending request to: $url');
+      print('[TambahData] Request body: ${jsonEncode(userData)}');
+
+      final response = await http
+          .post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(userData),
+      )
+          .timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw Exception(
+              'Koneksi timeout. Server tidak merespon dalam 30 detik.');
+        },
+      );
+
+      print('[TambahData] Response status: ${response.statusCode}');
+      print('[TambahData] Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        if (result['success'] == true) {
+          return true;
+        } else {
+          throw Exception(result['error'] ?? 'Gagal menyimpan data ke server');
+        }
+      } else {
+        throw Exception('Server error: HTTP ${response.statusCode}');
+      }
+    } on SocketException {
+      throw Exception(
+          'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+    } on FormatException {
+      throw Exception('Format response dari server tidak valid.');
+    } catch (e) {
+      print('[TambahData] Error: $e');
+      rethrow;
     }
   }
 
@@ -75,7 +107,8 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                   color: Colors.blue.shade100,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.help_outline, color: Colors.blue, size: 36),
+                child: const Icon(Icons.help_outline,
+                    color: Colors.blue, size: 36),
               ),
               const SizedBox(height: 18),
               const Text(
@@ -106,7 +139,9 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('BATAL', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      child: const Text('BATAL',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -121,7 +156,9 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('SIMPAN', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      child: const Text('SIMPAN',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ],
@@ -137,11 +174,22 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
       _error = null;
     });
     try {
+      // Get router_id from session
+      final routerSession =
+          Provider.of<RouterSessionProvider>(context, listen: false);
+      final routerId = routerSession.routerId;
+
+      if (routerId == null || routerId.isEmpty) {
+        throw Exception('Router ID tidak ditemukan. Silakan login ulang.');
+      }
+
       String? base64Image;
       if (_compressedImageBytes != null) {
-        base64Image = 'data:image/jpeg;base64,' + base64Encode(_compressedImageBytes!);
+        base64Image =
+            'data:image/jpeg;base64,' + base64Encode(_compressedImageBytes!);
       }
       final userData = {
+        'router_id': routerId, // PENTING: tambahkan router_id
         'username': widget.username,
         'password': widget.password,
         'profile': widget.profile,
@@ -160,22 +208,15 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
           isSuccess: true,
         );
         Navigator.of(context).pop(true); // Kembali ke dashboard
-      } else {
-        if (!mounted) return;
-        CustomSnackbar.show(
-          context: context,
-          message: 'Gagal menyimpan data tambahan',
-          additionalInfo: 'Silakan coba lagi atau hubungi administrator',
-          isSuccess: false,
-        );
       }
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      final errorMessage = e.toString().replaceAll('Exception: ', '');
+      setState(() => _error = errorMessage);
       CustomSnackbar.show(
         context: context,
-        message: 'Terjadi kesalahan',
-        additionalInfo: e.toString(),
+        message: 'Gagal menyimpan data tambahan',
+        additionalInfo: errorMessage,
         isSuccess: false,
       );
     } finally {
@@ -204,7 +245,8 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                   color: Colors.blue.shade100,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.help_outline, color: Colors.blue, size: 36),
+                child: const Icon(Icons.help_outline,
+                    color: Colors.blue, size: 36),
               ),
               const SizedBox(height: 18),
               const Text(
@@ -235,7 +277,9 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('BATAL', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      child: const Text('BATAL',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -250,7 +294,9 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('OKE', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      child: const Text('OKE',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                   ),
                 ],
@@ -262,13 +308,26 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
     );
     if (konfirmasi != true) return; // Jika batal, tidak lanjut
     // Kirim data ke server walaupun kosong
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
     try {
+      // Get router_id from session
+      final routerSession =
+          Provider.of<RouterSessionProvider>(context, listen: false);
+      final routerId = routerSession.routerId;
+
+      if (routerId == null || routerId.isEmpty) {
+        throw Exception('Router ID tidak ditemukan. Silakan login ulang.');
+      }
+
       String? base64Image;
       if (_compressedImageBytes != null) {
-        base64Image = 'data:image/jpeg;base64,' + base64Encode(_compressedImageBytes!);
+        base64Image =
+            'data:image/jpeg;base64,' + base64Encode(_compressedImageBytes!);
       }
       final userData = {
+        'router_id': routerId, // PENTING: tambahkan router_id
         'username': widget.username,
         'password': widget.password,
         'profile': widget.profile,
@@ -287,7 +346,9 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
             isSuccess: false,
           );
         }
-        setState(() { _isLoading = false; });
+        setState(() {
+          _isLoading = false;
+        });
         return;
       }
     } catch (e) {
@@ -299,10 +360,14 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
           isSuccess: false,
         );
       }
-      setState(() { _isLoading = false; });
+      setState(() {
+        _isLoading = false;
+      });
       return;
     }
-    setState(() { _isLoading = false; });
+    setState(() {
+      _isLoading = false;
+    });
     final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -320,7 +385,8 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                   color: Colors.blue.shade100,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.info_outline, color: Colors.blue, size: 36),
+                child: const Icon(Icons.info_outline,
+                    color: Colors.blue, size: 36),
               ),
               const SizedBox(height: 18),
               const Text(
@@ -350,7 +416,9 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('OKE', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  child: const Text('OKE',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 ),
               ),
             ],
@@ -358,7 +426,8 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
         ),
       ),
     );
-    if (result == true && mounted) Navigator.of(context).pop(true); // Kembali ke dashboard jika OKE
+    if (result == true && mounted)
+      Navigator.of(context).pop(true); // Kembali ke dashboard jika OKE
     // Jika BATAL, tetap di halaman
   }
 
@@ -386,22 +455,23 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Data Tambahan',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+    return GradientContainer(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBody: true,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+          title: const Text(
+            'Data Tambahan',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          centerTitle: true,
         ),
-        centerTitle: true,
-      ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Form(
@@ -574,7 +644,7 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     ElevatedButton(
-                  onPressed: _isLoading ? null : _saveAdditionalData,
+                      onPressed: _isLoading ? null : _saveAdditionalData,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade800,
                         foregroundColor: Colors.white,
@@ -585,15 +655,18 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                         ),
                       ),
                       child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                          : const Text('SIMPAN SEKARANG', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : const Text('SIMPAN SEKARANG',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                     const SizedBox(height: 12),
                     OutlinedButton(
@@ -601,12 +674,14 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.grey[700],
                         side: BorderSide(color: Colors.grey.shade400),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                      child: const Text('TAMBAH NANTI SAJA', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('TAMBAH NANTI SAJA',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                   ],
                 ),
@@ -614,7 +689,8 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
             ),
           ),
         ),
-      );
+      ),
+    );
   }
 
   Widget _buildInfoRow(String label, String value) {
@@ -639,4 +715,4 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
       ],
     );
   }
-} 
+}
