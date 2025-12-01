@@ -15,7 +15,7 @@ This document explains the automatic backup feature that has been implemented to
 - These backups help protect against data loss over time
 
 ### 3. Manual Backup
-- Users can create full SQL backups manually through the "Restore/Backup Database" screen
+- Users can create full SQL backups manually through the "Database Setting Database" screen
 - Useful before making significant changes to the data
 
 ## How It Works
@@ -32,7 +32,7 @@ This document explains the automatic backup feature that has been implemented to
 4. Old backups are automatically cleaned up (keeps only the 10 most recent)
 
 ### Manual Backup Process
-1. Users can navigate to "Restore/Backup Database" screen
+1. Users can navigate to "Database Setting Database" screen
 2. Click on "Backup Database" button to create a full SQL backup immediately
 3. The backup file will be saved in the Download folder
 4. A popup notification will inform about the backup status and automatic schedule
@@ -51,8 +51,8 @@ This document explains the automatic backup feature that has been implemented to
 
 ## Accessing Backups
 
-### Through "Restore/Backup Database" Screen
-1. Open the app and go to "Restore/Backup Database"
+### Through "Database Setting Database" Screen
+1. Open the app and go to "Database Setting Database"
 2. Tap on "Backup Database" to create a full SQL backup
 3. The file will be saved in the Download folder
 4. A popup will show backup status and inform about automatic schedule

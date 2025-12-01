@@ -457,7 +457,7 @@ class _SettingScreenState extends State<SettingScreen> {
                       const SizedBox(height: 24),
                       _buildActionButton(
                         icon: Icons.backup,
-                        label: 'Restore/Backup Database',
+                        label: 'Database Setting',
                         onPressed: () {
                           Navigator.pushNamed(context, '/export-ppp');
                         },

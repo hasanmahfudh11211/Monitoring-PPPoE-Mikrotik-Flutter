@@ -455,18 +455,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 });
                               },
                             ),
-                            ListTile(
-                              leading: const Icon(Icons.sync_problem),
-                              title: const Text('Database Sync'),
-                              onTap: () {
-                                Navigator.of(context).pop();
-                                Future.delayed(
-                                    const Duration(milliseconds: 250), () {
-                                  Navigator.of(context, rootNavigator: true)
-                                      .pushNamed('/database-sync');
-                                });
-                              },
-                            ),
                           ],
                         ),
                       ],

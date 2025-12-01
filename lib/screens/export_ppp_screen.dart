@@ -546,7 +546,7 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
-          'Restore/Backup Database',
+          'Database Setting',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -562,157 +562,327 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Info Card
-                  Card(
+                  // Info Card - Modern Design
+                  Container(
                     margin: const EdgeInsets.only(bottom: 24),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    elevation: 4,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [const Color(0xFF1E3A5F), const Color(0xFF2D2D2D)]
+                            : [Colors.blue.shade50, Colors.white],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDark
+                              ? Colors.black.withOpacity(0.3)
+                              : Colors.blue.withOpacity(0.1),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              Icon(
-                                Icons.info_outline,
-                                color: isDark
-                                    ? Colors.blue[200]!
-                                    : Colors.blue[800]!,
-                                size: 20,
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.blue.withOpacity(0.2)
+                                      : Colors.blue.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.info_outline_rounded,
+                                  color: isDark
+                                      ? Colors.blue[300]!
+                                      : Colors.blue[700]!,
+                                  size: 24,
+                                ),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Informasi Sinkronisasi & Backup',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: isDark ? Colors.white : Colors.black87,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Informasi Sinkronisasi & Backup',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17,
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'Sinkronisasi: Perbarui data user dari Mikrotik ke database',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark ? Colors.white70 : Colors.grey[700],
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withOpacity(0.05)
+                                  : Colors.blue.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Sinkronisasi',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: isDark
+                                        ? Colors.blue[300]
+                                        : Colors.blue[700],
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Perbarui data user dari Mikrotik ke database',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.grey[700],
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                _buildInfoItem(Icons.person_outline_rounded,
+                                    'Username, Password, Profile', isDark),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          _buildInfoItem(Icons.person,
-                              'Username, Password, Profile', isDark),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           Text(
                             'Fitur Keamanan:',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              fontSize: 14,
                               color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '• Backup otomatis sebelum sinkronisasi',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.white70 : Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '• Data tambahan dipertahankan',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.white70 : Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '• Data billing dipertahankan',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.white70 : Colors.grey[600],
                             ),
                           ),
                           const SizedBox(height: 8),
+                          _buildFeatureItem(
+                            Icons.shield_outlined,
+                            'Backup otomatis sebelum sinkronisasi',
+                            isDark,
+                          ),
+                          const SizedBox(height: 6),
+                          _buildFeatureItem(
+                            Icons.save_outlined,
+                            'Data tambahan dipertahankan',
+                            isDark,
+                          ),
+                          const SizedBox(height: 6),
+                          _buildFeatureItem(
+                            Icons.receipt_long_outlined,
+                            'Data billing dipertahankan',
+                            isDark,
+                          ),
+                          const SizedBox(height: 12),
                           Text(
-                            'Backup:',
+                            'Backup Otomatis:',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              fontSize: 14,
                               color: isDark ? Colors.white : Colors.black87,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '• Harian: 02:00 | Format: pppoe-full-backup-[ID]-[tgl].sql',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.white70 : Colors.grey[600],
-                            ),
+                          const SizedBox(height: 8),
+                          _buildFeatureItem(
+                            Icons.schedule_outlined,
+                            'Harian: 02:00 | Format: pppoe-full-backup-[ID]-[tgl].sql',
+                            isDark,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '• Disimpan di folder Download perangkat',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.white70 : Colors.grey[600],
-                            ),
+                          const SizedBox(height: 6),
+                          _buildFeatureItem(
+                            Icons.folder_outlined,
+                            'Disimpan di folder Download perangkat',
+                            isDark,
                           ),
                         ],
                       ),
                     ),
                   ),
 
-                  // Main Action Buttons (Only 3 as requested)
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.sync_alt),
-                    label: const Text('Sinkronkan Semua User'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isDark ? Colors.blue[700] : Colors.blue[800],
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      textStyle: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                  // Main Action Buttons - Modern Design
+                  // Button 1: Sinkronkan Semua User
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [Colors.blue[700]!, Colors.blue[900]!]
+                            : [Colors.blue[600]!, Colors.blue[800]!],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    onPressed: _isLoading ? null : _unifiedSyncToDb,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.sync_alt, size: 22),
+                      label: const Text(
+                        'Sinkronkan Semua User',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: _isLoading ? null : _unifiedSyncToDb,
+                    ),
                   ),
-                  const SizedBox(height: 18),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.cloud_download),
-                    label: const Text('Backup Database'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isDark ? Colors.green[700] : Colors.green[800],
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      textStyle: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                  const SizedBox(height: 16),
+
+                  // Button 2: Backup Database
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [Colors.green[700]!, Colors.green[900]!]
+                            : [Colors.green[600]!, Colors.green[800]!],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.green.withOpacity(0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    onPressed: _isLoading ? null : _backupDatabase,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.cloud_download, size: 22),
+                      label: const Text(
+                        'Backup Database',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: _isLoading ? null : _backupDatabase,
+                    ),
                   ),
-                  const SizedBox(height: 18),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.file_upload),
-                    label: const Text('Import dari File'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isDark ? Colors.orange[700] : Colors.orange[800],
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      textStyle: const TextStyle(fontSize: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                  const SizedBox(height: 16),
+
+                  // Button 3: Import dari File
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [Colors.orange[700]!, Colors.orange[900]!]
+                            : [Colors.orange[600]!, Colors.orange[800]!],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.orange.withOpacity(0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    onPressed: _importFromFile,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.file_upload, size: 22),
+                      label: const Text(
+                        'Import dari File',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: _importFromFile,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Button 4: Cek Database Sync (NEW)
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [Colors.deepPurple[600]!, Colors.deepPurple[800]!]
+                            : [
+                                Colors.deepPurple[500]!,
+                                Colors.deepPurple[700]!
+                              ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.deepPurple.withOpacity(0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.compare_arrows, size: 22),
+                      label: const Text(
+                        'Cek Database Sync',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/database-sync');
+                      },
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -966,25 +1136,57 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
   }
 
   Widget _buildInfoItem(IconData icon, String text, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 18,
-            color: isDark ? Colors.blue[200]! : Colors.blue[800]!,
-          ),
-          const SizedBox(width: 8),
-          Text(
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 18,
+          color: isDark ? Colors.blue[300]! : Colors.blue[700]!,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
             text,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               color: isDark ? Colors.white70 : Colors.grey[700],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeatureItem(IconData icon, String text, bool isDark) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.green.withOpacity(0.2)
+                : Colors.green.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Icon(
+            icon,
+            size: 14,
+            color: isDark ? Colors.green[300]! : Colors.green[700]!,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? Colors.white70 : Colors.grey[700],
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

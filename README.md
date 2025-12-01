@@ -239,7 +239,7 @@ Fitur backup otomatis untuk melindungi data.
 
 *   **Automatic Backup**: Backup SQL full dibuat otomatis sebelum sinkronisasi.
 *   **Scheduled Backups**: Harian (02:00) dan Mingguan (Minggu 03:00).
-*   **Manual Backup**: Bisa dipicu user dari menu Restore/Backup Database.
+*   **Manual Backup**: Bisa dipicu user dari menu Database Setting Database.
 *   **Lokasi**: Folder Download di device (`pppoe-full-backup-[router-id]-....sql`).
 
 ### API Billing & Fixes
