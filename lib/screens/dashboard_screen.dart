@@ -650,8 +650,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             _logBox(context),
                             const SizedBox(height: 16),
                             _billingBox(context),
-                            const SizedBox(height: 16),
-                            _databaseSyncBox(context),
                           ],
                         ),
                       ),
@@ -975,70 +973,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Center(
                 child: Text(
                   'Billing',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.arrow_forward,
-                color: Colors.white,
-                size: 28,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _databaseSyncBox(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF9800), Color(0xFFF57C00)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.orange.withValues(alpha: 0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: InkWell(
-        onTap: () => Navigator.pushNamed(context, '/database-sync'),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.sync_problem,
-                color: Colors.white,
-                size: 28,
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: Text(
-                  'Database Sync',
                   style: TextStyle(
                     fontSize: 18,
                     color: Colors.white,

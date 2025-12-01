@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/mikrotik_provider.dart';
 
 import '../widgets/custom_snackbar.dart';
+import '../widgets/gradient_container.dart';
 import '../main.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -60,12 +61,12 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
 
     try {
       final provider = Provider.of<MikrotikProvider>(context, listen: false);
-      
+
       // Get all PPP secrets from Mikrotik
       setState(() {
         _currentProcess = 'Mengambil data dari Mikrotik...';
       });
-      
+
       final secrets = await provider.service.getPPPSecret();
       setState(() => _totalUsers = secrets.length);
 
@@ -73,9 +74,10 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       for (var secret in secrets) {
         try {
           setState(() {
-            _currentProcess = 'Mengekspor ${_successCount + _failedCount + 1} dari $_totalUsers user...';
+            _currentProcess =
+                'Mengekspor ${_successCount + _failedCount + 1} dari $_totalUsers user...';
           });
-          
+
           final userData = {
             'username': secret['name'],
             'password': secret['password'],
@@ -87,7 +89,7 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
           };
 
           final success = await saveUserToServer(userData);
-          
+
           if (success) {
             setState(() => _successCount++);
           } else {
@@ -128,7 +130,6 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
           isSuccess: false,
         );
       }
-
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = e.toString());
@@ -158,31 +159,35 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
     });
     try {
       final provider = Provider.of<MikrotikProvider>(context, listen: false);
-      
+
       setState(() {
         _currentProcess = 'Mengambil data dari Mikrotik...';
       });
-      
+
       final secrets = await provider.service.getPPPSecret();
       setState(() => _totalUsers = secrets.length);
-      
+
       // Siapkan data untuk API
-      final users = secrets.map((secret) => {
-        'username': secret['name'],
-        'password': secret['password'],
-        'profile': secret['profile'],
-      }).toList();
-      
+      final users = secrets
+          .map((secret) => {
+                'username': secret['name'],
+                'password': secret['password'],
+                'profile': secret['profile'],
+              })
+          .toList();
+
       setState(() {
         _currentProcess = 'Mengekspor $_totalUsers user ke database...';
       });
-      
-      final result = await ApiService.exportUsers(List<Map<String, dynamic>>.from(users));
+
+      final result =
+          await ApiService.exportUsers(List<Map<String, dynamic>>.from(users));
       if (result['success'] == true) {
         setState(() {
           _successCount = result['success_count'] ?? 0;
           _failedCount = result['failed_count'] ?? 0;
-          _failedUsers = List<Map<String, dynamic>>.from(result['failed_users'] ?? []);
+          _failedUsers =
+              List<Map<String, dynamic>>.from(result['failed_users'] ?? []);
         });
         CustomSnackbar.show(
           context: context,
@@ -231,20 +236,23 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
     });
     try {
       // Create automatic full SQL backup before sync
-      final routerId = Provider.of<RouterSessionProvider>(context, listen: false).routerId;
+      final routerId =
+          Provider.of<RouterSessionProvider>(context, listen: false).routerId;
       if (routerId != null && routerId.isNotEmpty) {
         setState(() {
           _currentProcess = 'Membuat backup otomatis...';
         });
-        
-        final backupResult = await BackupService().createFullSQLBackup(routerId);
+
+        final backupResult =
+            await BackupService().createFullSQLBackup(routerId);
         if (!backupResult['success']) {
           // Show warning but continue with sync
           if (mounted) {
             CustomSnackbar.show(
               context: context,
               message: 'Peringatan Backup',
-              additionalInfo: 'Gagal membuat backup otomatis: ${backupResult['error']}',
+              additionalInfo:
+                  'Gagal membuat backup otomatis: ${backupResult['error']}',
               isSuccess: false,
             );
           }
@@ -252,7 +260,8 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
           CustomSnackbar.show(
             context: context,
             message: 'Backup Otomatis',
-            additionalInfo: 'Backup SQL lengkap berhasil dibuat sebelum sinkronisasi',
+            additionalInfo:
+                'Backup SQL lengkap berhasil dibuat sebelum sinkronisasi',
             isSuccess: true,
           );
         }
@@ -261,7 +270,7 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       setState(() {
         _currentProcess = 'Mengambil data dari Mikrotik...';
       });
-      
+
       final provider = Provider.of<MikrotikProvider>(context, listen: false);
       final secrets = await provider.service.getPPPSecret();
       _totalUsers = secrets.length;
@@ -287,21 +296,28 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       int added = 0;
       int updated = 0;
       final int totalBatches = (normalized.length / batchSize).ceil();
-      
+
       for (int i = 0; i < normalized.length; i += batchSize) {
         final int currentBatch = (i ~/ batchSize) + 1;
-        final batch = normalized.sublist(i, i + batchSize > normalized.length ? normalized.length : i + batchSize);
-        
+        final batch = normalized.sublist(
+            i,
+            i + batchSize > normalized.length
+                ? normalized.length
+                : i + batchSize);
+
         setState(() {
-          _currentProcess = 'Memproses batch $currentBatch dari $totalBatches...';
-          _successCount = currentBatch; // Use successCount to show batch progress
+          _currentProcess =
+              'Memproses batch $currentBatch dari $totalBatches...';
+          _successCount =
+              currentBatch; // Use successCount to show batch progress
           _totalUsers = totalBatches; // Use totalUsers to show total batches
         });
-        
+
         try {
           // Debug batch info
           // ignore: avoid_print
-          print('[SYNC] Batch $currentBatch/$totalBatches size=${batch.length}');
+          print(
+              '[SYNC] Batch $currentBatch/$totalBatches size=${batch.length}');
           final res = await ApiService.syncPPPUsers(
             routerId: routerId,
             pppUsers: List<Map<String, dynamic>>.from(batch),
@@ -320,19 +336,17 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       if (!mounted) return;
       _successCount = added + updated;
       _totalUsers = added + updated + _failedCount; // Reset to show user count
-      
+
       // Show success dialog
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Sinkronisasi Selesai'),
-          content: Text(
-            'Sinkronisasi berhasil:\n'
-            '• Ditambahkan: $added user\n'
-            '• Diperbarui: $updated user\n\n'
-            'Backup otomatis dijalankan setiap hari pukul 02:00.\n\n'
-            'Format file backup: pppoe-full-backup-[router-id]-[tahun-bulan-tanggal-jam-menit-detik].sql'
-          ),
+          content: Text('Sinkronisasi berhasil:\n'
+              '• Ditambahkan: $added user\n'
+              '• Diperbarui: $updated user\n\n'
+              'Backup otomatis dijalankan setiap hari pukul 02:00.\n\n'
+              'Format file backup: pppoe-full-backup-[router-id]-[tahun-bulan-tanggal-jam-menit-detik].sql'),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
@@ -341,11 +355,10 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
           ],
         ),
       );
-
     } catch (e) {
       if (!mounted) return;
       _error = e.toString();
-      
+
       // Show error dialog
       await showDialog(
         context: context,
@@ -526,380 +539,430 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
     final isDark = themeProvider.isDarkMode;
 
     return Scaffold(
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).primaryColor,
-          elevation: 0,
-          iconTheme: const IconThemeData(color: Colors.white),
-          title: const Text(
-            'Restore/Backup Database',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Restore/Backup Database',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
-          centerTitle: true,
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Info Card
-              Card(
-                margin: const EdgeInsets.only(bottom: 24),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+        centerTitle: true,
+      ),
+      body: SizedBox.expand(
+        child: GradientContainer(
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Info Card
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 24),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: isDark ? Colors.blue[200]! : Colors.blue[800]!,
-                            size: 20,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: isDark
+                                    ? Colors.blue[200]!
+                                    : Colors.blue[800]!,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Informasi Sinkronisasi & Backup',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(height: 10),
                           Text(
-                            'Informasi Sinkronisasi & Backup',
+                            'Sinkronisasi: Perbarui data user dari Mikrotik ke database',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? Colors.white70 : Colors.grey[700],
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          _buildInfoItem(Icons.person,
+                              'Username, Password, Profile', isDark),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Fitur Keamanan:',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 13,
                               color: isDark ? Colors.white : Colors.black87,
                             ),
                           ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '• Backup otomatis sebelum sinkronisasi',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.white70 : Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '• Data tambahan dipertahankan',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.white70 : Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '• Data billing dipertahankan',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.white70 : Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Backup:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '• Harian: 02:00 | Format: pppoe-full-backup-[ID]-[tgl].sql',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.white70 : Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '• Disimpan di folder Download perangkat',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.white70 : Colors.grey[600],
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Sinkronisasi: Perbarui data user dari Mikrotik ke database',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark ? Colors.white70 : Colors.grey[700],
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      _buildInfoItem(Icons.person, 'Username, Password, Profile', isDark),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Fitur Keamanan:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '• Backup otomatis sebelum sinkronisasi',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white70 : Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '• Data tambahan dipertahankan',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white70 : Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '• Data billing dipertahankan',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white70 : Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Backup:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '• Harian: 02:00 | Format: pppoe-full-backup-[ID]-[tgl].sql',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white70 : Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '• Disimpan di folder Download perangkat',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white70 : Colors.grey[600],
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-              
-              // Main Action Buttons (Only 3 as requested)
-              ElevatedButton.icon(
-                icon: const Icon(Icons.sync_alt),
-                label: const Text('Sinkronkan Semua User'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? Colors.blue[700] : Colors.blue[800],
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: _isLoading ? null : _unifiedSyncToDb,
-              ),
-              const SizedBox(height: 18),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.cloud_download),
-                label: const Text('Backup Database'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? Colors.green[700] : Colors.green[800],
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: _isLoading ? null : _backupDatabase,
-              ),
-              const SizedBox(height: 18),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.file_upload),
-                label: const Text('Import dari File'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? Colors.orange[700] : Colors.orange[800],
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  textStyle: const TextStyle(fontSize: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: _importFromFile,
-              ),
-              const SizedBox(height: 24),
 
-              // Progress Card
-              if (_isLoading || _totalUsers > 0)
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  // Main Action Buttons (Only 3 as requested)
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.sync_alt),
+                    label: const Text('Sinkronkan Semua User'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          isDark ? Colors.blue[700] : Colors.blue[800],
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      textStyle: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: _isLoading ? null : _unifiedSyncToDb,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                  const SizedBox(height: 18),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.cloud_download),
+                    label: const Text('Backup Database'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          isDark ? Colors.green[700] : Colors.green[800],
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      textStyle: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: _isLoading ? null : _backupDatabase,
+                  ),
+                  const SizedBox(height: 18),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.file_upload),
+                    label: const Text('Import dari File'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          isDark ? Colors.orange[700] : Colors.orange[800],
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      textStyle: const TextStyle(fontSize: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: _importFromFile,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Progress Card
+                  if (_isLoading || _totalUsers > 0)
+                    Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.timelapse,
-                              color: isDark ? Colors.blue[200]! : Colors.blue[800]!,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Progress',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        if (_isLoading)
-                          Column(
-                            children: [
-                              const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                _currentProcess == 'backup' 
-                                  ? 'Mohon tunggu, sedang membackup database...'
-                                  : _currentProcess == 'import'
-                                    ? 'Mohon tunggu, sedang mengimpor data...'
-                                    : _currentProcess,
-                                style: TextStyle(
-                                  color: isDark ? Colors.blue[200]! : Colors.blue[800]!,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 15,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.timelapse,
+                                  color: isDark
+                                      ? Colors.blue[200]!
+                                      : Colors.blue[800]!,
+                                  size: 20,
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 8),
-                              if (_totalUsers > 0)
+                                const SizedBox(width: 8),
                                 Text(
-                                  _currentProcess.contains('batch') 
-                                    ? _currentProcess.replaceAll('Memproses ', '').replaceAll('Mengimport ', '')
-                                    : 'Langkah $_successCount dari $_totalUsers',
+                                  'Progress',
                                   style: TextStyle(
-                                    color: isDark ? Colors.blue[300]! : Colors.blue[700]!,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 14,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            if (_isLoading)
+                              Column(
+                                children: [
+                                  const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    _currentProcess == 'backup'
+                                        ? 'Mohon tunggu, sedang membackup database...'
+                                        : _currentProcess == 'import'
+                                            ? 'Mohon tunggu, sedang mengimpor data...'
+                                            : _currentProcess,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.blue[200]!
+                                          : Colors.blue[800]!,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 15,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (_totalUsers > 0)
+                                    Text(
+                                      _currentProcess.contains('batch')
+                                          ? _currentProcess
+                                              .replaceAll('Memproses ', '')
+                                              .replaceAll('Mengimport ', '')
+                                          : 'Langkah $_successCount dari $_totalUsers',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.blue[300]!
+                                            : Colors.blue[700]!,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 14,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                ],
+                              )
+                            else ...[
+                              Center(
+                                child: Column(
+                                  children: [
+                                    _buildProgressItem(
+                                      'Total User',
+                                      _totalUsers.toString(),
+                                      isDark
+                                          ? Colors.blue[200]!
+                                          : Colors.blue[800]!,
+                                      isDark,
+                                    ),
+                                    _buildProgressItem(
+                                      'Berhasil',
+                                      _successCount.toString(),
+                                      isDark
+                                          ? Colors.green[300]!
+                                          : Colors.green[700]!,
+                                      isDark,
+                                    ),
+                                    _buildProgressItem(
+                                      'Gagal',
+                                      _failedCount.toString(),
+                                      isDark
+                                          ? Colors.red[300]!
+                                          : Colors.red[700]!,
+                                      isDark,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
-                          )
-                        else ...[
-                          Center(
-                            child: Column(
+                          ],
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 24),
+
+                  // Failed Users List
+                  if (_failedUsers.isNotEmpty) ...[
+                    Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
                               children: [
-                                _buildProgressItem(
-                                  'Total User',
-                                  _totalUsers.toString(),
-                                  isDark ? Colors.blue[200]! : Colors.blue[800]!,
-                                  isDark,
+                                Icon(
+                                  Icons.error_outline,
+                                  color: isDark
+                                      ? Colors.red[300]!
+                                      : Colors.red[700]!,
+                                  size: 20,
                                 ),
-                                _buildProgressItem(
-                                  'Berhasil',
-                                  _successCount.toString(),
-                                  isDark ? Colors.green[300]! : Colors.green[700]!,
-                                  isDark,
-                                ),
-                                _buildProgressItem(
-                                  'Gagal',
-                                  _failedCount.toString(),
-                                  isDark ? Colors.red[300]! : Colors.red[700]!,
-                                  isDark,
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Daftar User Gagal',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 24),
-
-              // Failed Users List
-              if (_failedUsers.isNotEmpty) ...[
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              color: isDark ? Colors.red[300]! : Colors.red[700]!,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Daftar User Gagal',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87,
+                            const SizedBox(height: 16),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.grey[800]
+                                    : Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.grey[700]!
+                                      : Colors.grey[300]!,
+                                ),
+                              ),
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: _failedUsers.length,
+                                itemBuilder: (context, index) {
+                                  final user = _failedUsers[index];
+                                  return ListTile(
+                                    leading: Icon(
+                                      Icons.error,
+                                      color: isDark
+                                          ? Colors.red[300]!
+                                          : Colors.red[700]!,
+                                    ),
+                                    title: Text(
+                                      user['username'],
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      user['error'],
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.red[200]!
+                                            : Colors.red[700]!,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.grey[800] : Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
-                            ),
-                          ),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _failedUsers.length,
-                            itemBuilder: (context, index) {
-                              final user = _failedUsers[index];
-                              return ListTile(
-                                leading: Icon(
-                                  Icons.error,
-                                  color: isDark ? Colors.red[300]! : Colors.red[700]!,
-                                ),
-                                title: Text(
-                                  user['username'],
-                                  style: TextStyle(
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  user['error'],
-                                  style: TextStyle(
-                                    color: isDark ? Colors.red[200]! : Colors.red[700]!,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
-
-              // Error message
-              if (_error != null)
-                Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 4,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.red[900] : Colors.red[100],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isDark ? Colors.red[700]! : Colors.red[300]!,
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: isDark ? Colors.red[200]! : Colors.red[700]!,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _error!,
-                            style: TextStyle(
-                              color: isDark ? Colors.red[100] : Colors.red[800],
-                            ),
-                            textAlign: TextAlign.center,
+                    const SizedBox(height: 24),
+                  ],
+
+                  // Error message
+                  if (_error != null)
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.red[900] : Colors.red[100],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark ? Colors.red[700]! : Colors.red[300]!,
                           ),
                         ),
-                      ],
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              color:
+                                  isDark ? Colors.red[200]! : Colors.red[700]!,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _error!,
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.red[100]
+                                      : Colors.red[800],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-      );
+        ),
+      ),
+    );
   }
 
   Widget _buildInfoItem(IconData icon, String text, bool isDark) {
@@ -925,7 +988,8 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
     );
   }
 
-  Widget _buildProgressItem(String label, String value, Color color, bool isDark) {
+  Widget _buildProgressItem(
+      String label, String value, Color color, bool isDark) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -962,9 +1026,8 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
         builder: (context) => AlertDialog(
           title: const Text('Import Database'),
           content: const Text(
-            'Pilih file SQL backup untuk diimport ke database.\n\n'
-            'File harus dalam format SQL yang dihasilkan oleh fitur backup aplikasi.'
-          ),
+              'Pilih file SQL backup untuk diimport ke database.\n\n'
+              'File harus dalam format SQL yang dihasilkan oleh fitur backup aplikasi.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -1000,12 +1063,11 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
             builder: (context) => AlertDialog(
               title: const Text('Izin Penyimpanan'),
               content: const Text(
-                'Untuk mengimport file backup, aplikasi memerlukan izin penyimpanan.\n\n'
-                'Silakan:\n'
-                '1. Buka Pengaturan\n'
-                '2. Pilih "Izinkan pengelolaan semua file"\n'
-                '3. Aktifkan untuk aplikasi PPPoE'
-              ),
+                  'Untuk mengimport file backup, aplikasi memerlukan izin penyimpanan.\n\n'
+                  'Silakan:\n'
+                  '1. Buka Pengaturan\n'
+                  '2. Pilih "Izinkan pengelolaan semua file"\n'
+                  '3. Aktifkan untuk aplikasi PPPoE'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
@@ -1045,7 +1107,7 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
         paths = paths.sublist(0, androidIndex);
         downloadPath = paths.join("/") + "/Download";
       }
-      
+
       // For now, we'll look for SQL files in the Download folder
       final downloadDir = Directory(downloadPath);
       if (!await downloadDir.exists()) {
@@ -1053,7 +1115,8 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       }
 
       // List SQL files in Download folder
-      final sqlFiles = downloadDir.listSync()
+      final sqlFiles = downloadDir
+          .listSync()
           .where((entity) => entity is File && entity.path.endsWith('.sql'))
           .toList();
 
@@ -1088,7 +1151,7 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
                   // Extract just the date part from the filename if it follows the backup naming pattern
                   String displayFileName = fileName;
                   String fileDateTime = '';
-                  
+
                   try {
                     // Try to extract date/time from filename pattern: pppoe-full-backup-[router-id]-[tahun-bulan-tanggal-jam-menit-detik].sql
                     if (fileName.contains('pppoe-full-backup-')) {
@@ -1098,33 +1161,39 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
                         final year = parts[parts.length - 4];
                         final month = parts[parts.length - 3];
                         final day = parts[parts.length - 2];
-                        final timePart = parts[parts.length - 1].split('.')[0]; // Remove .sql extension
-                        
+                        final timePart = parts[parts.length - 1]
+                            .split('.')[0]; // Remove .sql extension
+
                         if (timePart.length >= 6) {
                           final hour = timePart.substring(0, 2);
                           final minute = timePart.substring(2, 4);
                           final second = timePart.substring(4, 6);
-                          displayFileName = 'pppoe-full-backup-${parts[3]}-$year-$month-$day.sql';
-                          fileDateTime = '$day/$month/$year $hour:$minute:$second';
+                          displayFileName =
+                              'pppoe-full-backup-${parts[3]}-$year-$month-$day.sql';
+                          fileDateTime =
+                              '$day/$month/$year $hour:$minute:$second';
                         }
                       }
                     }
                   } catch (e) {
                     // If parsing fails, use the original filename
                   }
-                  
+
                   // Get file size
                   final fileSize = file.lengthSync();
                   final fileSizeKB = fileSize ~/ 1024;
-                  
+
                   // Get file modification time as fallback
                   final fileStat = file.statSync();
                   final modTime = fileStat.modified;
-                  final formattedDateTime = DateFormat('dd/MM/yyyy HH:mm:ss').format(modTime);
-                  
+                  final formattedDateTime =
+                      DateFormat('dd/MM/yyyy HH:mm:ss').format(modTime);
+
                   // Use parsed date/time if available, otherwise use file modification time
-                  final displayInfo = fileDateTime.isNotEmpty ? '$fileDateTime | $fileSizeKB KB' : '$formattedDateTime | $fileSizeKB KB';
-                  
+                  final displayInfo = fileDateTime.isNotEmpty
+                      ? '$fileDateTime | $fileSizeKB KB'
+                      : '$formattedDateTime | $fileSizeKB KB';
+
                   return ListTile(
                     title: Text(displayFileName),
                     subtitle: Text(displayInfo),
@@ -1157,9 +1226,8 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
         builder: (context) => AlertDialog(
           title: const Text('Konfirmasi Import'),
           content: Text(
-            'Apakah Anda yakin ingin mengimport data dari file:\n\n${path.basename(selectedFile.path)}?\n\n'
-            'Data yang ada saat ini akan dihapus dan diganti dengan data dari file backup.'
-          ),
+              'Apakah Anda yakin ingin mengimport data dari file:\n\n${path.basename(selectedFile.path)}?\n\n'
+              'Data yang ada saat ini akan dihapus dan diganti dengan data dari file backup.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -1184,10 +1252,10 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
 
       // Read the SQL file content
       final sqlContent = await selectedFile.readAsString();
-      
+
       // Parse the SQL content and extract user data
       final users = _parseSqlContent(sqlContent);
-      
+
       setState(() {
         _totalUsers = users.length;
         _currentProcess = 'Menghapus data lama...';
@@ -1204,17 +1272,20 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       // 4. Insert each user to SQLite in batches
       const int batchSize = 50;
       final int totalBatches = (users.length / batchSize).ceil();
-      
+
       for (int i = 0; i < users.length; i += batchSize) {
         final int currentBatch = (i ~/ batchSize) + 1;
-        final batch = users.sublist(i, i + batchSize > users.length ? users.length : i + batchSize);
-        
+        final batch = users.sublist(
+            i, i + batchSize > users.length ? users.length : i + batchSize);
+
         setState(() {
-          _currentProcess = 'Mengimport batch $currentBatch dari $totalBatches...';
-          _successCount = currentBatch; // Use successCount to show batch progress
+          _currentProcess =
+              'Mengimport batch $currentBatch dari $totalBatches...';
+          _successCount =
+              currentBatch; // Use successCount to show batch progress
           _totalUsers = totalBatches; // Use totalUsers to show total batches
         });
-        
+
         // Insert each user in the batch
         for (var userData in batch) {
           try {
@@ -1243,7 +1314,8 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
         CustomSnackbar.show(
           context: context,
           message: 'Import berhasil',
-          additionalInfo: 'Berhasil mengimport $_totalUsers user ke database lokal',
+          additionalInfo:
+              'Berhasil mengimport $_totalUsers user ke database lokal',
           isSuccess: true,
         );
       } else {
@@ -1254,7 +1326,6 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
           isSuccess: false,
         );
       }
-
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = e.toString());
@@ -1275,23 +1346,23 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
   /// This is a simplified parser for demonstration purposes
   List<Map<String, dynamic>> _parseSqlContent(String sqlContent) {
     final users = <Map<String, dynamic>>[];
-    
+
     // Simple regex to find INSERT statements for users table
     final insertRegex = RegExp(
       r"INSERT INTO `users`.*?VALUES\s*(.*?);",
       dotAll: true,
       multiLine: true,
     );
-    
+
     final matches = insertRegex.allMatches(sqlContent);
-    
+
     for (var match in matches) {
       final valuesSection = match.group(1);
       if (valuesSection != null) {
         // Parse each row of values
         final rowRegex = RegExp(r"\((.*?)\)", multiLine: true);
         final rowMatches = rowRegex.allMatches(valuesSection);
-        
+
         for (var rowMatch in rowMatches) {
           final rowData = rowMatch.group(1);
           if (rowData != null) {
@@ -1302,10 +1373,10 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
               users.add({
                 'username': _cleanSqlValue(values[2]), // username
                 'password': _cleanSqlValue(values[3]), // password
-                'profile': _cleanSqlValue(values[4]),  // profile
-                'wa': _cleanSqlValue(values[5]),       // wa
-                'maps': _cleanSqlValue(values[6]),     // maps
-                'foto': _cleanSqlValue(values[7]),     // foto
+                'profile': _cleanSqlValue(values[4]), // profile
+                'wa': _cleanSqlValue(values[5]), // wa
+                'maps': _cleanSqlValue(values[6]), // maps
+                'foto': _cleanSqlValue(values[7]), // foto
                 'tanggal_dibuat': _cleanSqlValue(values[8]), // tanggal_dibuat
               });
             }
@@ -1313,7 +1384,7 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
         }
       }
     }
-    
+
     return users;
   }
 
@@ -1323,42 +1394,42 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
     final buffer = StringBuffer();
     bool inQuotes = false;
     bool escapeNext = false;
-    
+
     for (int i = 0; i < values.length; i++) {
       final char = values[i];
-      
+
       if (escapeNext) {
         buffer.write(char);
         escapeNext = false;
         continue;
       }
-      
+
       if (char == '\\') {
         escapeNext = true;
         buffer.write(char);
         continue;
       }
-      
+
       if (char == "'") {
         inQuotes = !inQuotes;
         buffer.write(char);
         continue;
       }
-      
+
       if (char == ',' && !inQuotes) {
         result.add(buffer.toString().trim());
         buffer.clear();
         continue;
       }
-      
+
       buffer.write(char);
     }
-    
+
     // Add the last value
     if (buffer.isNotEmpty) {
       result.add(buffer.toString().trim());
     }
-    
+
     return result;
   }
 
@@ -1367,12 +1438,12 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
     if (value.toUpperCase() == 'NULL') {
       return '';
     }
-    
+
     // Remove surrounding quotes if present
     if (value.startsWith("'") && value.endsWith("'") && value.length >= 2) {
       return value.substring(1, value.length - 1);
     }
-    
+
     return value;
   }
 
@@ -1394,7 +1465,8 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       );
 
       if (response.statusCode != 200) {
-        throw Exception('Gagal mengambil data dari server: ${response.statusCode}');
+        throw Exception(
+            'Gagal mengambil data dari server: ${response.statusCode}');
       }
 
       final Map<String, dynamic> result = jsonDecode(response.body);
@@ -1442,7 +1514,8 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
         CustomSnackbar.show(
           context: context,
           message: 'Import berhasil',
-          additionalInfo: 'Berhasil mengimport $_totalUsers user ke database lokal',
+          additionalInfo:
+              'Berhasil mengimport $_totalUsers user ke database lokal',
           isSuccess: true,
         );
       } else {
@@ -1453,7 +1526,6 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
           isSuccess: false,
         );
       }
-
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = e.toString());
@@ -1485,10 +1557,9 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
         builder: (context) => AlertDialog(
           title: const Text('Izin Penyimpanan'),
           content: const Text(
-            'Aplikasi memerlukan izin untuk menyimpan file backup di penyimpanan.\n\n'
-            'File akan disimpan di folder Download dengan format:\n'
-            'backup-userspppoe-[tanggal]-[waktu].sql'
-          ),
+              'Aplikasi memerlukan izin untuk menyimpan file backup di penyimpanan.\n\n'
+              'File akan disimpan di folder Download dengan format:\n'
+              'backup-userspppoe-[tanggal]-[waktu].sql'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -1519,12 +1590,11 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
             builder: (context) => AlertDialog(
               title: const Text('Izin Ditolak'),
               content: const Text(
-                'Untuk menyimpan file, aplikasi memerlukan izin penyimpanan.\n\n'
-                'Silakan:\n'
-                '1. Buka Pengaturan\n'
-                '2. Pilih "Izinkan pengelolaan semua file"\n'
-                '3. Aktifkan untuk aplikasi PPPoE'
-              ),
+                  'Untuk menyimpan file, aplikasi memerlukan izin penyimpanan.\n\n'
+                  'Silakan:\n'
+                  '1. Buka Pengaturan\n'
+                  '2. Pilih "Izinkan pengelolaan semua file"\n'
+                  '3. Aktifkan untuk aplikasi PPPoE'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
@@ -1541,7 +1611,8 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
           if (openSettings == true) {
             await openAppSettings();
           }
-          throw Exception('Izin penyimpanan diperlukan untuk mengekspor database');
+          throw Exception(
+              'Izin penyimpanan diperlukan untuk mengekspor database');
         }
       }
 
@@ -1559,14 +1630,14 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
         paths = paths.sublist(0, androidIndex);
         downloadPath = paths.join("/") + "/Download";
       }
-      
+
       // 4. Create filename with current date
       final now = DateTime.now();
       final dateStr = DateFormat('dd-MM-yyyy').format(now);
       final timeStr = DateFormat('HHmm').format(now);
       final fileName = 'backup-userspppoe-$dateStr-$timeStr.sql';
       final targetPath = path.join(downloadPath, fileName);
-      
+
       // 5. Ensure download directory exists
       final downloadDir = Directory(downloadPath);
       if (!await downloadDir.exists()) {
@@ -1578,7 +1649,7 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
 
       // 7. Generate SQL dump content
       final StringBuffer sqlContent = StringBuffer();
-      
+
       // Write SQL header
       sqlContent.writeln('-- MySQL dump for PPPoE Users');
       sqlContent.writeln('-- Generated on ${DateTime.now().toIso8601String()}');
@@ -1587,18 +1658,22 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       sqlContent.writeln('START TRANSACTION;');
       sqlContent.writeln('SET time_zone = "+00:00";');
       sqlContent.writeln('');
-      sqlContent.writeln('/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;');
-      sqlContent.writeln('/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;');
-      sqlContent.writeln('/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;');
+      sqlContent.writeln(
+          '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;');
+      sqlContent.writeln(
+          '/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;');
+      sqlContent.writeln(
+          '/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;');
       sqlContent.writeln('/*!40101 SET NAMES utf8mb4 */;');
       sqlContent.writeln('');
-      
+
       // Create table structure
       sqlContent.writeln('--');
       sqlContent.writeln('-- Database: `pppoe_monitor`');
       sqlContent.writeln('--');
       sqlContent.writeln('');
-      sqlContent.writeln('-- --------------------------------------------------------');
+      sqlContent.writeln(
+          '-- --------------------------------------------------------');
       sqlContent.writeln('');
       sqlContent.writeln('--');
       sqlContent.writeln('-- Table structure for table `users`');
@@ -1614,7 +1689,8 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       sqlContent.writeln('  `maps` varchar(255) DEFAULT NULL,');
       sqlContent.writeln('  `tanggal_dibuat` datetime DEFAULT NULL,');
       sqlContent.writeln('  PRIMARY KEY (`id`)');
-      sqlContent.writeln(') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;');
+      sqlContent.writeln(
+          ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;');
       sqlContent.writeln('');
 
       // Insert data
@@ -1623,19 +1699,28 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
         sqlContent.writeln('-- Dumping data for table `users`');
         sqlContent.writeln('--');
         sqlContent.writeln('');
-        sqlContent.writeln('INSERT INTO `users` (`username`, `password`, `profile`, `wa`, `foto`, `maps`, `tanggal_dibuat`) VALUES');
-        
+        sqlContent.writeln(
+            'INSERT INTO `users` (`username`, `password`, `profile`, `wa`, `foto`, `maps`, `tanggal_dibuat`) VALUES');
+
         for (var i = 0; i < users.length; i++) {
           final user = users[i];
           final username = _escapeSqlString(user['username']);
           final password = _escapeSqlString(user['password']);
           final profile = _escapeSqlString(user['profile']);
-          final wa = user['wa'] != null ? "'${_escapeSqlString(user['wa'])}'" : 'NULL';
-          final foto = user['foto'] != null ? "'${_escapeSqlString(user['foto'])}'" : 'NULL';
-          final maps = user['maps'] != null ? "'${_escapeSqlString(user['maps'])}'" : 'NULL';
-          final tanggalDibuat = user['tanggal_dibuat'] != null ? "'${user['tanggal_dibuat']}'" : 'NULL';
+          final wa =
+              user['wa'] != null ? "'${_escapeSqlString(user['wa'])}'" : 'NULL';
+          final foto = user['foto'] != null
+              ? "'${_escapeSqlString(user['foto'])}'"
+              : 'NULL';
+          final maps = user['maps'] != null
+              ? "'${_escapeSqlString(user['maps'])}'"
+              : 'NULL';
+          final tanggalDibuat = user['tanggal_dibuat'] != null
+              ? "'${user['tanggal_dibuat']}'"
+              : 'NULL';
 
-          sqlContent.write("('$username', '$password', '$profile', $wa, $foto, $maps, $tanggalDibuat)");
+          sqlContent.write(
+              "('$username', '$password', '$profile', $wa, $foto, $maps, $tanggalDibuat)");
           if (i < users.length - 1) {
             sqlContent.writeln(',');
           } else {
@@ -1648,23 +1733,25 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       sqlContent.writeln('');
       sqlContent.writeln('COMMIT;');
       sqlContent.writeln('');
-      sqlContent.writeln('/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;');
-      sqlContent.writeln('/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;');
-      sqlContent.writeln('/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;');
+      sqlContent.writeln(
+          '/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;');
+      sqlContent.writeln(
+          '/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;');
+      sqlContent.writeln(
+          '/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;');
 
       // 8. Write SQL content to file
       final file = File(targetPath);
       await file.writeAsString(sqlContent.toString());
 
       if (!mounted) return;
-      
+
       CustomSnackbar.show(
         context: context,
         message: 'Ekspor berhasil',
         additionalInfo: 'File tersimpan di folder Download:\n$fileName',
         isSuccess: true,
       );
-
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = e.toString());
@@ -1683,11 +1770,12 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
 
   String _escapeSqlString(String str) {
     if (str == null) return 'NULL';
-    return str.replaceAll("'", "''")
-              .replaceAll("\\", "\\\\")
-              .replaceAll("\r", "\\r")
-              .replaceAll("\n", "\\n")
-              .replaceAll("\t", "\\t");
+    return str
+        .replaceAll("'", "''")
+        .replaceAll("\\", "\\\\")
+        .replaceAll("\r", "\\r")
+        .replaceAll("\n", "\\n")
+        .replaceAll("\t", "\\t");
   }
 
   Future<void> _backupDatabase() async {
@@ -1698,11 +1786,10 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Backup Database'),
         content: const Text(
-          'Backup otomatis sudah berjalan setiap hari pukul 02:00.\n\n'
-          'Anda juga dapat membuat backup manual dengan mengklik tombol "Lanjutkan".\n\n'
-          'File backup akan disimpan di folder Download perangkat dalam format SQL lengkap.\n\n'
-          'Format nama file: pppoe-full-backup-[router-id]-[tahun-bulan-tanggal-jam-menit-detik].sql'
-        ),
+            'Backup otomatis sudah berjalan setiap hari pukul 02:00.\n\n'
+            'Anda juga dapat membuat backup manual dengan mengklik tombol "Lanjutkan".\n\n'
+            'File backup akan disimpan di folder Download perangkat dalam format SQL lengkap.\n\n'
+            'Format nama file: pppoe-full-backup-[router-id]-[tahun-bulan-tanggal-jam-menit-detik].sql'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -1744,12 +1831,11 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
             builder: (context) => AlertDialog(
               title: const Text('Izin Penyimpanan'),
               content: const Text(
-                'Untuk menyimpan file backup, aplikasi memerlukan izin penyimpanan.\n\n'
-                'Silakan:\n'
-                '1. Buka Pengaturan\n'
-                '2. Pilih "Izinkan pengelolaan semua file"\n'
-                '3. Aktifkan untuk aplikasi PPPoE'
-              ),
+                  'Untuk menyimpan file backup, aplikasi memerlukan izin penyimpanan.\n\n'
+                  'Silakan:\n'
+                  '1. Buka Pengaturan\n'
+                  '2. Pilih "Izinkan pengelolaan semua file"\n'
+                  '3. Aktifkan untuk aplikasi PPPoE'),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
@@ -1777,7 +1863,8 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       });
 
       // 2. Create full SQL backup
-      final routerId = Provider.of<RouterSessionProvider>(context, listen: false).routerId;
+      final routerId =
+          Provider.of<RouterSessionProvider>(context, listen: false).routerId;
       if (routerId == null || routerId.isEmpty) {
         throw Exception('Router belum login');
       }
@@ -1806,7 +1893,7 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       // 3. Copy backup file to Download folder
       final sourceFile = File(backupResult['file_path']);
       final fileName = backupResult['file_name'];
-      
+
       // Get external storage directory for SQL backup
       final externalDir = await getExternalStorageDirectory();
       if (externalDir == null) {
@@ -1821,7 +1908,7 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
         paths = paths.sublist(0, androidIndex);
         downloadPath = paths.join("/") + "/Download";
       }
-      
+
       // Ensure download directory exists
       final downloadDir = Directory(downloadPath);
       if (!await downloadDir.exists()) {
@@ -1831,7 +1918,7 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       // Copy file to Download folder
       final targetPath = path.join(downloadPath, fileName);
       await sourceFile.copy(targetPath);
-      
+
       // Delete temporary file
       await sourceFile.delete();
 
@@ -1844,17 +1931,16 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
       }
 
       if (!mounted) return;
-      
+
       // Show success dialog
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Backup Berhasil'),
           content: Text(
-            'File backup telah tersimpan di folder Download:\n\n$fileName\n\n'
-            'Backup otomatis dijalankan setiap hari pukul 02:00.\n\n'
-            'Format nama file otomatis: pppoe-full-backup-[router-id]-[tahun-bulan-tanggal-jam-menit-detik].sql'
-          ),
+              'File backup telah tersimpan di folder Download:\n\n$fileName\n\n'
+              'Backup otomatis dijalankan setiap hari pukul 02:00.\n\n'
+              'Format nama file otomatis: pppoe-full-backup-[router-id]-[tahun-bulan-tanggal-jam-menit-detik].sql'),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
@@ -1863,11 +1949,10 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
           ],
         ),
       );
-
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = e.toString());
-      
+
       // Show error dialog
       await showDialog(
         context: context,
@@ -1890,7 +1975,9 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
   }
 
   Future<void> _syncPPPtoDB() async {
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final provider = Provider.of<MikrotikProvider>(context, listen: false);
       final pppUsers = await provider.service.getPPPSecret();
@@ -1924,7 +2011,9 @@ class _ExportPPPScreenState extends State<ExportPPPScreen> {
         isSuccess: false,
       );
     } finally {
-      setState(() { _isLoading = false; });
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 }

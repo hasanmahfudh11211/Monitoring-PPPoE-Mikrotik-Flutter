@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart' show ApiService;
+import '../services/mikrotik_service.dart';
 import 'edit_data_tambahan_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import '../providers/router_session_provider.dart';
-import '../providers/mikrotik_provider.dart';
 import '../widgets/gradient_container.dart';
 
 class AllUsersScreen extends StatefulWidget {
@@ -20,6 +20,7 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
   bool _isLoading = true;
   String? _error;
   List<Map<String, dynamic>> _users = [];
+  List<Map<String, dynamic>> _pppSecrets = []; // Store PPP secrets locally
   int _totalCount = 0; // Total user dari database (sebelum filter search)
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -36,7 +37,60 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUsersFromApi();
+    _loadData();
+  }
+
+  // Load both users and PPP secrets
+  Future<void> _loadData() async {
+    await Future.wait([
+      _loadUsersFromApi(),
+      _loadPPPSecrets(),
+    ]);
+  }
+
+  // Load PPP secrets from MikroTik
+  Future<void> _loadPPPSecrets() async {
+    if (!mounted) return;
+    final routerSession =
+        Provider.of<RouterSessionProvider>(context, listen: false);
+
+    if (routerSession.ip == null ||
+        routerSession.port == null ||
+        routerSession.username == null ||
+        routerSession.password == null) {
+      return;
+    }
+
+    try {
+      final service = await _initializeMikrotikService();
+      final secrets = await service.getPPPSecret();
+      if (mounted) {
+        setState(() {
+          _pppSecrets = secrets;
+        });
+      }
+    } catch (e) {
+      print('[AllUsers] Error loading PPP secrets: $e');
+      // Don't show error to user, just use empty list
+      if (mounted) {
+        setState(() {
+          _pppSecrets = [];
+        });
+      }
+    }
+  }
+
+  // Initialize MikroTik service
+  Future<MikrotikService> _initializeMikrotikService() async {
+    final routerSession =
+        Provider.of<RouterSessionProvider>(context, listen: false);
+
+    return MikrotikService(
+      ip: routerSession.ip!,
+      port: routerSession.port!,
+      username: routerSession.username!,
+      password: routerSession.password!,
+    );
   }
 
   @override
@@ -930,7 +984,7 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
             // User List
             Expanded(
               child: RefreshIndicator(
-                onRefresh: _loadUsersFromApi,
+                onRefresh: _loadData,
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : _error != null
@@ -952,7 +1006,7 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 ElevatedButton.icon(
-                                  onPressed: _loadUsersFromApi,
+                                  onPressed: _loadData,
                                   icon: const Icon(Icons.refresh),
                                   label: const Text('COBA LAGI'),
                                   style: ElevatedButton.styleFrom(
@@ -963,10 +1017,10 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
                               ],
                             ),
                           )
-                        : Consumer<MikrotikProvider>(
-                            builder: (context, mikrotikProvider, child) {
-                              final filteredUsers = _getFilteredUsersByPPP(
-                                  mikrotikProvider.pppSecrets);
+                        : Builder(
+                            builder: (context) {
+                              final filteredUsers =
+                                  _getFilteredUsersByPPP(_pppSecrets);
                               return filteredUsers.isEmpty
                                   ? const Center(
                                       child: Text(
@@ -1077,21 +1131,19 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
                                                                             .shade800),
                                                                 const SizedBox(
                                                                     width: 4),
-                                                                Text(
-                                                                  'ODP: ${user['odp_name']}',
-                                                                  style: TextStyle(
-                                                                      fontSize:
-                                                                          12,
-                                                                      color: isDark
-                                                                          ? Colors
-                                                                              .white70
-                                                                          : Colors
-                                                                              .black),
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .visible,
-                                                                  maxLines:
-                                                                      null,
+                                                                Flexible(
+                                                                  child: Text(
+                                                                    'ODP: ${user['odp_name']}',
+                                                                    style: TextStyle(
+                                                                        fontSize:
+                                                                            12,
+                                                                        color: isDark
+                                                                            ? Colors.white70
+                                                                            : Colors.black),
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                  ),
                                                                 ),
                                                               ],
                                                             ),
@@ -1106,21 +1158,20 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
                                                                     height: 16),
                                                                 const SizedBox(
                                                                     width: 4),
-                                                                Text('WA: ',
+                                                                Flexible(
+                                                                  child: Text(
+                                                                    'WA: ${user['wa']}',
                                                                     style: TextStyle(
                                                                         fontSize:
                                                                             12,
                                                                         color: isDark
                                                                             ? Colors.white70
-                                                                            : Colors.black)),
-                                                                Text(
-                                                                    '${user['wa']}',
-                                                                    style: TextStyle(
-                                                                        fontSize:
-                                                                            12,
-                                                                        color: isDark
-                                                                            ? Colors.white70
-                                                                            : Colors.black)),
+                                                                            : Colors.black),
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                  ),
+                                                                ),
                                                               ],
                                                             ),
                                                           if (user['maps']
@@ -1166,10 +1217,9 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
               ),
             ),
             // Footer jumlah user
-            Consumer<MikrotikProvider>(
-              builder: (context, mikrotikProvider, child) {
-                final filteredUsers =
-                    _getFilteredUsersByPPP(mikrotikProvider.pppSecrets);
+            Builder(
+              builder: (context) {
+                final filteredUsers = _getFilteredUsersByPPP(_pppSecrets);
                 return Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(
