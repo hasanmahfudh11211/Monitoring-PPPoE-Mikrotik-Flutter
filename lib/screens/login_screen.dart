@@ -736,14 +736,19 @@ Solusi:
           Positioned(
             left: 0,
             right: 0,
-            bottom: 16,
+            bottom: 32, // Raised version text
             child: Center(
-              child: Text(
-                'v1.0',
-                style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.grey,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+              child: Material(
+                type: MaterialType.transparency,
+                child: Text(
+                  'v1.0',
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : Colors.grey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    decoration:
+                        TextDecoration.none, // Explicitly remove underline
+                  ),
                 ),
               ),
             ),
@@ -757,51 +762,8 @@ Solusi:
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 20),
-                      // Logo
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Image.asset(
-                            'assets/mikrotik_logo.png',
-                            height: 60,
-                            color: Colors.white,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(
-                                Icons.router,
-                                size: 60,
-                                color: Colors.white,
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'MIKROTIK',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 2,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const Text(
-                        'Mikrotik PPPoE Monitor',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white70,
-                          fontStyle: FontStyle.italic,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 40),
-
+                      const SizedBox(
+                          height: 80), // Further increased top spacing for card
                       // Login Card
                       Container(
                         decoration: BoxDecoration(
@@ -818,7 +780,63 @@ Solusi:
                         ),
                         child: Column(
                           children: [
-                            const SizedBox(height: 16), // Added top padding
+                            const SizedBox(
+                                height: 20), // Reduced top spacing for logo
+                            // Logo
+                            Center(
+                              child: Image.asset(
+                                isDark
+                                    ? 'assets/Mikrotik-logo-white.png'
+                                    : 'assets/Mikrotik-logo.png',
+                                width: 300,
+                                height: 120,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Column(
+                                    children: [
+                                      Icon(
+                                        Icons.router,
+                                        size: 60,
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors
+                                                .black, // Adjusted for card bg
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'MIKROTIK',
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark
+                                              ? Colors.white
+                                              : Colors
+                                                  .black, // Adjusted for card bg
+                                          letterSpacing: 2,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(
+                                  0, -20), // Pull text closer to logo
+                              child: Text(
+                                'Mikrotik PPPoE Monitor',
+                                style: TextStyle(
+                                  fontSize: 16, // Increased font size
+                                  fontWeight: FontWeight.bold, // Bold text
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.grey, // Adjusted for card bg
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
                             // Tabs
                             TabBar(
                               controller: _tabController,
@@ -854,7 +872,11 @@ Solusi:
                                 children: [
                                   // Login Form Tab
                                   Padding(
-                                    padding: const EdgeInsets.all(24.0),
+                                    padding: const EdgeInsets.fromLTRB(
+                                        24,
+                                        32,
+                                        24,
+                                        24), // Increased top padding to 32 to match button gap
                                     child: Form(
                                       key: _formKey,
                                       child: Column(
@@ -867,6 +889,9 @@ Solusi:
                                                 child: TextFormField(
                                                   controller: _ipController,
                                                   focusNode: _ipFocus,
+                                                  style: const TextStyle(
+                                                      fontSize:
+                                                          16), // Increased font size
                                                   decoration: InputDecoration(
                                                     labelText: 'IP Address',
                                                     prefixIcon:
@@ -897,6 +922,9 @@ Solusi:
                                                 child: TextFormField(
                                                   controller: _portController,
                                                   focusNode: _portFocus,
+                                                  style: const TextStyle(
+                                                      fontSize:
+                                                          16), // Increased font size
                                                   keyboardType:
                                                       TextInputType.number,
                                                   decoration: InputDecoration(
@@ -928,6 +956,9 @@ Solusi:
                                           TextFormField(
                                             controller: _usernameController,
                                             focusNode: _usernameFocus,
+                                            style: const TextStyle(
+                                                fontSize:
+                                                    16), // Increased font size
                                             decoration: InputDecoration(
                                               labelText: 'Username',
                                               prefixIcon:
@@ -953,6 +984,9 @@ Solusi:
                                           TextFormField(
                                             controller: _passwordController,
                                             focusNode: _passwordFocus,
+                                            style: const TextStyle(
+                                                fontSize:
+                                                    16), // Increased font size
                                             obscureText: _obscurePassword,
                                             decoration: InputDecoration(
                                               labelText: 'Password',
