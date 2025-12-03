@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+
 import 'dart:convert';
 import '../services/mikrotik_service.dart';
 import '../widgets/gradient_container.dart';
 import 'package:provider/provider.dart';
 import '../providers/router_session_provider.dart';
+import '../services/mikrotik_native_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,8 +20,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   final _addressController = TextEditingController();
-  String _appVersion = '';
-  String? _error;
+
+  // _error field removed
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -30,6 +31,8 @@ class _LoginScreenState extends State<LoginScreen>
   final _usernameController = TextEditingController();
   final _ipController = TextEditingController();
   final _portController = TextEditingController();
+  bool _rememberMe = false;
+  bool _useNativeApi = false;
 
   // Add focus nodes
   final _ipFocus = FocusNode();
@@ -59,14 +62,6 @@ class _LoginScreenState extends State<LoginScreen>
     _tabController = TabController(length: 2, vsync: this);
     _loadLastSuccessfulLogin();
     _loadSavedLogins();
-    _loadAppVersion();
-  }
-
-  Future<void> _loadAppVersion() async {
-    final info = await PackageInfo.fromPlatform();
-    setState(() {
-      _appVersion = 'v${info.version}';
-    });
   }
 
   Future<void> _loadSavedLogins() async {
@@ -128,6 +123,8 @@ class _LoginScreenState extends State<LoginScreen>
       final lastPort = prefs.getString('port');
       final lastUsername = prefs.getString('username');
       final lastPassword = prefs.getString('password');
+      final rememberMe = prefs.getBool('rememberMe') ?? false;
+      final useNativeApi = prefs.getBool('useNativeApi') ?? false;
 
       if (mounted && lastIp != null && lastPort != null) {
         setState(() {
@@ -135,6 +132,8 @@ class _LoginScreenState extends State<LoginScreen>
           _portController.text = lastPort;
           _usernameController.text = lastUsername ?? '';
           _passwordController.text = lastPassword ?? '';
+          _rememberMe = rememberMe;
+          _useNativeApi = useNativeApi;
         });
       }
     } catch (e) {
@@ -455,189 +454,134 @@ Solusi:
     if (!_formKey.currentState!.validate()) return;
     setState(() {
       _isLoading = true;
-      _error = null;
     });
 
-    print('[LOGIN DEBUG] Starting login process...');
-    print('[LOGIN DEBUG] IP: ${_ipController.text}');
-    print('[LOGIN DEBUG] Port: ${_portController.text}');
-    print('[LOGIN DEBUG] Username: ${_usernameController.text}');
+    String ip = _ipController.text;
+    String port = _portController.text;
+    String username = _usernameController.text;
+    String password = _passwordController.text;
 
-    try {
-      // Show loading dialog
-      if (mounted) {
-        // Check if dark mode is enabled
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return WillPopScope(
-              onWillPop: () async => false,
-              child: AlertDialog(
-                backgroundColor:
-                    isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Menghubungkan ke Router',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.grey[800]
-                            : Colors.grey.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '${_ipController.text}:${_portController.text}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isDark ? Colors.white70 : Colors.grey[600],
-                          fontFamily: 'monospace',
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Mohon tunggu...',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? Colors.white70 : Colors.grey[600],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+    // Helper function to create service
+    MikrotikService createService(bool useNative) {
+      if (useNative) {
+        return MikrotikNativeService(
+          ip: ip,
+          port: port,
+          username: username,
+          password: password,
+          enableLogging: true,
+        );
+      } else {
+        return MikrotikService(
+          ip: ip,
+          port: port,
+          username: username,
+          password: password,
+          enableLogging: true,
         );
       }
-      final address = '${_ipController.text}:${_portController.text}';
-      final service = MikrotikService(
-        ip: _ipController.text,
-        port: _portController.text,
-        username: _usernameController.text,
-        password: _passwordController.text,
-        enableLogging: true, // Enable logging in service
-      );
+    }
 
-      print('[LOGIN DEBUG] Service initialized. Calling getIdentity()...');
-      await service.getIdentity();
-      print('[LOGIN DEBUG] getIdentity() success.');
+    // Determine initial protocol priority
+    bool tryNativeFirst = _useNativeApi || port == '8728' || port == '8729';
+    String? firstError;
 
-      // Ambil routerId dengan fallback berjenjang (serial-number -> software-id -> identity)
-      print('[LOGIN DEBUG] Calling getRouterSerialOrId()...');
-      final routerId = await service.getRouterSerialOrId();
-      print('[LOGIN DEBUG] Router ID obtained: $routerId');
+    try {
+      // --- ATTEMPT 1 ---
+      print('[LOGIN] Attempt 1: ${tryNativeFirst ? "Native API" : "REST API"}');
+      final service1 = createService(tryNativeFirst);
+      await service1.getIdentity();
 
-      if (routerId.isEmpty) {
-        throw Exception('Gagal mengambil identitas router');
+      // If success, save preference
+      _useNativeApi = tryNativeFirst;
+      print('[LOGIN] Attempt 1 Success!');
+    } catch (e1) {
+      firstError = e1.toString();
+      print('[LOGIN] Attempt 1 Failed: $e1');
+
+      // --- ATTEMPT 2 (Fallback) ---
+      try {
+        print(
+            '[LOGIN] Attempt 2: ${!tryNativeFirst ? "Native API" : "REST API"} (Fallback)');
+        final service2 = createService(!tryNativeFirst);
+        await service2.getIdentity();
+
+        // If success, update preference to the one that worked
+        _useNativeApi = !tryNativeFirst;
+        print('[LOGIN] Attempt 2 Success! Switched protocol.');
+      } catch (e2) {
+        print('[LOGIN] Attempt 2 Failed: $e2');
+        setState(() {
+          _isLoading = false;
+        });
+
+        // Show error dialog
+        _showErrorDialog(firstError);
+        return;
       }
-      // Simpan session router secara global
-      Provider.of<RouterSessionProvider>(context, listen: false).saveSession(
-        routerId: routerId,
-        ip: _ipController.text,
-        port: _portController.text,
-        username: _usernameController.text,
-        password: _passwordController.text,
-      );
-      // Save login data ke shared prefs (opsional)
+    }
+
+    // --- LOGIN SUCCESS ---
+    try {
+      // Save credentials
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('ip', _ipController.text);
-      await prefs.setString('port', _portController.text);
-      await prefs.setString('username', _usernameController.text);
-      await prefs.setString('password', _passwordController.text);
-      await prefs.setString('router_id', routerId);
+      if (_rememberMe) {
+        await prefs.setString('ip', ip);
+        await prefs.setString('port', port);
+        await prefs.setString('username', username);
+        await prefs.setString('password', password);
+        await prefs.setBool('rememberMe', true);
+        await prefs.setBool('useNativeApi', _useNativeApi);
+      } else {
+        await prefs.clear();
+      }
 
-      // Backfill dimatikan: MENYEBABKAN DATA TERPINDAH ROUTER
-      // Backfill otomatis mengubah router_id semua data legacy ke router baru
-      // ini menyebabkan data "hilang" karena ter-assign ke router yang salah
-      //
-      // Jika perlu backfill, lakukan MANUAL via API atau perbaiki dulu logic backfill
-      // untuk TIDAK memindahkan data yang sudah punya router_id yang berbeda
-      //
-      // ignore: unawaited_futures
-      // ApiService.backfillRouterId(routerId: routerId).catchError((e) {
-      //   // ignore: avoid_print
-      //   print('[LOGIN][BACKFILL] Silent fail: $e');
-      //   return <String, dynamic>{'success': false};
-      // });
-
-      // Sinkronisasi PPP users dipindahkan ke halaman yang membutuhkan data database
-      // (All Users, ODP, Billing) agar login lebih cepat
+      // Simpan session router secara global
+      if (mounted) {
+        final sessionProvider = context.read<RouterSessionProvider>();
+        sessionProvider.saveSession(
+          routerId: '$ip:$port',
+          ip: ip,
+          port: port,
+          username: username,
+          password: password,
+        );
+      }
 
       // Save to login history
       final loginData = {
-        'address': address,
-        'username': _usernameController.text,
-        'password': _passwordController.text,
+        'address': '$ip:$port',
+        'username': username,
+        'password': password,
       };
-
       final savedLogins = prefs.getStringList('mikrotik_logins') ?? [];
       savedLogins.removeWhere((e) {
-        final m = Map<String, String>.from(jsonDecode(e));
-        return m['address'] == loginData['address'] &&
-            m['username'] == loginData['username'];
+        try {
+          final m = Map<String, String>.from(jsonDecode(e));
+          return m['address'] == loginData['address'] &&
+              m['username'] == loginData['username'];
+        } catch (_) {
+          return false;
+        }
       });
       savedLogins.add(jsonEncode(loginData));
       await prefs.setStringList('mikrotik_logins', savedLogins);
 
-      print('[LOGIN DEBUG] Login successful. Saving history and navigating...');
-
       if (!mounted) return;
-
-      // Close loading dialog
-      Navigator.of(context).pop();
-
-      // Show success dialog
-      _showSuccessDialog(_usernameController.text);
-    } catch (e) {
-      print('[LOGIN DEBUG] Login FAILED. Error: $e');
-      if (!mounted) return;
-
-      // Close loading dialog if it's showing
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
 
       setState(() {
-        _error = e.toString().replaceAll('Exception: ', '');
+        _isLoading = false;
       });
 
-      // Show error dialog
-      _showErrorDialog(_error ?? 'Terjadi kesalahan yang tidak diketahui');
-    } finally {
+      // Show success dialog
+      _showSuccessDialog(username);
+    } catch (e) {
+      print('[LOGIN] Error saving session: $e');
+      setState(() {
+        _isLoading = false;
+      });
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        Navigator.pushReplacementNamed(context, '/dashboard');
       }
     }
   }
@@ -657,7 +601,7 @@ Solusi:
       );
     } else {
       return ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
         itemCount: _savedLogins.length,
         separatorBuilder: (context, index) => Divider(
           height: 1,
@@ -687,7 +631,7 @@ Solusi:
                   child: Text(
                     '$ip:$port',
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 18,
                       color: isDark ? Colors.white : Colors.black,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -704,7 +648,7 @@ Solusi:
                   child: Text(
                     username,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 16,
                       color: isDark ? Colors.white : Colors.black,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -785,402 +729,341 @@ Solusi:
       },
       child: Stack(
         children: [
-          GradientContainer(
-            child: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: SafeArea(
-                child: Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24.0),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 360),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Card(
-                            elevation: 6,
-                            color:
-                                isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20.0, vertical: 20.0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const SizedBox(height: 4),
-                                  // Logo Mikrotik PNG - use different assets for light and dark mode
-                                  Image.asset(
-                                    isDark
-                                        ? 'assets/Mikrotik-logo-white.png'
-                                        : 'assets/Mikrotik-logo.png',
-                                    height: 48,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Mikrotik PPPoE Monitor',
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        fontStyle: FontStyle.italic,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark
-                                            ? Colors.white70
-                                            : Colors.black38),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  TabBar(
-                                    controller: _tabController,
-                                    tabs: const [
-                                      Tab(text: 'LOG IN'),
-                                      Tab(text: 'SAVED'),
-                                    ],
-                                    labelColor:
-                                        isDark ? Colors.blue[300] : Colors.blue,
-                                    unselectedLabelColor: isDark
-                                        ? Colors.white70
-                                        : Colors.black38,
-                                    indicatorColor: Colors.blue,
-                                    dividerColor:
-                                        isDark ? Colors.grey[700] : null,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  SizedBox(
-                                    height: 320,
-                                    child: TabBarView(
-                                      controller: _tabController,
-                                      children: [
-                                        // Tab 1: LOG IN
-                                        SingleChildScrollView(
-                                          child: Form(
-                                            key: _formKey,
-                                            child: Column(
-                                              children: [
-                                                // IP and Port fields in a row
-                                                Row(
-                                                  children: [
-                                                    // IP field
-                                                    Expanded(
-                                                      flex: 2,
-                                                      child: TextFormField(
-                                                        controller:
-                                                            _ipController,
-                                                        focusNode: _ipFocus,
-                                                        keyboardType:
-                                                            TextInputType
-                                                                .number,
-                                                        textInputAction:
-                                                            TextInputAction
-                                                                .next,
-                                                        onFieldSubmitted: (_) {
-                                                          FocusScope.of(context)
-                                                              .requestFocus(
-                                                                  _portFocus);
-                                                        },
-                                                        decoration:
-                                                            InputDecoration(
-                                                          labelText:
-                                                              'IP Address',
-                                                          hintText:
-                                                              '192.168.1.1',
-                                                          border:
-                                                              const UnderlineInputBorder(),
-                                                          labelStyle: TextStyle(
-                                                            color: isDark
-                                                                ? Colors.white70
-                                                                : Colors
-                                                                    .black54,
-                                                          ),
-                                                          hintStyle: TextStyle(
-                                                            color: isDark
-                                                                ? Colors.white38
-                                                                : Colors
-                                                                    .black38,
-                                                          ),
-                                                        ),
-                                                        style: TextStyle(
-                                                          color: isDark
-                                                              ? Colors.white
-                                                              : Colors.black,
-                                                        ),
-                                                        inputFormatters: [
-                                                          FilteringTextInputFormatter
-                                                              .allow(RegExp(
-                                                                  r'[0-9.]')),
-                                                        ],
-                                                        validator: (value) {
-                                                          if (value == null ||
-                                                              value.isEmpty) {
-                                                            return 'Masukkan IP';
-                                                          }
-                                                          return null;
-                                                        },
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 16),
-                                                    // Port field
-                                                    Expanded(
-                                                      child: TextFormField(
-                                                        controller:
-                                                            _portController,
-                                                        focusNode: _portFocus,
-                                                        keyboardType:
-                                                            TextInputType
-                                                                .number,
-                                                        textInputAction:
-                                                            TextInputAction
-                                                                .next,
-                                                        onFieldSubmitted: (_) {
-                                                          FocusScope.of(context)
-                                                              .requestFocus(
-                                                                  _usernameFocus);
-                                                        },
-                                                        decoration:
-                                                            InputDecoration(
-                                                          labelText: 'Port',
-                                                          hintText: '80',
-                                                          border:
-                                                              const UnderlineInputBorder(),
-                                                          labelStyle: TextStyle(
-                                                            color: isDark
-                                                                ? Colors.white70
-                                                                : Colors
-                                                                    .black54,
-                                                          ),
-                                                          hintStyle: TextStyle(
-                                                            color: isDark
-                                                                ? Colors.white38
-                                                                : Colors
-                                                                    .black38,
-                                                          ),
-                                                        ),
-                                                        style: TextStyle(
-                                                          color: isDark
-                                                              ? Colors.white
-                                                              : Colors.black,
-                                                        ),
-                                                        inputFormatters: [
-                                                          FilteringTextInputFormatter
-                                                              .digitsOnly,
-                                                        ],
-                                                        validator: (value) {
-                                                          if (value == null ||
-                                                              value.isEmpty) {
-                                                            return 'Masukkan port';
-                                                          }
-                                                          return null;
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 16),
-                                                TextFormField(
-                                                  controller:
-                                                      _usernameController,
-                                                  focusNode: _usernameFocus,
-                                                  textInputAction:
-                                                      TextInputAction.next,
-                                                  onFieldSubmitted: (_) {
-                                                    FocusScope.of(context)
-                                                        .requestFocus(
-                                                            _passwordFocus);
-                                                  },
-                                                  decoration: InputDecoration(
-                                                    labelText: 'Username',
-                                                    hintText: 'admin',
-                                                    border:
-                                                        const UnderlineInputBorder(),
-                                                    labelStyle: TextStyle(
-                                                      color: isDark
-                                                          ? Colors.white70
-                                                          : Colors.black54,
-                                                    ),
-                                                    hintStyle: TextStyle(
-                                                      color: isDark
-                                                          ? Colors.white38
-                                                          : Colors.black38,
-                                                    ),
-                                                  ),
-                                                  style: TextStyle(
-                                                    color: isDark
-                                                        ? Colors.white
-                                                        : Colors.black,
-                                                  ),
-                                                  validator: (value) {
-                                                    if (value == null ||
-                                                        value.isEmpty) {
-                                                      return 'Masukkan username';
-                                                    }
-                                                    return null;
-                                                  },
-                                                ),
-                                                const SizedBox(height: 16),
-                                                TextFormField(
-                                                  controller:
-                                                      _passwordController,
-                                                  focusNode: _passwordFocus,
-                                                  textInputAction:
-                                                      TextInputAction.done,
-                                                  onFieldSubmitted: (_) {
-                                                    // Just unfocus to close the keyboard
-                                                    FocusScope.of(context)
-                                                        .unfocus();
-                                                  },
-                                                  decoration: InputDecoration(
-                                                    labelText: 'Password',
-                                                    border:
-                                                        const UnderlineInputBorder(),
-                                                    labelStyle: TextStyle(
-                                                      color: isDark
-                                                          ? Colors.white70
-                                                          : Colors.black54,
-                                                    ),
-                                                    suffixIcon: IconButton(
-                                                      icon: Icon(
-                                                        _obscurePassword
-                                                            ? Icons
-                                                                .visibility_off
-                                                            : Icons.visibility,
-                                                        color: isDark
-                                                            ? Colors.white70
-                                                            : Colors.black54,
-                                                      ),
-                                                      onPressed: () {
-                                                        setState(() {
-                                                          _obscurePassword =
-                                                              !_obscurePassword;
-                                                        });
-                                                      },
-                                                    ),
-                                                  ),
-                                                  style: TextStyle(
-                                                    color: isDark
-                                                        ? Colors.white
-                                                        : Colors.black,
-                                                  ),
-                                                  obscureText: _obscurePassword,
-                                                  validator: (value) {
-                                                    if (value == null ||
-                                                        value.isEmpty) {
-                                                      return 'Masukkan password';
-                                                    }
-                                                    return null;
-                                                  },
-                                                ),
-                                                const SizedBox(height: 38),
-                                                Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: ElevatedButton(
-                                                        onPressed: _isLoading
-                                                            ? null
-                                                            : _saveLogin,
-                                                        style: ElevatedButton
-                                                            .styleFrom(
-                                                          backgroundColor:
-                                                              isDark
-                                                                  ? Colors
-                                                                      .grey[700]
-                                                                  : Colors
-                                                                      .black87,
-                                                          foregroundColor:
-                                                              Colors.white,
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        4),
-                                                          ),
-                                                          elevation: 1,
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .symmetric(
-                                                                  vertical: 12),
-                                                        ),
-                                                        child:
-                                                            const Text('SAVE'),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 12),
-                                                    Expanded(
-                                                      child: ElevatedButton(
-                                                        onPressed: _isLoading
-                                                            ? null
-                                                            : _login,
-                                                        style: ElevatedButton
-                                                            .styleFrom(
-                                                          backgroundColor:
-                                                              Colors.blue,
-                                                          foregroundColor:
-                                                              Colors.white,
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        4),
-                                                          ),
-                                                          elevation: 1,
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .symmetric(
-                                                                  vertical: 12),
-                                                        ),
-                                                        child: _isLoading
-                                                            ? const SizedBox(
-                                                                width: 18,
-                                                                height: 18,
-                                                                child: CircularProgressIndicator(
-                                                                    strokeWidth:
-                                                                        2,
-                                                                    color: Colors
-                                                                        .white),
-                                                              )
-                                                            : const Text(
-                                                                'CONNECT'),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 4),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        // Tab 2: SAVED
-                                        _buildSavedLoginsTab(),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+          // Background
+          const GradientContainer(
+            child: SizedBox.expand(),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 16,
+            child: Center(
+              child: Text(
+                'v1.0',
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : Colors.grey,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
-          // Version display in the footer, completely outside the card structure
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Material(
-                color: Colors.transparent,
-                child: Text(
-                  _appVersion,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.white70 : Colors.black38,
-                    decoration: TextDecoration.none,
+          Scaffold(
+            backgroundColor: Colors.transparent,
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 20),
+                      // Logo
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Image.asset(
+                            'assets/mikrotik_logo.png',
+                            height: 60,
+                            color: Colors.white,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                Icons.router,
+                                size: 60,
+                                color: Colors.white,
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'MIKROTIK',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const Text(
+                        'Mikrotik PPPoE Monitor',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white70,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 40),
+
+                      // Login Card
+                      Container(
+                        decoration: BoxDecoration(
+                          color:
+                              isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 16), // Added top padding
+                            // Tabs
+                            TabBar(
+                              controller: _tabController,
+                              labelColor: Colors.blue,
+                              unselectedLabelColor: Colors.grey,
+                              indicatorColor: Colors.blue,
+                              indicatorWeight: 3,
+                              labelStyle: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                              tabs: const [
+                                Tab(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                        bottom: 16), // Increased padding
+                                    child: Text('LOG IN'),
+                                  ),
+                                ),
+                                Tab(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                        bottom: 16), // Increased padding
+                                    child: Text('SAVED'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 360, // Increased height to fix overflow
+                              child: TabBarView(
+                                controller: _tabController,
+                                children: [
+                                  // Login Form Tab
+                                  Padding(
+                                    padding: const EdgeInsets.all(24.0),
+                                    child: Form(
+                                      key: _formKey,
+                                      child: Column(
+                                        // mainAxisAlignment: MainAxisAlignment.center, // Removed to reduce top gap
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                flex: 2,
+                                                child: TextFormField(
+                                                  controller: _ipController,
+                                                  focusNode: _ipFocus,
+                                                  decoration: InputDecoration(
+                                                    labelText: 'IP Address',
+                                                    prefixIcon:
+                                                        const Icon(Icons.dns),
+                                                    border: OutlineInputBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                    ),
+                                                  ),
+                                                  validator: (value) {
+                                                    if (value == null ||
+                                                        value.isEmpty) {
+                                                      return 'IP wajib diisi';
+                                                    }
+                                                    return null;
+                                                  },
+                                                  onFieldSubmitted: (_) {
+                                                    FocusScope.of(context)
+                                                        .requestFocus(
+                                                            _portFocus);
+                                                  },
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                flex: 1,
+                                                child: TextFormField(
+                                                  controller: _portController,
+                                                  focusNode: _portFocus,
+                                                  keyboardType:
+                                                      TextInputType.number,
+                                                  decoration: InputDecoration(
+                                                    labelText: 'Port',
+                                                    hintText: '8728',
+                                                    border: OutlineInputBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                    ),
+                                                  ),
+                                                  validator: (value) {
+                                                    if (value == null ||
+                                                        value.isEmpty) {
+                                                      return 'Port wajib';
+                                                    }
+                                                    return null;
+                                                  },
+                                                  onFieldSubmitted: (_) {
+                                                    FocusScope.of(context)
+                                                        .requestFocus(
+                                                            _usernameFocus);
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 16),
+                                          TextFormField(
+                                            controller: _usernameController,
+                                            focusNode: _usernameFocus,
+                                            decoration: InputDecoration(
+                                              labelText: 'Username',
+                                              prefixIcon:
+                                                  const Icon(Icons.person),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                            validator: (value) {
+                                              if (value == null ||
+                                                  value.isEmpty) {
+                                                return 'Username wajib diisi';
+                                              }
+                                              return null;
+                                            },
+                                            onFieldSubmitted: (_) {
+                                              FocusScope.of(context)
+                                                  .requestFocus(_passwordFocus);
+                                            },
+                                          ),
+                                          const SizedBox(height: 16),
+                                          TextFormField(
+                                            controller: _passwordController,
+                                            focusNode: _passwordFocus,
+                                            obscureText: _obscurePassword,
+                                            decoration: InputDecoration(
+                                              labelText: 'Password',
+                                              prefixIcon:
+                                                  const Icon(Icons.lock),
+                                              suffixIcon: IconButton(
+                                                icon: Icon(
+                                                  _obscurePassword
+                                                      ? Icons.visibility
+                                                      : Icons.visibility_off,
+                                                ),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _obscurePassword =
+                                                        !_obscurePassword;
+                                                  });
+                                                },
+                                              ),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                            onFieldSubmitted: (_) => _login(),
+                                          ),
+                                          const SizedBox(height: 32),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: OutlinedButton(
+                                                  onPressed: _saveLogin,
+                                                  style:
+                                                      OutlinedButton.styleFrom(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        vertical: 20),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                    ),
+                                                  ),
+                                                  child: const Text(
+                                                    'SAVE',
+                                                    style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 16),
+                                              Expanded(
+                                                child: ElevatedButton(
+                                                  onPressed: _isLoading
+                                                      ? null
+                                                      : _login,
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        Colors.blue,
+                                                    foregroundColor:
+                                                        Colors.white,
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        vertical: 20),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                    ),
+                                                    elevation: 2,
+                                                  ),
+                                                  child: _isLoading
+                                                      ? const SizedBox(
+                                                          height: 20,
+                                                          width: 20,
+                                                          child:
+                                                              CircularProgressIndicator(
+                                                            color: Colors.white,
+                                                            strokeWidth: 2,
+                                                          ),
+                                                        )
+                                                      : const Text(
+                                                          'LOG IN',
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 16,
+                                                          ),
+                                                        ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  // Saved Logins Tab
+                                  _buildSavedLoginsTab(),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
                   ),
                 ),
               ),

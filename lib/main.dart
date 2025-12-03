@@ -23,6 +23,7 @@ import 'providers/mikrotik_provider.dart';
 import 'providers/router_session_provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'services/scheduled_backup_service.dart';
+import 'services/mikrotik_native_service.dart';
 
 // Reusable widget to eliminate code duplication
 class MikrotikScreenWrapper extends StatelessWidget {
@@ -269,9 +270,20 @@ Future<MikrotikService> _initializeMikrotikService() async {
   final port = prefs.getString('port');
   final username = prefs.getString('username');
   final password = prefs.getString('password');
+  final useNativeApi = prefs.getBool('useNativeApi') ?? false;
 
   if (ip == null || port == null || username == null || password == null) {
     throw Exception('Missing connection details');
+  }
+
+  // Cek apakah user memilih Native API atau port default API
+  if (useNativeApi || port == '8728' || port == '8729') {
+    return MikrotikNativeService(
+      ip: ip,
+      port: port,
+      username: username,
+      password: password,
+    );
   }
 
   return MikrotikService(

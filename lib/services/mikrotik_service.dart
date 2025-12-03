@@ -196,10 +196,11 @@ class MikrotikService {
         headers: _headers,
       )
           .timeout(
-        const Duration(seconds: 20),
+        const Duration(seconds: 3),
         onTimeout: () {
-          throw Exception('Koneksi timeout (20 detik)\n\n'
+          throw Exception('Koneksi timeout (5 detik)\n\n'
               'Kemungkinan penyebab:\n'
+              '• Salah protokol (Coba centang "Gunakan Native API")\n'
               '• Router tidak menyala\n'
               '• IP Address salah\n'
               '• Jaringan tidak stabil\n\n'
