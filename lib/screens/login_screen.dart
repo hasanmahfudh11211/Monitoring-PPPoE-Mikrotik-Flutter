@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _usernameController = TextEditingController();
   final _ipController = TextEditingController();
   final _portController = TextEditingController();
-  bool _rememberMe = false;
+  bool _rememberMe = true; // Default to true since checkbox is removed
   bool _useNativeApi = false;
 
   // Add focus nodes
@@ -60,6 +60,9 @@ class _LoginScreenState extends State<LoginScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {});
+    });
     _loadLastSuccessfulLogin();
     _loadSavedLogins();
   }
@@ -141,53 +144,6 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  Future<void> _saveLogin() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final prefs = await SharedPreferences.getInstance();
-    final loginData = {
-      'address': '${_ipController.text}:${_portController.text}',
-      'username': _usernameController.text,
-      'password': _passwordController.text,
-    };
-
-    // Load existing logins
-    final savedLogins = prefs.getStringList('mikrotik_logins') ?? [];
-
-    // Remove existing login with same address and username if exists
-    savedLogins.removeWhere((e) {
-      try {
-        final existing = Map<String, String>.from(jsonDecode(e));
-        return existing['address'] == loginData['address'] &&
-            existing['username'] == loginData['username'];
-      } catch (_) {
-        return false;
-      }
-    });
-
-    // Add new login data
-    savedLogins.add(jsonEncode(loginData));
-
-    // Save back to SharedPreferences
-    await prefs.setStringList('mikrotik_logins', savedLogins);
-
-    // Reload saved logins to update the list
-    await _loadSavedLogins();
-
-    if (!mounted) return;
-
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Login berhasil disimpan!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    // Switch to saved logins tab
-    _tabController.animateTo(1);
-  }
-
   Future<void> _deleteLogin(int index) async {
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getStringList('mikrotik_logins') ?? [];
@@ -217,7 +173,7 @@ class _LoginScreenState extends State<LoginScreen>
     // Helper function to format error message
     String getFormattedErrorMessage(String errorType, String ipAddress) {
       if (errorType == 'timeout') {
-        return '''Koneksi Timeout (10 detik)
+        return '''Koneksi Timeout (5 detik)
 Kemungkinan Penyebab:
 • Router tidak menyala
 • IP Address salah
@@ -533,7 +489,13 @@ Solusi:
         await prefs.setBool('rememberMe', true);
         await prefs.setBool('useNativeApi', _useNativeApi);
       } else {
-        await prefs.clear();
+        // Only remove specific keys, DO NOT clear all prefs (which would wipe saved logins)
+        await prefs.remove('ip');
+        await prefs.remove('port');
+        await prefs.remove('username');
+        await prefs.remove('password');
+        await prefs.remove('rememberMe');
+        await prefs.remove('useNativeApi');
       }
 
       // Simpan session router secara global
@@ -601,6 +563,9 @@ Solusi:
       );
     } else {
       return ListView.separated(
+        shrinkWrap: true, // Fix unbounded height error
+        physics:
+            const NeverScrollableScrollPhysics(), // Disable internal scrolling
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
         itemCount: _savedLogins.length,
         separatorBuilder: (context, index) => Divider(
@@ -788,8 +753,8 @@ Solusi:
                                 isDark
                                     ? 'assets/Mikrotik-logo-white.png'
                                     : 'assets/Mikrotik-logo.png',
-                                width: 300,
-                                height: 120,
+                                width: MediaQuery.of(context).size.width *
+                                    0.7, // Responsive width (70% of screen)
                                 fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) {
                                   return Column(
@@ -820,23 +785,23 @@ Solusi:
                                 },
                               ),
                             ),
-                            Transform.translate(
-                              offset: const Offset(
-                                  0, -20), // Pull text closer to logo
-                              child: Text(
-                                'Mikrotik PPPoE Monitor',
-                                style: TextStyle(
-                                  fontSize: 16, // Increased font size
-                                  fontWeight: FontWeight.bold, // Bold text
-                                  color: isDark
-                                      ? Colors.white70
-                                      : Colors.grey, // Adjusted for card bg
-                                  fontStyle: FontStyle.italic,
-                                ),
-                                textAlign: TextAlign.center,
+                            const SizedBox(
+                                height:
+                                    12), // Spacing between logo and subtitle
+                            Text(
+                              'Mikrotik PPPoE Monitor',
+                              style: TextStyle(
+                                fontSize: 16, // Increased font size
+                                fontWeight: FontWeight.bold, // Bold text
+                                color: isDark
+                                    ? Colors.white70
+                                    : Colors.grey, // Adjusted for card bg
+                                fontStyle: FontStyle.italic,
                               ),
+                              textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(
+                                height: 32), // Increased spacing before tabs
                             // Tabs
                             TabBar(
                               controller: _tabController,
@@ -865,234 +830,184 @@ Solusi:
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              height: 360, // Increased height to fix overflow
-                              child: TabBarView(
-                                controller: _tabController,
-                                children: [
-                                  // Login Form Tab
-                                  Padding(
-                                    padding: const EdgeInsets.fromLTRB(
-                                        24,
-                                        32,
-                                        24,
-                                        24), // Increased top padding to 32 to match button gap
-                                    child: Form(
-                                      key: _formKey,
-                                      child: Column(
-                                        // mainAxisAlignment: MainAxisAlignment.center, // Removed to reduce top gap
+                            // Dynamic Content based on Tab
+                            // Dynamic Content based on Tab
+                            if (_tabController.index == 0)
+                              // Login Form Tab
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(24, 32, 24,
+                                    24), // Increased top padding to 32 to match button gap
+                                child: Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    // mainAxisAlignment: MainAxisAlignment.center, // Removed to reduce top gap
+                                    children: [
+                                      Row(
                                         children: [
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                flex: 2,
-                                                child: TextFormField(
-                                                  controller: _ipController,
-                                                  focusNode: _ipFocus,
-                                                  style: const TextStyle(
-                                                      fontSize:
-                                                          16), // Increased font size
-                                                  decoration: InputDecoration(
-                                                    labelText: 'IP Address',
-                                                    prefixIcon:
-                                                        const Icon(Icons.dns),
-                                                    border: OutlineInputBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                    ),
-                                                  ),
-                                                  validator: (value) {
-                                                    if (value == null ||
-                                                        value.isEmpty) {
-                                                      return 'IP wajib diisi';
-                                                    }
-                                                    return null;
-                                                  },
-                                                  onFieldSubmitted: (_) {
-                                                    FocusScope.of(context)
-                                                        .requestFocus(
-                                                            _portFocus);
-                                                  },
+                                          Expanded(
+                                            flex: 2,
+                                            child: TextFormField(
+                                              controller: _ipController,
+                                              focusNode: _ipFocus,
+                                              style: const TextStyle(
+                                                  fontSize:
+                                                      16), // Increased font size
+                                              decoration: InputDecoration(
+                                                labelText: 'IP Address',
+                                                prefixIcon:
+                                                    const Icon(Icons.dns),
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
                                                 ),
                                               ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                flex: 1,
-                                                child: TextFormField(
-                                                  controller: _portController,
-                                                  focusNode: _portFocus,
-                                                  style: const TextStyle(
-                                                      fontSize:
-                                                          16), // Increased font size
-                                                  keyboardType:
-                                                      TextInputType.number,
-                                                  decoration: InputDecoration(
-                                                    labelText: 'Port',
-                                                    hintText: '8728',
-                                                    border: OutlineInputBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                    ),
-                                                  ),
-                                                  validator: (value) {
-                                                    if (value == null ||
-                                                        value.isEmpty) {
-                                                      return 'Port wajib';
-                                                    }
-                                                    return null;
-                                                  },
-                                                  onFieldSubmitted: (_) {
-                                                    FocusScope.of(context)
-                                                        .requestFocus(
-                                                            _usernameFocus);
-                                                  },
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 16),
-                                          TextFormField(
-                                            controller: _usernameController,
-                                            focusNode: _usernameFocus,
-                                            style: const TextStyle(
-                                                fontSize:
-                                                    16), // Increased font size
-                                            decoration: InputDecoration(
-                                              labelText: 'Username',
-                                              prefixIcon:
-                                                  const Icon(Icons.person),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return 'IP wajib diisi';
+                                                }
+                                                return null;
+                                              },
+                                              onFieldSubmitted: (_) {
+                                                FocusScope.of(context)
+                                                    .requestFocus(_portFocus);
+                                              },
                                             ),
-                                            validator: (value) {
-                                              if (value == null ||
-                                                  value.isEmpty) {
-                                                return 'Username wajib diisi';
-                                              }
-                                              return null;
-                                            },
-                                            onFieldSubmitted: (_) {
-                                              FocusScope.of(context)
-                                                  .requestFocus(_passwordFocus);
-                                            },
                                           ),
-                                          const SizedBox(height: 16),
-                                          TextFormField(
-                                            controller: _passwordController,
-                                            focusNode: _passwordFocus,
-                                            style: const TextStyle(
-                                                fontSize:
-                                                    16), // Increased font size
-                                            obscureText: _obscurePassword,
-                                            decoration: InputDecoration(
-                                              labelText: 'Password',
-                                              prefixIcon:
-                                                  const Icon(Icons.lock),
-                                              suffixIcon: IconButton(
-                                                icon: Icon(
-                                                  _obscurePassword
-                                                      ? Icons.visibility
-                                                      : Icons.visibility_off,
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            flex: 1,
+                                            child: TextFormField(
+                                              controller: _portController,
+                                              focusNode: _portFocus,
+                                              style: const TextStyle(
+                                                  fontSize:
+                                                      16), // Increased font size
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              decoration: InputDecoration(
+                                                labelText: 'Port',
+                                                hintText: '8728',
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
                                                 ),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _obscurePassword =
-                                                        !_obscurePassword;
-                                                  });
-                                                },
                                               ),
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return 'Port wajib';
+                                                }
+                                                return null;
+                                              },
+                                              onFieldSubmitted: (_) {
+                                                FocusScope.of(context)
+                                                    .requestFocus(
+                                                        _usernameFocus);
+                                              },
                                             ),
-                                            onFieldSubmitted: (_) => _login(),
-                                          ),
-                                          const SizedBox(height: 32),
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: OutlinedButton(
-                                                  onPressed: _saveLogin,
-                                                  style:
-                                                      OutlinedButton.styleFrom(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        vertical: 20),
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                    ),
-                                                  ),
-                                                  child: const Text(
-                                                    'SAVE',
-                                                    style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.bold),
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 16),
-                                              Expanded(
-                                                child: ElevatedButton(
-                                                  onPressed: _isLoading
-                                                      ? null
-                                                      : _login,
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                    backgroundColor:
-                                                        Colors.blue,
-                                                    foregroundColor:
-                                                        Colors.white,
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        vertical: 20),
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              12),
-                                                    ),
-                                                    elevation: 2,
-                                                  ),
-                                                  child: _isLoading
-                                                      ? const SizedBox(
-                                                          height: 20,
-                                                          width: 20,
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                            color: Colors.white,
-                                                            strokeWidth: 2,
-                                                          ),
-                                                        )
-                                                      : const Text(
-                                                          'LOG IN',
-                                                          style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize: 16,
-                                                          ),
-                                                        ),
-                                                ),
-                                              ),
-                                            ],
                                           ),
                                         ],
                                       ),
-                                    ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        controller: _usernameController,
+                                        focusNode: _usernameFocus,
+                                        style: const TextStyle(
+                                            fontSize:
+                                                16), // Increased font size
+                                        decoration: InputDecoration(
+                                          labelText: 'Username',
+                                          prefixIcon: const Icon(Icons.person),
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                        ),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Username wajib diisi';
+                                          }
+                                          return null;
+                                        },
+                                        onFieldSubmitted: (_) {
+                                          FocusScope.of(context)
+                                              .requestFocus(_passwordFocus);
+                                        },
+                                      ),
+                                      const SizedBox(height: 16),
+                                      TextFormField(
+                                        controller: _passwordController,
+                                        focusNode: _passwordFocus,
+                                        style: const TextStyle(
+                                            fontSize:
+                                                16), // Increased font size
+                                        obscureText: _obscurePassword,
+                                        decoration: InputDecoration(
+                                          labelText: 'Password',
+                                          prefixIcon: const Icon(Icons.lock),
+                                          suffixIcon: IconButton(
+                                            icon: Icon(
+                                              _obscurePassword
+                                                  ? Icons.visibility
+                                                  : Icons.visibility_off,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                _obscurePassword =
+                                                    !_obscurePassword;
+                                              });
+                                            },
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                        ),
+                                        onFieldSubmitted: (_) => _login(),
+                                      ),
+                                      const SizedBox(height: 32),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton(
+                                          onPressed: _isLoading ? null : _login,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.blue,
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 20),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            elevation: 2,
+                                          ),
+                                          child: _isLoading
+                                              ? const SizedBox(
+                                                  height: 20,
+                                                  width: 20,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    color: Colors.white,
+                                                    strokeWidth: 2,
+                                                  ),
+                                                )
+                                              : const Text(
+                                                  'LOG IN',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  // Saved Logins Tab
-                                  _buildSavedLoginsTab(),
-                                ],
-                              ),
-                            ),
+                                ),
+                              )
+                            else
+                              // Saved Logins Tab
+                              _buildSavedLoginsTab()
                           ],
                         ),
                       ),

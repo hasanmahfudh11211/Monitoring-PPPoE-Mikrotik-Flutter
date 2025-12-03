@@ -25,8 +25,8 @@ class MikrotikApiClient {
     _enableLogging = enableLogging;
     try {
       _log('Connecting to $host:$port...');
-      _socket = await Socket.connect(host, port,
-          timeout: const Duration(seconds: 10));
+      _socket =
+          await Socket.connect(host, port, timeout: const Duration(seconds: 5));
 
       // Listen ke stream socket dan masukkan data ke buffer
       _subscription = _socket!.listen(
@@ -267,7 +267,7 @@ class MikrotikApiClient {
       }
       // Tunggu data masuk dengan timeout
       try {
-        await _dataSignal!.future.timeout(const Duration(seconds: 10));
+        await _dataSignal!.future.timeout(const Duration(seconds: 5));
       } catch (e) {
         throw Exception('Timeout waiting for data from router');
       }
