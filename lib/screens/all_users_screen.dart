@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import '../providers/router_session_provider.dart';
+import '../providers/mikrotik_provider.dart';
 import '../widgets/gradient_container.dart';
 
 class AllUsersScreen extends StatefulWidget {
@@ -51,22 +52,30 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
   // Load PPP secrets from MikroTik
   Future<void> _loadPPPSecrets() async {
     if (!mounted) return;
-    final routerSession =
-        Provider.of<RouterSessionProvider>(context, listen: false);
-
-    if (routerSession.ip == null ||
-        routerSession.port == null ||
-        routerSession.username == null ||
-        routerSession.password == null) {
-      return;
-    }
 
     try {
-      final service = await _initializeMikrotikService();
-      final secrets = await service.getPPPSecret();
+      // Access MikrotikProvider via RouterSessionProvider to avoid ProviderNotFoundException
+      final session =
+          Provider.of<RouterSessionProvider>(context, listen: false);
+      // Ensure provider is initialized and get the instance
+      final provider = await session.getMikrotikProvider();
+
+      // If provider has data, use it immediately
+      if (provider.pppSecrets.isNotEmpty) {
+        if (mounted) {
+          setState(() {
+            _pppSecrets = provider.pppSecrets;
+          });
+        }
+        return;
+      }
+
+      // If no data, trigger refresh via provider
+      await provider.refreshData();
+
       if (mounted) {
         setState(() {
-          _pppSecrets = secrets;
+          _pppSecrets = provider.pppSecrets;
         });
       }
     } catch (e) {

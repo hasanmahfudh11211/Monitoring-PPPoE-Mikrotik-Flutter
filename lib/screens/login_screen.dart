@@ -426,7 +426,7 @@ Solusi:
           port: port,
           username: username,
           password: password,
-          enableLogging: true,
+          enableLogging: false, // Disable logging for performance
         );
       } else {
         return MikrotikService(
@@ -434,7 +434,7 @@ Solusi:
           port: port,
           username: username,
           password: password,
-          enableLogging: true,
+          enableLogging: false, // Disable logging for performance
         );
       }
     }

@@ -338,10 +338,43 @@ class MikrotikNativeService implements MikrotikService {
       print('[NATIVE-SVC] Error fetching license: $e');
     }
 
-    // 2. Fallback: Identity + IP
+    // 2. Cek /system/resource (Fallback jika license gagal)
+    try {
+      final res = await getResource();
+      print('[NATIVE-SVC] Resource response: $res');
+
+      // Beberapa router menyimpan serial di resource
+      // Atau kita bisa pakai board-name sebagai bagian dari ID jika serial tidak ada
+      if (res['board-name'] != null) {
+        // Jika ada serial di resource, pakai itu
+        // Note: key serial di resource mungkin berbeda tergantung versi, tapi biasanya tidak ada.
+        // Namun kita bisa return board-name sebagai identitas yang lebih baik daripada "RouterOS"
+
+        // Tapi untuk konsistensi dengan logic lama, kita coba cari serial lagi atau return board-name
+        // Jika board-name ada, kita bisa pakai itu untuk ID yang lebih deskriptif
+        // return 'RB-${res['board-name']}@$ip:$port';
+      }
+    } catch (e) {
+      print('[NATIVE-SVC] Error fetching resource: $e');
+    }
+
+    // 3. Fallback: Identity + IP
     try {
       final id = await getIdentity();
-      return 'RB-${id['name']}@$ip:$port';
+      final name = id['name']?.toString() ?? 'UNKNOWN';
+
+      // Jika nama masih default "RouterOS", coba ambil board-name dari resource lagi untuk mempercantik
+      if (name == 'RouterOS') {
+        try {
+          final res = await getResource();
+          final boardName = res['board-name']?.toString();
+          if (boardName != null && boardName.isNotEmpty) {
+            return 'RB-$boardName@$ip:$port';
+          }
+        } catch (_) {}
+      }
+
+      return 'RB-$name@$ip:$port';
     } catch (_) {
       return '$ip:$port';
     }

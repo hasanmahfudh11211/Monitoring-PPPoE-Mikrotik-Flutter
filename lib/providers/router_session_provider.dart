@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/mikrotik_service.dart';
 import '../services/mikrotik_native_service.dart';
+import 'mikrotik_provider.dart';
 
 class RouterSessionProvider extends ChangeNotifier {
   String? routerId; // serial-number
@@ -49,6 +50,18 @@ class RouterSessionProvider extends ChangeNotifier {
     throw Exception('Session not initialized');
   }
 
+  // Persistent MikrotikProvider Instance
+  MikrotikProvider? _mikrotikProvider;
+  MikrotikProvider? get mikrotikProvider => _mikrotikProvider;
+
+  Future<MikrotikProvider> getMikrotikProvider() async {
+    if (_mikrotikProvider != null) return _mikrotikProvider!;
+
+    final service = await getService();
+    _mikrotikProvider = MikrotikProvider(service);
+    return _mikrotikProvider!;
+  }
+
   void saveSession({
     required String routerId,
     required String ip,
@@ -87,6 +100,8 @@ class RouterSessionProvider extends ChangeNotifier {
       (_service as MikrotikNativeService).dispose();
     }
     _service = null;
+    // MikrotikProvider will be recreated when needed
+    _mikrotikProvider = null;
   }
 
   Future<void> _persist() async {

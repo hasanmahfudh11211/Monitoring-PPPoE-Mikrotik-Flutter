@@ -35,8 +35,8 @@ class MikrotikScreenWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<RouterSessionProvider>(
       builder: (context, session, _) {
-        return FutureBuilder<MikrotikService>(
-          future: session.getService(),
+        return FutureBuilder<MikrotikProvider>(
+          future: session.getMikrotikProvider(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
@@ -73,9 +73,9 @@ class MikrotikScreenWrapper extends StatelessWidget {
                 ),
               );
             }
-            final service = snapshot.data!;
-            return ChangeNotifierProvider(
-              create: (_) => MikrotikProvider(service),
+            // Use the shared provider instance
+            return ChangeNotifierProvider.value(
+              value: snapshot.data!,
               child: child,
             );
           },

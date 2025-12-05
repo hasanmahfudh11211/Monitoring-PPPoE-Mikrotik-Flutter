@@ -92,6 +92,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final prefs = await SharedPreferences.getInstance();
       final useNativeApi = prefs.getBool('useNativeApi') ?? false;
 
+      // Tunggu sampai provider selesai loading data
+      // Agar tidak double fetch (Dashboard fetch + Sync fetch)
+      final provider = Provider.of<MikrotikProvider>(context, listen: false);
+
+      // Jika provider sedang loading, tunggu sebentar
+      int retries = 0;
+      while (provider.isLoading && retries < 20) {
+        await Future.delayed(const Duration(milliseconds: 500));
+        retries++;
+      }
+
       // ignore: unawaited_futures
       ApiService.syncUsersFromMikrotik(
         routerId: routerId,
@@ -102,6 +113,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         enableLogging: true, // Enable logging hanya di dashboard
         useNativeApi: useNativeApi,
         existingService: routerSession.service,
+        preLoadedSecrets:
+            provider.pppSecrets.isNotEmpty ? provider.pppSecrets : null,
       );
     }
   }

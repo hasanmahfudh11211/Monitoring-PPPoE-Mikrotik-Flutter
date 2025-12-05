@@ -151,8 +151,15 @@ class MikrotikApiClient {
       List<Map<String, String>> replies = [];
       Map<String, String> currentReply = {};
 
+      int lineCount = 0;
       while (true) {
         String line = await _readWord();
+        lineCount++;
+
+        // Yield execution every 100 lines to prevent ANR on large data
+        if (lineCount % 100 == 0) {
+          await Future.delayed(Duration.zero);
+        }
 
         if (line.isEmpty) {
           if (currentReply.isNotEmpty) {

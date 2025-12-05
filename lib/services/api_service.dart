@@ -551,6 +551,7 @@ class ApiService {
     bool enableLogging = false,
     bool useNativeApi = false,
     MikrotikService? existingService,
+    List<Map<String, dynamic>>? preLoadedSecrets,
   }) async {
     // Cek cache: jangan sync jika sudah sync router_id ini dalam 30 detik terakhir
     final now = DateTime.now();
@@ -566,26 +567,23 @@ class ApiService {
 
     MikrotikService? localService;
     // Use existing service if provided, otherwise create a local one
+    // Only create service if we don't have preLoadedSecrets
     final service = existingService ??
-        (localService = _createService(
-          ip: ip,
-          port: port,
-          username: username,
-          password: password,
-          enableLogging: enableLogging,
-          useNativeApi: useNativeApi,
-        ));
+        (preLoadedSecrets == null
+            ? (localService = _createService(
+                ip: ip,
+                port: port,
+                username: username,
+                password: password,
+                enableLogging: enableLogging,
+                useNativeApi: useNativeApi,
+              ))
+            : null);
 
     try {
-      final secrets = await service.getPPPSecret();
-      final normalized = secrets
-          .map((s) => {
-                'name': s['name']?.toString() ?? '',
-                'password': s['password']?.toString() ?? '',
-                'profile': s['profile']?.toString() ?? '',
-              })
-          .where((u) => (u['name'] as String).isNotEmpty)
-          .toList();
+      final secrets = preLoadedSecrets ?? await service!.getPPPSecret();
+      // Proses data di Isolate terpisah agar tidak memblokir UI
+      final normalized = await compute(_normalizeSecrets, secrets);
 
       if (normalized.isEmpty) return;
 
@@ -614,6 +612,9 @@ class ApiService {
           print('[SYNC_HELPER] Batch ${(i ~/ batchSize) + 1} gagal: $e');
           // Lanjutkan batch berikutnya meskipun batch ini gagal
         }
+
+        // Beri jeda sedikit agar UI tetap responsif
+        await Future.delayed(const Duration(milliseconds: 50));
       }
     } catch (e) {
       // ignore: avoid_print
@@ -835,5 +836,18 @@ class ApiService {
     } catch (e) {
       throw _friendlyException(e);
     }
+  }
+
+  // Fungsi statis untuk dijalankan di isolate
+  static List<Map<String, String>> _normalizeSecrets(
+      List<Map<String, dynamic>> secrets) {
+    return secrets
+        .map((s) => {
+              'name': s['name']?.toString() ?? '',
+              'password': s['password']?.toString() ?? '',
+              'profile': s['profile']?.toString() ?? '',
+            })
+        .where((u) => (u['name'] as String).isNotEmpty)
+        .toList();
   }
 }
