@@ -127,13 +127,16 @@ class MikrotikApiClient {
     // Buat completer untuk request ini
     final myCompleter = Completer<void>();
 
-    // Jika ada request lain yang sedang berjalan, tunggu giliran
-    if (_requestQueue.isNotEmpty) {
-      await _requestQueue.last.future;
-    }
-
-    // Masukkan diri sendiri ke antrian (sebagai penanda sedang berjalan)
+    // Masukkan diri sendiri ke antrian SEBELUM menunggu (untuk reservasi urutan)
     _requestQueue.add(myCompleter);
+
+    // Jika ada request lain sebelum saya, tunggu giliran
+    if (_requestQueue.length > 1) {
+      // Tunggu request yang tepat berada di depan saya
+      // (Request sebelumnya adalah yang terakhir sebelum saya ditambahkan)
+      final previousCompleter = _requestQueue[_requestQueue.length - 2];
+      await previousCompleter.future;
+    }
 
     try {
       // --- Critical Section Start ---
@@ -182,10 +185,8 @@ class MikrotikApiClient {
       // --- Critical Section End ---
     } finally {
       // Selesai, lepaskan lock dan beritahu antrian berikutnya
+      myCompleter.complete();
       _requestQueue.remove(myCompleter);
-      if (!myCompleter.isCompleted) {
-        myCompleter.complete();
-      }
     }
   }
 

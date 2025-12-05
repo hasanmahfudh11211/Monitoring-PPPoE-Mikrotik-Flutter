@@ -9,6 +9,7 @@ import '../widgets/gradient_container.dart';
 import 'package:provider/provider.dart';
 import '../providers/router_session_provider.dart';
 import '../services/mikrotik_native_service.dart';
+import '../services/api_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -472,15 +473,92 @@ Solusi:
         });
 
         // Show error dialog
-        _showErrorDialog(firstError);
+        _showErrorDialog(firstError ?? e2.toString());
         return;
       }
     }
 
     // --- LOGIN SUCCESS ---
     try {
-      // Save credentials
+      // 1. Get Stable Router ID (Serial Number)
+      String routerId = '$ip:$port'; // Default fallback
+      try {
+        final service = createService(_useNativeApi);
+        // Re-login to service to ensure we have a valid session for fetching serial
+        // (Though createService just creates the object, getRouterSerialOrId will likely need to connect/auth internally or reuse if possible)
+        // MikrotikService/NativeService instances are stateless regarding connection in this context,
+        // but getRouterSerialOrId will perform necessary calls.
+        routerId = await service.getRouterSerialOrId();
+        print('[LOGIN] Got Router ID: $routerId');
+      } catch (e) {
+        print(
+            '[LOGIN] Failed to get Serial Number, falling back to IP:Port: $e');
+        // Fallback is already set
+
+        // DEBUG: Force print to see what happened
+        if (e.toString().contains('!trap') || e.toString().contains('!done')) {
+          print('[LOGIN] API Response indicated failure or empty result.');
+        }
+      }
+
+      // 2. Data Migration (Backfill)
+      // Migrate from current IP:Port (if it was used previously)
+      await ApiService.backfillRouterId(
+        routerId: routerId,
+        oldValue: '$ip:$port',
+      );
+
+      // Migrate from legacy format: RB-Identity@IP:Port
+      // We need to reconstruct what the old ID would have been
+      try {
+        final tempService = createService(_useNativeApi);
+        final identity = await tempService.getIdentity();
+        final name = identity['name']?.toString() ?? 'UNKNOWN';
+        final legacyId = 'RB-$name@$ip:$port';
+        if (legacyId != routerId) {
+          print(
+              '[LOGIN] Attempting to migrate legacy ID: $legacyId -> $routerId');
+          await ApiService.backfillRouterId(
+            routerId: routerId,
+            oldValue: legacyId,
+          );
+        }
+      } catch (e) {
+        print('[LOGIN] Failed to construct legacy ID for migration: $e');
+      }
+
       final prefs = await SharedPreferences.getInstance();
+
+      // Smart Migration: Check last successful login
+      // If user previously logged in with same IP but different port, migrate that data
+      final lastIp = prefs.getString('ip');
+      final lastPort = prefs.getString('port');
+      if (lastIp == ip && lastPort != null && lastPort != port) {
+        await ApiService.backfillRouterId(
+          routerId: routerId,
+          oldValue: '$lastIp:$lastPort',
+        );
+      }
+
+      // Smart Migration: Check saved logins
+      // Migrate data from any other saved ports for this IP
+      for (final login in _savedLogins) {
+        final address = login['address'] ?? '';
+        final parts = address.split(':');
+        if (parts.length == 2) {
+          final savedIp = parts[0];
+          final savedPort = parts[1];
+
+          if (savedIp == ip && savedPort != port) {
+            await ApiService.backfillRouterId(
+              routerId: routerId,
+              oldValue: address,
+            );
+          }
+        }
+      }
+
+      // Save credentials
       if (_rememberMe) {
         await prefs.setString('ip', ip);
         await prefs.setString('port', port);
@@ -502,7 +580,7 @@ Solusi:
       if (mounted) {
         final sessionProvider = context.read<RouterSessionProvider>();
         sessionProvider.saveSession(
-          routerId: '$ip:$port',
+          routerId: routerId, // Use the stable Serial Number
           ip: ip,
           port: port,
           username: username,
@@ -543,6 +621,7 @@ Solusi:
         _isLoading = false;
       });
       if (mounted) {
+        // Even if saving session fails (unlikely), try to proceed
         Navigator.pushReplacementNamed(context, '/dashboard');
       }
     }

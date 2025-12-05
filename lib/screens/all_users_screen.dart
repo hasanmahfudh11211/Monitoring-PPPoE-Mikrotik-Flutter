@@ -84,13 +84,7 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
   Future<MikrotikService> _initializeMikrotikService() async {
     final routerSession =
         Provider.of<RouterSessionProvider>(context, listen: false);
-
-    return MikrotikService(
-      ip: routerSession.ip!,
-      port: routerSession.port!,
-      username: routerSession.username!,
-      password: routerSession.password!,
-    );
+    return routerSession.getService();
   }
 
   @override

@@ -9,6 +9,8 @@ import '../main.dart';
 import '../widgets/update_dialog.dart';
 import '../services/update_service.dart';
 import '../services/mikrotik_service.dart';
+import '../services/api_service.dart';
+import '../providers/router_session_provider.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({Key? key}) : super(key: key);
@@ -71,24 +73,10 @@ class _SettingScreenState extends State<SettingScreen> {
     });
 
     try {
-      // Create a temporary Mikrotik service to fetch user info
-      final prefs = await SharedPreferences.getInstance();
-      final password = prefs.getString('password') ?? '';
-
-      if (password.isEmpty) {
-        setState(() {
-          _loadingGroup = false;
-          _currentUserGroup = 'Password not available';
-        });
-        return;
-      }
-
-      final service = MikrotikService(
-        ip: _currentIp,
-        port: _currentPort,
-        username: _currentUsername,
-        password: password,
-      );
+      // Use provider to get service (handles Native/REST automatically)
+      final provider =
+          Provider.of<RouterSessionProvider>(context, listen: false);
+      final service = await provider.getService();
 
       try {
         // Try to get system users first (primary method)
@@ -443,6 +431,54 @@ class _SettingScreenState extends State<SettingScreen> {
               ),
               const SizedBox(height: 16),
 
+              // Maintenance Section
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Maintenance',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Hapus data router lama yang tidak terpakai',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark ? Colors.white70 : Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildActionButton(
+                        icon: Icons.delete_forever,
+                        label: 'Hapus Data Router',
+                        onPressed: () => _showDeleteDataDialog(context),
+                        color: Colors.orange[800],
+                      ),
+                      const SizedBox(height: 12),
+                      _buildActionButton(
+                        icon: Icons.perm_identity,
+                        label: 'Cek & Perbaiki Router ID',
+                        onPressed: () => _checkAndFixRouterId(context),
+                        color: Colors.blueGrey,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Logout Button
               Card(
                 elevation: 4,
@@ -634,6 +670,215 @@ class _SettingScreenState extends State<SettingScreen> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _showDeleteDataDialog(BuildContext context) async {
+    final isDark =
+        Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+    final routerIdController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        title: Text(
+          'Hapus Data Router',
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Masukkan ID Router yang ingin dihapus datanya. PERINGATAN: Data tidak dapat dikembalikan.',
+              style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: routerIdController,
+              decoration: InputDecoration(
+                labelText: 'Router ID',
+                border: const OutlineInputBorder(),
+                hintText: 'Contoh: RB-DIST@...',
+                labelStyle:
+                    TextStyle(color: isDark ? Colors.white70 : Colors.grey),
+                hintStyle: TextStyle(
+                    color: isDark ? Colors.white30 : Colors.grey[300]),
+              ),
+              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              if (routerIdController.text.isEmpty) return;
+              Navigator.pop(context);
+              _performDeleteData(routerIdController.text);
+            },
+            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performDeleteData(String routerId) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      await ApiService.deleteRouterData(routerId);
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Data berhasil dihapus'),
+            backgroundColor: Colors.green),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Gagal menghapus data: $e'),
+            backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  Future<void> _checkAndFixRouterId(BuildContext context) async {
+    final session = Provider.of<RouterSessionProvider>(context, listen: false);
+    final currentId = session.routerId;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final service = await session.getService();
+      // Force fetch ID from router
+      final realId = await service.getRouterSerialOrId();
+
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading
+
+      final isMatch = currentId == realId;
+      final isDark =
+          Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          title: Text('Status Router ID',
+              style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('ID di Aplikasi:',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white70 : Colors.black54)),
+              Text(currentId ?? 'Kosong',
+                  style:
+                      TextStyle(color: isDark ? Colors.white : Colors.black87)),
+              const SizedBox(height: 12),
+              Text('ID dari Router (Live):',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white70 : Colors.black54)),
+              Text(realId,
+                  style:
+                      TextStyle(color: isDark ? Colors.white : Colors.black87)),
+              const SizedBox(height: 20),
+              if (isMatch)
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.green),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.green),
+                      SizedBox(width: 8),
+                      Expanded(
+                          child: Text('ID Sinkron. Tidak ada masalah.',
+                              style: TextStyle(color: Colors.green))),
+                    ],
+                  ),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.warning, color: Colors.orange),
+                      SizedBox(width: 8),
+                      Expanded(
+                          child: Text('ID Berbeda! Sebaiknya diperbarui.',
+                              style: TextStyle(color: Colors.orange))),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Tutup'),
+            ),
+            if (!isMatch)
+              ElevatedButton(
+                onPressed: () {
+                  // Update session
+                  session.saveSession(
+                    routerId: realId,
+                    ip: session.ip!,
+                    port: session.port!,
+                    username: session.username!,
+                    password: session.password!,
+                  );
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text(
+                            'Router ID berhasil diperbarui! Silakan refresh halaman user.'),
+                        backgroundColor: Colors.green),
+                  );
+                },
+                child: const Text('Perbaiki ID'),
+              ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Gagal mengecek ID: $e'),
+            backgroundColor: Colors.red),
+      );
     }
   }
 

@@ -33,25 +33,52 @@ class MikrotikScreenWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<MikrotikService>(
-      future: _initializeMikrotikService(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (!snapshot.hasData) {
-          return const Scaffold(
-            body: Center(
-              child: Text('No data available'),
-            ),
-          );
-        }
-        final service = snapshot.data!;
-        return ChangeNotifierProvider(
-          create: (_) => MikrotikProvider(service),
-          child: child,
+    return Consumer<RouterSessionProvider>(
+      builder: (context, session, _) {
+        return FutureBuilder<MikrotikService>(
+          future: session.getService(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            if (snapshot.hasError) {
+              return Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline,
+                          color: Colors.red, size: 48),
+                      const SizedBox(height: 16),
+                      Text('Connection Error: ${snapshot.error}'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Trigger rebuild
+                          (context as Element).markNeedsBuild();
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            if (!snapshot.hasData) {
+              return const Scaffold(
+                body: Center(
+                  child: Text('No data available'),
+                ),
+              );
+            }
+            final service = snapshot.data!;
+            return ChangeNotifierProvider(
+              create: (_) => MikrotikProvider(service),
+              child: child,
+            );
+          },
         );
       },
     );
@@ -262,34 +289,4 @@ class MyApp extends StatelessWidget {
       ),
     );
   }
-}
-
-Future<MikrotikService> _initializeMikrotikService() async {
-  final prefs = await SharedPreferences.getInstance();
-  final ip = prefs.getString('ip');
-  final port = prefs.getString('port');
-  final username = prefs.getString('username');
-  final password = prefs.getString('password');
-  final useNativeApi = prefs.getBool('useNativeApi') ?? false;
-
-  if (ip == null || port == null || username == null || password == null) {
-    throw Exception('Missing connection details');
-  }
-
-  // Cek apakah user memilih Native API atau port default API
-  if (useNativeApi || port == '8728' || port == '8729') {
-    return MikrotikNativeService(
-      ip: ip,
-      port: port,
-      username: username,
-      password: password,
-    );
-  }
-
-  return MikrotikService(
-    ip: ip,
-    port: port,
-    username: username,
-    password: password,
-  );
 }

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'config_service.dart';
 import 'mikrotik_service.dart';
+import 'mikrotik_native_service.dart';
 
 class ApiService {
   static String _baseUrlCache = 'https://cmmnetwork.online/api';
@@ -10,16 +11,17 @@ class ApiService {
   static Future<void> refreshBaseUrlFromStorage() async {
     _baseUrlCache = await ConfigService.getBaseUrl();
   }
+
   static Future<String> _getBaseUrl() async {
     final url = await ConfigService.getBaseUrl();
     _baseUrlCache = url;
     return url;
   }
-  
+
   // Cache for storing fetched data
   static Map<String, dynamic> _cache = {};
   static Map<String, DateTime> _cacheTimestamps = {};
-  
+
   // Cache untuk sync status per router (mencegah sync berulang)
   static String? _lastSyncedRouterId;
   static DateTime? _lastSyncTime;
@@ -31,7 +33,8 @@ class ApiService {
     final isHtml = contentType.contains('text/html') ||
         RegExp(r'<!DOCTYPE|<html', caseSensitive: false).hasMatch(body);
     if (isHtml) {
-      throw Exception('Server mengembalikan HTML, bukan JSON. Periksa konfigurasi API.');
+      throw Exception(
+          'Server mengembalikan HTML, bukan JSON. Periksa konfigurasi API.');
     }
     try {
       return json.decode(body);
@@ -42,11 +45,14 @@ class ApiService {
 
   static Exception _friendlyException(Object e) {
     final msg = e.toString();
-    if (msg.contains('Invalid argument(s): No host specified in URI') || msg.contains('FormatException: Invalid empty scheme')) {
-      return Exception('Base URL tidak valid. Buka Setting > API Configuration dan isi alamat lengkap, contoh: https://domain.com/api');
+    if (msg.contains('Invalid argument(s): No host specified in URI') ||
+        msg.contains('FormatException: Invalid empty scheme')) {
+      return Exception(
+          'Base URL tidak valid. Buka Setting > API Configuration dan isi alamat lengkap, contoh: https://domain.com/api');
     }
     if (msg.contains('SocketException')) {
-      return Exception('Tidak dapat terhubung ke server. Periksa koneksi internet atau Base URL.');
+      return Exception(
+          'Tidak dapat terhubung ke server. Periksa koneksi internet atau Base URL.');
     }
     if (msg.contains('TimeoutException')) {
       return Exception('Koneksi ke server timeout. Silakan coba lagi.');
@@ -56,10 +62,12 @@ class ApiService {
 
   /// Get all users from API with router_id filter
   /// @param routerId The router serial number to filter users
-  static Future<Map<String, dynamic>> getAllUsers({required String routerId}) async {
+  static Future<Map<String, dynamic>> getAllUsers(
+      {required String routerId}) async {
     try {
       final baseUrl = await _getBaseUrl();
-      final uri = Uri.parse('$baseUrl/get_all_users.php').replace(queryParameters: {
+      final uri =
+          Uri.parse('$baseUrl/get_all_users.php').replace(queryParameters: {
         'router_id': routerId,
       });
       final response = await http.get(uri);
@@ -137,7 +145,7 @@ class ApiService {
           'odp_id': odpId,
         }),
       );
-      
+
       if (response.statusCode == 200) {
         final result = _decodeJsonOrThrow(response) as Map<String, dynamic>;
         if (result['success'] == true) {
@@ -149,7 +157,8 @@ class ApiService {
           if (result['error'] == 'DEBUG_MODE') {
             throw Exception(json.encode(result['debug_data']));
           }
-          throw Exception(result['message'] ?? 'Gagal mengupdate data dari server');
+          throw Exception(
+              result['message'] ?? 'Gagal mengupdate data dari server');
         }
       } else {
         // Coba decode body untuk mendapatkan pesan error dari PHP
@@ -173,7 +182,8 @@ class ApiService {
   }
 
   // Export multiple users
-  static Future<Map<String, dynamic>> exportUsers(List<Map<String, dynamic>> users) async {
+  static Future<Map<String, dynamic>> exportUsers(
+      List<Map<String, dynamic>> users) async {
     try {
       final baseUrl = await _getBaseUrl();
       final response = await http.post(
@@ -201,15 +211,16 @@ class ApiService {
     try {
       // Add a safety check to prevent accidental data loss
       if (prune && pppUsers.isEmpty) {
-        throw Exception('PERINGATAN KEAMANAN: Operasi prune dibatalkan karena tidak ada data yang diterima. Ini bisa menyebabkan kehilangan data.');
+        throw Exception(
+            'PERINGATAN KEAMANAN: Operasi prune dibatalkan karena tidak ada data yang diterima. Ini bisa menyebabkan kehilangan data.');
       }
-      
+
       // Add confirmation for prune operations with large data deletion
       if (prune && pppUsers.length < 10) {
         // Only show warning if we're deleting a significant amount of data
         // This would need to be handled in the UI layer
       }
-      
+
       final baseUrl = await _getBaseUrl();
       final payload = {
         'router_id': routerId,
@@ -218,8 +229,9 @@ class ApiService {
       };
       // Debug request
       if (enableLogging) {
-      // ignore: avoid_print
-      print('[SYNC] Sending batch: users=${pppUsers.length} to $baseUrl/sync_ppp_to_db.php');
+        // ignore: avoid_print
+        print(
+            '[SYNC] Sending batch: users=${pppUsers.length} to $baseUrl/sync_ppp_to_db.php');
       }
       final response = await http.post(
         Uri.parse('$baseUrl/sync_ppp_to_db.php'),
@@ -231,18 +243,25 @@ class ApiService {
       );
       // Debug response - lebih detail
       if (enableLogging) {
-      final bodyPreview = response.body.length > 500 ? response.body.substring(0, 500) + '...<truncated>' : response.body;
-      // ignore: avoid_print
-      print('[SYNC] Response status=${response.statusCode}');
-      // ignore: avoid_print
-      print('[SYNC] Content-Type: ${response.headers['content-type'] ?? 'unknown'}');
-      // ignore: avoid_print
-      print('[SYNC] Body preview: ${bodyPreview.replaceAll('\n', ' ').replaceAll('\r', ' ')}');
+        final bodyPreview = response.body.length > 500
+            ? response.body.substring(0, 500) + '...<truncated>'
+            : response.body;
+        // ignore: avoid_print
+        print('[SYNC] Response status=${response.statusCode}');
+        // ignore: avoid_print
+        print(
+            '[SYNC] Content-Type: ${response.headers['content-type'] ?? 'unknown'}');
+        // ignore: avoid_print
+        print(
+            '[SYNC] Body preview: ${bodyPreview.replaceAll('\n', ' ').replaceAll('\r', ' ')}');
       }
-      
+
       if (response.statusCode != 200) {
-        final bodyPreview = response.body.length > 500 ? response.body.substring(0, 500) + '...<truncated>' : response.body;
-        throw Exception('Sync PPP gagal: HTTP ${response.statusCode}\nBody: $bodyPreview');
+        final bodyPreview = response.body.length > 500
+            ? response.body.substring(0, 500) + '...<truncated>'
+            : response.body;
+        throw Exception(
+            'Sync PPP gagal: HTTP ${response.statusCode}\nBody: $bodyPreview');
       }
       final decoded = _decodeJsonOrThrow(response) as Map<String, dynamic>;
       if (decoded['success'] == true) return decoded;
@@ -261,21 +280,24 @@ class ApiService {
   }) async {
     try {
       final baseUrl = await _getBaseUrl();
-      final response = await http.post(
-        Uri.parse('$baseUrl/backfill_router_id.php'), 
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'router_id': routerId,
-          'old_value': oldValue,
-          'include_empty': includeEmpty,
-        }),
-      ).timeout(const Duration(seconds: 5)); // Timeout cepat untuk fire-and-forget
-      
+      final response = await http
+          .post(
+            Uri.parse('$baseUrl/backfill_router_id.php'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'router_id': routerId,
+              'old_value': oldValue,
+              'include_empty': includeEmpty,
+            }),
+          )
+          .timeout(const Duration(
+              seconds: 5)); // Timeout cepat untuk fire-and-forget
+
       // Cek status code dulu
       if (response.statusCode != 200) {
         return {'success': false, 'error': 'HTTP ${response.statusCode}'};
       }
-      
+
       try {
         final decoded = json.decode(response.body) as Map<String, dynamic>;
         if (decoded['success'] == true) {
@@ -295,7 +317,8 @@ class ApiService {
   /// Delete user with router_id filter
   /// @param routerId The router serial number
   /// @param username The username to delete
-  static Future<bool> deleteUser({required String routerId, required String username}) async {
+  static Future<bool> deleteUser(
+      {required String routerId, required String username}) async {
     final baseUrl = await _getBaseUrl();
     final response = await http.post(
       Uri.parse('$baseUrl/delete_user.php'),
@@ -315,21 +338,47 @@ class ApiService {
       throw Exception('Gagal menghapus user: ${response.statusCode}');
     }
   }
-  
+
+  // Delete all data for a specific router (Client-side loop)
+  static Future<void> deleteRouterData(String routerId) async {
+    try {
+      // 1. Get all users
+      final usersMap = await getAllUsers(routerId: routerId);
+      if (usersMap['status'] == 'success') {
+        final List<dynamic> users = usersMap['data'];
+        for (var user in users) {
+          final username = user['username'];
+          if (username != null) {
+            try {
+              await deleteUser(routerId: routerId, username: username);
+            } catch (e) {
+              print('Failed to delete user $username: $e');
+            }
+          }
+        }
+      }
+    } catch (e) {
+      throw _friendlyException(e);
+    }
+  }
+
   // New method to fetch all users with payments
-  static Future<List<Map<String, dynamic>>> fetchAllUsersWithPayments({required String routerId}) async {
+  static Future<List<Map<String, dynamic>>> fetchAllUsersWithPayments(
+      {required String routerId}) async {
     try {
       // Check cache first
       final cacheKey = 'all_users_with_payments';
-      if (_cache.containsKey(cacheKey) && 
+      if (_cache.containsKey(cacheKey) &&
           _cacheTimestamps.containsKey(cacheKey) &&
-          DateTime.now().difference(_cacheTimestamps[cacheKey]!).inMinutes < 5) {
+          DateTime.now().difference(_cacheTimestamps[cacheKey]!).inMinutes <
+              5) {
         return List<Map<String, dynamic>>.from(_cache[cacheKey]);
       }
-      
+
       final baseUrl = await _getBaseUrl();
       final response = await http.get(
-        Uri.parse('$baseUrl/get_all_users_with_payments.php').replace(queryParameters: {
+        Uri.parse('$baseUrl/get_all_users_with_payments.php')
+            .replace(queryParameters: {
           'router_id': routerId,
         }),
         headers: {'Accept': 'application/json'},
@@ -337,7 +386,7 @@ class ApiService {
         const Duration(seconds: 15),
         onTimeout: () => throw Exception('Koneksi timeout. Silakan coba lagi.'),
       );
-      
+
       if (response.statusCode == 200) {
         final data = _decodeJsonOrThrow(response) as Map<String, dynamic>;
         if (data['status'] == 'success') {
@@ -346,29 +395,32 @@ class ApiService {
           final List<Map<String, dynamic>> convertedData = rawData
               .map((item) => Map<String, dynamic>.from(item as Map))
               .toList();
-          
+
           // Cache the result
           _cache[cacheKey] = convertedData;
           _cacheTimestamps[cacheKey] = DateTime.now();
-          
+
           return convertedData;
         } else {
           throw Exception(data['message'] ?? 'Gagal memuat data tagihan');
         }
       } else {
-        throw Exception('Server error (${response.statusCode}). Silakan coba lagi.');
+        throw Exception(
+            'Server error (${response.statusCode}). Silakan coba lagi.');
       }
     } catch (e) {
       throw _friendlyException(e);
     }
   }
-  
+
   // New method to fetch payment summary
-  static Future<List<Map<String, dynamic>>> fetchPaymentSummary({required String routerId}) async {
+  static Future<List<Map<String, dynamic>>> fetchPaymentSummary(
+      {required String routerId}) async {
     try {
       final baseUrl = await _getBaseUrl();
       final response = await http.get(
-        Uri.parse('$baseUrl/payment_summary_operations.php').replace(queryParameters: {
+        Uri.parse('$baseUrl/payment_summary_operations.php')
+            .replace(queryParameters: {
           'action': 'summary',
           'router_id': routerId,
         }),
@@ -377,12 +429,13 @@ class ApiService {
         const Duration(seconds: 15),
         onTimeout: () => throw Exception('Koneksi timeout. Silakan coba lagi.'),
       );
-      
+
       // Check for redirect responses
       if (response.statusCode == 302 || response.statusCode == 301) {
-        throw Exception('API memerlukan autentikasi. Silakan hubungi administrator.');
+        throw Exception(
+            'API memerlukan autentikasi. Silakan hubungi administrator.');
       }
-      
+
       if (response.statusCode == 200) {
         final data = _decodeJsonOrThrow(response) as Map<String, dynamic>;
         if (data['success'] == true) {
@@ -390,11 +443,17 @@ class ApiService {
           // Normalize types to avoid runtime type errors on UI
           return rawList.map((item) {
             final itemMap = Map<String, dynamic>.from(item as Map);
-            final month = int.tryParse(itemMap['month'].toString()) ?? (itemMap['month'] is int ? itemMap['month'] as int : 0);
-            final year = int.tryParse(itemMap['year'].toString()) ?? (itemMap['year'] is int ? itemMap['year'] as int : 0);
+            final month = int.tryParse(itemMap['month'].toString()) ??
+                (itemMap['month'] is int ? itemMap['month'] as int : 0);
+            final year = int.tryParse(itemMap['year'].toString()) ??
+                (itemMap['year'] is int ? itemMap['year'] as int : 0);
             final totalNum = double.tryParse(itemMap['total'].toString());
-            final total = totalNum ?? (itemMap['total'] is num ? (itemMap['total'] as num).toDouble() : 0.0);
-            final count = int.tryParse(itemMap['count'].toString()) ?? (itemMap['count'] is int ? itemMap['count'] as int : 0);
+            final total = totalNum ??
+                (itemMap['total'] is num
+                    ? (itemMap['total'] as num).toDouble()
+                    : 0.0);
+            final count = int.tryParse(itemMap['count'].toString()) ??
+                (itemMap['count'] is int ? itemMap['count'] as int : 0);
             return {
               'month': month,
               'year': year,
@@ -406,15 +465,18 @@ class ApiService {
           throw Exception(data['error'] ?? 'Gagal memuat ringkasan pembayaran');
         }
       } else {
-        throw Exception('Server error (${response.statusCode}). Silakan coba lagi.');
+        throw Exception(
+            'Server error (${response.statusCode}). Silakan coba lagi.');
       }
     } catch (e) {
       throw _friendlyException(e);
     }
   }
-  
+
   // New method to fetch all payments for a specific month and year
-  static Future<List<Map<String, dynamic>>> fetchAllPaymentsForMonthYear(int month, int year, {required String routerId}) async {
+  static Future<List<Map<String, dynamic>>> fetchAllPaymentsForMonthYear(
+      int month, int year,
+      {required String routerId}) async {
     try {
       final baseUrl = await _getBaseUrl();
       final uri = Uri.parse('$baseUrl/payment_summary_operations.php').replace(
@@ -432,24 +494,28 @@ class ApiService {
         const Duration(seconds: 15),
         onTimeout: () => throw Exception('Koneksi timeout. Silakan coba lagi.'),
       );
-      
+
       // Check for redirect responses
       if (response.statusCode == 302 || response.statusCode == 301) {
-        throw Exception('API memerlukan autentikasi. Silakan hubungi administrator.');
+        throw Exception(
+            'API memerlukan autentikasi. Silakan hubungi administrator.');
       }
-      
+
       if (response.statusCode == 200) {
         final data = _decodeJsonOrThrow(response) as Map<String, dynamic>;
         if (data['success'] == true) {
           final List<dynamic> rawData = data['data'] as List<dynamic>;
-          final raw = rawData.map((item) => Map<String, dynamic>.from(item as Map)).toList();
-          
+          final raw = rawData
+              .map((item) => Map<String, dynamic>.from(item as Map))
+              .toList();
+
           // Normalize for detail screen
           return raw.map((p) {
             final amountNum = double.tryParse(p['amount'].toString());
             return {
               ...p,
-              'amount': amountNum ?? (p['amount'] is num ? (p['amount'] as num).toDouble() : 0.0),
+              'amount': amountNum ??
+                  (p['amount'] is num ? (p['amount'] as num).toDouble() : 0.0),
               'username': (p['username'] ?? p['user_id'] ?? '-').toString(),
               'method': (p['method'] ?? '-').toString(),
               'payment_date': (p['payment_date'] ?? '-').toString(),
@@ -460,13 +526,14 @@ class ApiService {
           throw Exception(data['error'] ?? 'Gagal memuat detail pembayaran');
         }
       } else {
-        throw Exception('Server error (${response.statusCode}). Silakan coba lagi.');
+        throw Exception(
+            'Server error (${response.statusCode}). Silakan coba lagi.');
       }
     } catch (e) {
       throw _friendlyException(e);
     }
   }
-  
+
   // New method to clear cache
   static void clearCache() {
     _cache.clear();
@@ -482,28 +549,34 @@ class ApiService {
     required String username,
     required String password,
     bool enableLogging = false,
+    bool useNativeApi = false,
+    MikrotikService? existingService,
   }) async {
-      // Cek cache: jangan sync jika sudah sync router_id ini dalam 30 detik terakhir
+    // Cek cache: jangan sync jika sudah sync router_id ini dalam 30 detik terakhir
     final now = DateTime.now();
-    if (_lastSyncedRouterId == routerId && 
-        _lastSyncTime != null && 
+    if (_lastSyncedRouterId == routerId &&
+        _lastSyncTime != null &&
         now.difference(_lastSyncTime!).inSeconds < 30) {
       if (enableLogging) {
-      // ignore: avoid_print
-      print('[SYNC_HELPER] Skip sync - sudah sync baru saja (< 30 detik)');
+        // ignore: avoid_print
+        print('[SYNC_HELPER] Skip sync - sudah sync baru saja (< 30 detik)');
       }
       return;
     }
-    
+
+    MikrotikService? localService;
+    // Use existing service if provided, otherwise create a local one
+    final service = existingService ??
+        (localService = _createService(
+          ip: ip,
+          port: port,
+          username: username,
+          password: password,
+          enableLogging: enableLogging,
+          useNativeApi: useNativeApi,
+        ));
+
     try {
-      final service = MikrotikService(
-        ip: ip,
-        port: port,
-        username: username,
-        password: password,
-        enableLogging: enableLogging,
-      );
-      
       final secrets = await service.getPPPSecret();
       final normalized = secrets
           .map((s) => {
@@ -513,23 +586,27 @@ class ApiService {
               })
           .where((u) => (u['name'] as String).isNotEmpty)
           .toList();
-      
+
       if (normalized.isEmpty) return;
-      
+
       // Update cache timestamp sebelum sync
       _lastSyncedRouterId = routerId;
       _lastSyncTime = now;
-      
+
       // Kirim per batch agar payload tidak terlalu besar
       const int batchSize = 100;
       for (int i = 0; i < normalized.length; i += batchSize) {
-        final batch = normalized.sublist(i, i + batchSize > normalized.length ? normalized.length : i + batchSize);
+        final batch = normalized.sublist(
+            i,
+            i + batchSize > normalized.length
+                ? normalized.length
+                : i + batchSize);
         try {
           await syncPPPUsers(
             routerId: routerId,
             pppUsers: List<Map<String, dynamic>>.from(batch),
             // PENTING: JANGAN AKTIFKAN PRUNE untuk sinkronisasi rutin karena akan menghapus data tambahan
-            prune: false, 
+            prune: false,
             enableLogging: enableLogging,
           );
         } catch (e) {
@@ -542,6 +619,38 @@ class ApiService {
       // ignore: avoid_print
       print('[SYNC_HELPER] Sync gagal: $e');
       // Silent fail - tidak throw exception agar tidak mengganggu load data
+    } finally {
+      // Dispose local service if we created it and it's a native service
+      if (localService != null && localService is MikrotikNativeService) {
+        localService.dispose();
+      }
+    }
+  }
+
+  static MikrotikService _createService({
+    required String ip,
+    required String port,
+    required String username,
+    required String password,
+    required bool enableLogging,
+    required bool useNativeApi,
+  }) {
+    if (useNativeApi || port == '8728' || port == '8729') {
+      return MikrotikNativeService(
+        ip: ip,
+        port: port,
+        username: username,
+        password: password,
+        enableLogging: enableLogging,
+      );
+    } else {
+      return MikrotikService(
+        ip: ip,
+        port: port,
+        username: username,
+        password: password,
+        enableLogging: enableLogging,
+      );
     }
   }
 
@@ -556,7 +665,8 @@ class ApiService {
   }) async {
     try {
       final baseUrl = await _getBaseUrl();
-      final uri = Uri.parse('$baseUrl/profile_pricing_operations.php').replace(queryParameters: {
+      final uri = Uri.parse('$baseUrl/profile_pricing_operations.php')
+          .replace(queryParameters: {
         'router_id': routerId,
         if (includeInactive) 'include_inactive': 'true',
       });
@@ -582,7 +692,8 @@ class ApiService {
   }) async {
     try {
       final baseUrl = await _getBaseUrl();
-      final uri = Uri.parse('$baseUrl/profile_pricing_operations.php').replace(queryParameters: {
+      final uri = Uri.parse('$baseUrl/profile_pricing_operations.php')
+          .replace(queryParameters: {
         'router_id': routerId,
         'profile_name': profileName,
       });
@@ -611,36 +722,39 @@ class ApiService {
   }) async {
     try {
       final baseUrl = await _getBaseUrl();
-      final url = '$baseUrl/profile_pricing_operations.php?router_id=$routerId&operation=add';
-      
+      final url =
+          '$baseUrl/profile_pricing_operations.php?router_id=$routerId&operation=add';
+
       if (kDebugMode) {
         print('[ApiService] addProfilePricing URL: $url');
-        print('[ApiService] Request body: profile_name=$profileName, price=$price, description=$description');
+        print(
+            '[ApiService] Request body: profile_name=$profileName, price=$price, description=$description');
       }
-      
+
       final requestBody = {
         'profile_name': profileName,
         'price': price,
         'description': description,
         'is_active': isActive ? 1 : 0,
       };
-      
+
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(requestBody),
       );
-      
+
       if (kDebugMode) {
         print('[ApiService] Response status: ${response.statusCode}');
         print('[ApiService] Response body: ${response.body}');
       }
-      
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         return _decodeJsonOrThrow(response) as Map<String, dynamic>;
       } else {
         final decoded = _decodeJsonOrThrow(response) as Map<String, dynamic>;
-        final errorMsg = decoded['error'] ?? 'Failed to add profile pricing (Status: ${response.statusCode})';
+        final errorMsg = decoded['error'] ??
+            'Failed to add profile pricing (Status: ${response.statusCode})';
         throw Exception(errorMsg);
       }
     } catch (e) {
@@ -674,7 +788,8 @@ class ApiService {
       if (isActive != null) body['is_active'] = isActive ? 1 : 0;
 
       final response = await http.post(
-        Uri.parse('$baseUrl/profile_pricing_operations.php?router_id=$routerId&operation=update'),
+        Uri.parse(
+            '$baseUrl/profile_pricing_operations.php?router_id=$routerId&operation=update'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(body),
       );
@@ -706,7 +821,8 @@ class ApiService {
       if (profileName != null) body['profile_name'] = profileName;
 
       final response = await http.post(
-        Uri.parse('$baseUrl/profile_pricing_operations.php?router_id=$routerId&operation=delete'),
+        Uri.parse(
+            '$baseUrl/profile_pricing_operations.php?router_id=$routerId&operation=delete'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(body),
       );

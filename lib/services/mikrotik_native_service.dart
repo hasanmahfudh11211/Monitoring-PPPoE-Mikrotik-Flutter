@@ -58,6 +58,8 @@ class MikrotikNativeService implements MikrotikService {
       _connectionCompleter!.complete();
     } catch (e) {
       print('[NATIVE-SVC] Connection failed: $e');
+      // Prevent unhandled exception in the completer if no one is listening
+      _connectionCompleter!.future.catchError((_) {});
       _connectionCompleter!.completeError(e);
       _client = null; // Reset client on failure
       rethrow;
@@ -310,17 +312,33 @@ class MikrotikNativeService implements MikrotikService {
 
   // Fallback method
   Future<String> getRouterSerialOrId() async {
+    // Pastikan koneksi siap
+    try {
+      await _ensureConnected();
+    } catch (_) {}
+
+    // 1. Cek /system/license (Prioritas Utama)
     try {
       final lic = await _client!.talk(['/system/license/print']);
-      // Note: We don't check for error here strictly to allow fallback,
-      // but if we wanted to be strict we could.
+      print('[NATIVE-SVC] License response: $lic');
       final data = lic.firstWhere(
           (i) => !i.containsKey('!done') && !i.containsKey('!trap'),
           orElse: () => {});
-      if (data.containsKey('serial-number')) return data['serial-number']!;
-      if (data.containsKey('software-id')) return data['software-id']!;
-    } catch (_) {}
 
+      final serial = data['serial-number'];
+      if (serial != null && serial.toString().isNotEmpty) {
+        return serial.toString();
+      }
+
+      final softwareId = data['software-id'];
+      if (softwareId != null && softwareId.toString().isNotEmpty) {
+        return softwareId.toString();
+      }
+    } catch (e) {
+      print('[NATIVE-SVC] Error fetching license: $e');
+    }
+
+    // 2. Fallback: Identity + IP
     try {
       final id = await getIdentity();
       return 'RB-${id['name']}@$ip:$port';

@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/mikrotik_service.dart';
+import '../services/mikrotik_native_service.dart';
 
 class RouterSessionProvider extends ChangeNotifier {
   String? routerId; // serial-number
@@ -11,6 +13,40 @@ class RouterSessionProvider extends ChangeNotifier {
   RouterSessionProvider() {
     // Auto-restore sesi dari SharedPreferences saat provider dibuat
     Future.microtask(_loadFromPrefs);
+  }
+
+  // Persistent Service Instance
+  MikrotikService? _service;
+  MikrotikService? get service => _service;
+
+  // Helper to get or create service
+  Future<MikrotikService> getService() async {
+    if (_service != null) return _service!;
+
+    // If service is null, try to recreate from saved session
+    if (ip != null && port != null && username != null && password != null) {
+      final prefs = await SharedPreferences.getInstance();
+      final useNativeApi = prefs.getBool('useNativeApi') ?? false;
+
+      if (useNativeApi || port == '8728' || port == '8729') {
+        _service = MikrotikNativeService(
+          ip: ip,
+          port: port,
+          username: username,
+          password: password,
+        );
+      } else {
+        _service = MikrotikService(
+          ip: ip,
+          port: port,
+          username: username,
+          password: password,
+        );
+      }
+      return _service!;
+    }
+
+    throw Exception('Session not initialized');
   }
 
   void saveSession({
@@ -25,6 +61,10 @@ class RouterSessionProvider extends ChangeNotifier {
     this.port = port;
     this.username = username;
     this.password = password;
+
+    // Reset service on new session
+    _disposeService();
+
     _persist();
     notifyListeners();
   }
@@ -35,8 +75,18 @@ class RouterSessionProvider extends ChangeNotifier {
     port = null;
     username = null;
     password = null;
+
+    _disposeService();
+
     _clearPrefs();
     notifyListeners();
+  }
+
+  void _disposeService() {
+    if (_service is MikrotikNativeService) {
+      (_service as MikrotikNativeService).dispose();
+    }
+    _service = null;
   }
 
   Future<void> _persist() async {
@@ -64,7 +114,11 @@ class RouterSessionProvider extends ChangeNotifier {
     final pport = prefs.getString('port');
     final usr = prefs.getString('username');
     final pwd = prefs.getString('password');
-    if ((rid?.isNotEmpty ?? false) && (pip?.isNotEmpty ?? false) && (pport?.isNotEmpty ?? false) && (usr?.isNotEmpty ?? false) && (pwd?.isNotEmpty ?? false)) {
+    if ((rid?.isNotEmpty ?? false) &&
+        (pip?.isNotEmpty ?? false) &&
+        (pport?.isNotEmpty ?? false) &&
+        (usr?.isNotEmpty ?? false) &&
+        (pwd?.isNotEmpty ?? false)) {
       routerId = rid;
       ip = pip;
       port = pport;

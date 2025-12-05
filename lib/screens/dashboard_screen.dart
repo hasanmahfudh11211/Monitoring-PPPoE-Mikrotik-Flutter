@@ -89,6 +89,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         routerSession.port != null &&
         routerSession.username != null &&
         routerSession.password != null) {
+      final prefs = await SharedPreferences.getInstance();
+      final useNativeApi = prefs.getBool('useNativeApi') ?? false;
+
       // ignore: unawaited_futures
       ApiService.syncUsersFromMikrotik(
         routerId: routerId,
@@ -97,6 +100,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         username: routerSession.username!,
         password: routerSession.password!,
         enableLogging: true, // Enable logging hanya di dashboard
+        useNativeApi: useNativeApi,
+        existingService: routerSession.service,
       );
     }
   }
