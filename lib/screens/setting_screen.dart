@@ -88,7 +88,7 @@ class _SettingScreenState extends State<SettingScreen> {
       });
     } catch (e) {
       setState(() {
-        _currentUserGroup = 'Error: ${e.toString().split(': ').last}';
+        _currentUserGroup = '---';
       });
     } finally {
       setState(() {
@@ -232,20 +232,6 @@ class _SettingScreenState extends State<SettingScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: _loadUserGroupInfo,
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Refresh Group Info'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
