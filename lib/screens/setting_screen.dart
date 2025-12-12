@@ -8,9 +8,7 @@ import '../main.dart';
 
 import '../widgets/update_dialog.dart';
 import '../services/update_service.dart';
-import '../services/mikrotik_service.dart';
-
-import '../providers/router_session_provider.dart';
+import '../services/api_service.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({Key? key}) : super(key: key);
@@ -73,81 +71,21 @@ class _SettingScreenState extends State<SettingScreen> {
     });
 
     try {
-      // Use provider to get service (handles Native/REST automatically)
-      final provider =
-          Provider.of<RouterSessionProvider>(context, listen: false);
-      final service = await provider.getService();
+      // Use the new API integration
+      final group = await ApiService.checkUserGroup(
+        ip: _currentIp,
+        port: _currentPort,
+        username: _currentUsername,
+        // Note: Password might need to be retrieved from secure storage in a real app,
+        // but for now we assume it's available or handled by the session/provider if stored there.
+        // However, looking at _loadCurrentSettings, password isn't loaded into state.
+        // We need to get it from SharedPreferences or Provider.
+        password: await _getPassword(),
+      );
 
-      try {
-        // Try to get system users first (primary method)
-        final users = await service.getSystemUsers();
-
-        // Find the user that matches the current username
-        final currentUser = users.firstWhere(
-          (user) =>
-              user['name'] != null &&
-              user['name'].toString() == _currentUsername,
-          orElse: () => {},
-        );
-
-        if (currentUser.isNotEmpty) {
-          final group = currentUser['group']?.toString();
-          if (group != null && group.isNotEmpty) {
-            try {
-              // Get group details for better information
-              final groups = await service.getSystemUserGroups();
-              final groupInfo = groups.firstWhere(
-                (g) => g['name'] != null && g['name'].toString() == group,
-                orElse: () => {'name': group},
-              );
-
-              final groupName = groupInfo['name']?.toString() ?? group;
-              final groupDescription =
-                  groupInfo['description']?.toString() ?? '';
-
-              setState(() {
-                _currentUserGroup = groupDescription.isNotEmpty
-                    ? '$groupName ($groupDescription)'
-                    : groupName;
-              });
-            } catch (groupError) {
-              // If we can't get group details, just show the group name
-              setState(() {
-                _currentUserGroup = group;
-              });
-            }
-          } else {
-            setState(() {
-              _currentUserGroup = 'No group assigned';
-            });
-          }
-        } else {
-          // If user not found in system users, try fallback method
-          throw Exception('User not found in system users');
-        }
-      } catch (e) {
-        // If system/user endpoint is not available, fallback to PPP secret method
-        if (e.toString().contains('Endpoint not available') ||
-            e.toString().contains('400') ||
-            e.toString().contains('User not found')) {
-          try {
-            final group =
-                await service.getUserGroupFromPPPSecret(_currentUsername);
-            setState(() {
-              _currentUserGroup = group;
-            });
-          } catch (pppError) {
-            setState(() {
-              _currentUserGroup =
-                  'Error: ${pppError.toString().split(': ').last}';
-            });
-          }
-        } else {
-          setState(() {
-            _currentUserGroup = 'Error: ${e.toString().split(': ').last}';
-          });
-        }
-      }
+      setState(() {
+        _currentUserGroup = group;
+      });
     } catch (e) {
       setState(() {
         _currentUserGroup = 'Error: ${e.toString().split(': ').last}';
@@ -157,6 +95,11 @@ class _SettingScreenState extends State<SettingScreen> {
         _loadingGroup = false;
       });
     }
+  }
+
+  Future<String> _getPassword() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('password') ?? '';
   }
 
   Future<void> _saveSettings() async {

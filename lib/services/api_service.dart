@@ -850,4 +850,56 @@ class ApiService {
         .where((u) => (u['name'] as String).isNotEmpty)
         .toList();
   }
+  // =====================================================
+  // User Group Check (New Integration)
+  // =====================================================
+
+  /// Check user group via PHP API (check_user_group.php)
+  static Future<String> checkUserGroup({
+    required String ip,
+    required String port,
+    required String username,
+    required String password,
+  }) async {
+    try {
+      final baseUrl = await _getBaseUrl();
+      final url = '$baseUrl/check_user_group.php';
+
+      if (kDebugMode) {
+        print('[ApiService] Checking user group at $url');
+      }
+
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'ip': ip,
+              'port': port,
+              'username': username,
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final data = _decodeJsonOrThrow(response) as Map<String, dynamic>;
+        if (data['status'] == true) {
+          final List<dynamic> users = data['data'];
+          if (users.isNotEmpty) {
+            final user = users.first;
+            return user['group']?.toString() ?? 'No Group';
+          } else {
+            return 'User not found';
+          }
+        } else {
+          throw Exception(data['error'] ?? 'Unknown error from API');
+        }
+      } else {
+        throw Exception('HTTP Error ${response.statusCode}');
+      }
+    } catch (e) {
+      throw _friendlyException(e);
+    }
+  }
 }
