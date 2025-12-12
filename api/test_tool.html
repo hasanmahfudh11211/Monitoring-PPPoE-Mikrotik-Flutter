@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MikroTik User Group Checker</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background-color: #f4f4f9;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: #333;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #2d2d2d;
+            color: #f8f8f2;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 0.9rem;
+            display: none;
+            white-space: pre-wrap;
+        }
+
+        .error {
+            color: #ff6b6b;
+        }
+
+        .success {
+            color: #51cf66;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>User Group Checker</h1>
+
+        <div class="form-group">
+            <label>API Method</label>
+            <select id="method" onchange="updatePortDefault()">
+                <option value="native">Native API (Port 8728)</option>
+                <option value="rest">REST API (Port 80/443)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>MikroTik IP</label>
+            <input type="text" id="ip" value="192.168.88.1">
+        </div>
+
+        <div class="form-group">
+            <label>API Port</label>
+            <input type="number" id="port" value="8728">
+        </div>
+
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="username" value="admin">
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="password">
+        </div>
+
+        <div class="form-group">
+            <label>Target User (Optional)</label>
+            <input type="text" id="target_user" placeholder="Empty for all users">
+        </div>
+
+        <button onclick="checkGroup()">Check Group</button>
+
+        <pre id="result"></pre>
+    </div>
+
+    <script>
+        function updatePortDefault() {
+            const method = document.getElementById('method').value;
+            const portInput = document.getElementById('port');
+            // Default ports: Native=8728, REST=80
+            portInput.value = (method === 'rest') ? 80 : 8728;
+        }
+
+        async function checkGroup() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Checking...';
+            resultDiv.className = '';
+
+            const method = document.getElementById('method').value;
+            const endpoint = method === 'rest' ? 'check_user_group_rest.php' : 'check_user_group.php';
+
+            // Safe element retrieval
+            const ipEl = document.getElementById('ip');
+            const portEl = document.getElementById('port');
+            const userEl = document.getElementById('username');
+            const passEl = document.getElementById('password');
+            const targetUserEl = document.getElementById('target_user');
+
+            const data = {
+                ip: ipEl ? ipEl.value : '',
+                port: portEl ? parseInt(portEl.value) : 8728,
+                username: userEl ? userEl.value : '',
+                password: passEl ? passEl.value : '',
+                target_user: targetUserEl ? targetUserEl.value : ''
+            };
+
+            // Timeout controller (5 seconds)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                const text = await response.text();
+
+                try {
+                    const json = JSON.parse(text);
+                    resultDiv.textContent = JSON.stringify(json, null, 2);
+                    if (json.status === false) {
+                        resultDiv.className = 'error';
+                    } else {
+                        resultDiv.className = 'success';
+                    }
+                } catch (e) {
+                    console.error("JSON Parse Error:", e);
+                    resultDiv.textContent = 'Error: Invalid JSON response.\n\nRaw Response:\n' + text;
+                    resultDiv.className = 'error';
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    resultDiv.textContent = 'Error: Connection Timed Out (5s). Check IP/Port/Firewall.';
+                } else {
+                    resultDiv.textContent = 'Network/Fetch Error: ' + error.message;
+                }
+                resultDiv.className = 'error';
+            }
+        }
+    </script>
+</body>
+
+</html>

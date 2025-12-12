@@ -9,7 +9,7 @@ import '../main.dart';
 import '../widgets/update_dialog.dart';
 import '../services/update_service.dart';
 import '../services/mikrotik_service.dart';
-import '../services/api_service.dart';
+
 import '../providers/router_session_provider.dart';
 
 class SettingScreen extends StatefulWidget {
@@ -432,6 +432,8 @@ class _SettingScreenState extends State<SettingScreen> {
               const SizedBox(height: 16),
 
               // Maintenance Section
+              // Maintenance Section
+              /*
               Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
@@ -477,38 +479,26 @@ class _SettingScreenState extends State<SettingScreen> {
                   ),
                 ),
               ),
+              */
               const SizedBox(height: 16),
 
               // Logout Button
-              Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 24),
-                      _buildActionButton(
-                        icon: Icons.backup,
-                        label: 'Database Setting',
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/export-ppp');
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      _buildActionButton(
-                        icon: Icons.logout,
-                        label: 'Logout',
-                        onPressed: () => _showLogoutConfirmation(context),
-                        color: Colors.red,
-                      ),
-                    ],
-                  ),
-                ),
+
+              _buildActionButton(
+                icon: Icons.backup,
+                label: 'Database Setting',
+                onPressed: () {
+                  Navigator.pushNamed(context, '/export-ppp');
+                },
               ),
+              const SizedBox(height: 12),
+              _buildActionButton(
+                icon: Icons.logout,
+                label: 'Logout',
+                onPressed: () => _showLogoutConfirmation(context),
+                color: Colors.red,
+              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -673,6 +663,7 @@ class _SettingScreenState extends State<SettingScreen> {
     }
   }
 
+  /*
   Future<void> _showDeleteDataDialog(BuildContext context) async {
     final isDark =
         Provider.of<ThemeProvider>(context, listen: false).isDarkMode;
@@ -727,7 +718,9 @@ class _SettingScreenState extends State<SettingScreen> {
       ),
     );
   }
+  */
 
+  /*
   Future<void> _performDeleteData(String routerId) async {
     // Show loading
     showDialog(
@@ -755,7 +748,9 @@ class _SettingScreenState extends State<SettingScreen> {
       );
     }
   }
+  */
 
+  /*
   Future<void> _checkAndFixRouterId(BuildContext context) async {
     final session = Provider.of<RouterSessionProvider>(context, listen: false);
     final currentId = session.routerId;
@@ -881,6 +876,7 @@ class _SettingScreenState extends State<SettingScreen> {
       );
     }
   }
+  */
 
   Future<void> _showLogoutConfirmation(BuildContext context) async {
     final isDark =

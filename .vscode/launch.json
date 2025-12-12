@@ -28,6 +28,14 @@
       "program": "lib/main.dart",
       "flutterMode": "profile",
       "preLaunchTask": "flutter pub get"
+    },
+    {
+      "name": "Flutter (Clean & Run)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "flutterMode": "debug",
+      "preLaunchTask": "flutter clean & get"
     }
   ]
 }

@@ -8,11 +8,42 @@
             "problemMatcher": [],
             "presentation": {
                 "echo": true,
-                "reveal": "silent",
+                "reveal": "always",
                 "focus": false,
                 "panel": "shared",
                 "showReuseMessage": false,
                 "clear": false
+            }
+        },
+        {
+            "label": "flutter clean",
+            "type": "shell",
+            "command": "flutter clean",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            }
+        },
+        {
+            "label": "flutter clean & get",
+            "type": "shell",
+            "command": "flutter clean; flutter pub get",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            },
+            "windows": {
+                "command": "flutter clean; flutter pub get"
             }
         }
     ]
