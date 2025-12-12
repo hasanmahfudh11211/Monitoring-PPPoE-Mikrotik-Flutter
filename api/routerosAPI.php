@@ -13,77 +13,79 @@ class RouterosAPI
         if (!$this->socket) return false;
         stream_set_timeout($this->socket, $this->timeout);
 
+        // Attempt 1: New Login Method (Send credentials immediately)
+        // Works on RouterOS v6.43+ and v7+
         $this->write('/login');
-        $response = $this->read();
-        
-        // Challenge-response login (pre-6.43) or plain login?
-        // Modern RouterOS (6.43+) allows plain text login if detected.
-        // But usually we get !done with ret=challenge.
+        $this->write('=name=' . $login);
+        $this->write('=password=' . $password);
+        $this->write(''); // End command
+
+        $response = $this->read(false);
         
         if (isset($response[0]) && $response[0] === '!done') {
-            // Check for challenge
+            // Login successful
+            $this->connected = true;
+            return true;
+        }
+
+        // Attempt 2: Old Login Method (Challenge-Response)
+        // If the first attempt failed (e.g. !trap), maybe it's an old router?
+        // Or maybe it just ignored the params and sent a challenge?
+        
+        // Check if we got a challenge in the first response
+        // Note: If we sent params, and it's old, it might return !trap.
+        // If it's old, we should have sent just /login.
+        
+        // Let's try the Safe "Universal" Flow instead:
+        // 1. Send /login (no params)
+        // 2. If !done + ret=challenge -> Do challenge
+        // 3. If !done (no ret) -> We are logged in (unlikely) OR it's waiting for params (new method)
+        
+        // RE-CONNECTING for clean state
+        fclose($this->socket);
+        $this->socket = @fsockopen($ip, $this->port, $errno, $errstr, $this->timeout);
+        if (!$this->socket) return false;
+        stream_set_timeout($this->socket, $this->timeout);
+
+        // Step 1: Send /login
+        $this->write('/login');
+        $this->write(''); // End command
+        $response = $this->read(false);
+
+        if (isset($response[0]) && $response[0] === '!done') {
             $challenge = null;
             foreach ($response as $line) {
                 if (strpos($line, '=ret=') === 0) {
                     $challenge = substr($line, 5);
                 }
             }
-            
+
             if ($challenge) {
-                // Old style login
+                // Old Method: Challenge-Response
                 $hash = md5(chr(0) . $password . hex2bin($challenge));
                 $this->write('/login');
                 $this->write('=name=' . $login);
                 $this->write('=response=00' . $hash);
-                $response = $this->read();
+                $this->write(''); // End command
+                $response = $this->read(false);
+                if (isset($response[0]) && $response[0] === '!done') {
+                    $this->connected = true;
+                    return true;
+                }
             } else {
-                // Maybe already logged in or new style without challenge?
-                // Try sending credentials just in case it was a "new style" init
-                // Actually, if we got !done without ret, we might be logged in?
-                // But usually 6.43+ requires sending name/pass immediately if not using challenge.
-                // Let's try the standard flow for 6.43+:
-                // Send /login, receive !trap or !done.
-                // If we are here, we sent /login and got !done.
-                // If it was 6.43+, we should have sent name/pass with the first /login.
+                // New Method: Send credentials now
+                $this->write('/login');
+                $this->write('=name=' . $login);
+                $this->write('=password=' . $password);
+                $this->write(''); // End command
+                $response = $this->read(false);
+                if (isset($response[0]) && $response[0] === '!done') {
+                    $this->connected = true;
+                    return true;
+                }
             }
-        } elseif (isset($response[0]) && $response[0] === '!trap') {
-             // Maybe 6.43+ requiring attributes?
         }
 
-        // Re-try with full credentials for 6.43+ compatibility if the first one failed or was just a handshake
-        // But to keep it simple and robust for the user's likely version:
-        // Let's use the universal method:
-        // 1. Send /login.
-        // 2. If we get challenge, use it.
-        // 3. If we don't get challenge, we might need to send name/pass directly.
-        
-        // Let's restart the connection logic to be cleaner.
-        // Close and reopen? No.
-        
-        // Actually, let's just implement the standard "new" login flow which works on new ROS.
-        // For old ROS, we need the challenge.
-        
-        // Let's try the "new" flow first (send name/pass immediately).
-        // If that fails, we can't easily fallback without reconnecting.
-        
-        // Let's stick to the "safe" flow:
-        // 1. /login
-        // 2. If ret=challenge, do challenge.
-        // 3. If !done (and no ret), we are good? No, usually means we didn't send credentials.
-        
-        // Let's try this:
-        $this->write('/login');
-        $this->write('=name=' . $login);
-        $this->write('=password=' . $password);
-        $response = $this->read();
-        
-        if (isset($response[0]) && $response[0] === '!done') {
-            $this->connected = true;
-            return true;
-        }
-        
-        // If we got !trap, maybe it's the old method?
-        // Or maybe we need to do the challenge flow.
         return false;
     }
 

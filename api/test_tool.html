@@ -121,12 +121,12 @@
             <input type="password" id="password">
         </div>
 
-        <div class="form-group">
-            <label>Target User (Optional)</label>
-            <input type="text" id="target_user" placeholder="Empty for all users">
-        </div>
+        <!-- Target User input removed as requested -->
 
-        <button onclick="checkGroup()">Check Group</button>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="checkGroup()" style="flex: 2;">Check Group</button>
+            <button onclick="testConnection()" style="flex: 1; background: #6c757d;">Test Ping</button>
+        </div>
 
         <pre id="result"></pre>
     </div>
@@ -145,27 +145,37 @@
             resultDiv.textContent = 'Checking...';
             resultDiv.className = '';
 
+            // Check if running via file://
+            if (window.location.protocol === 'file:') {
+                resultDiv.textContent = 'ERROR: You are opening this file directly (file://).\n' +
+                    'AJAX requests will NOT work.\n' +
+                    'Please open this file via a Web Server (localhost).\n' +
+                    'Example: http://localhost/mikrotik_monitor/api/test_tool.html';
+                resultDiv.className = 'error';
+                return;
+            }
+
             const method = document.getElementById('method').value;
             const endpoint = method === 'rest' ? 'check_user_group_rest.php' : 'check_user_group.php';
+
+            console.log("Fetching endpoint:", new URL(endpoint, window.location.href).href);
 
             // Safe element retrieval
             const ipEl = document.getElementById('ip');
             const portEl = document.getElementById('port');
             const userEl = document.getElementById('username');
             const passEl = document.getElementById('password');
-            const targetUserEl = document.getElementById('target_user');
 
             const data = {
                 ip: ipEl ? ipEl.value : '',
                 port: portEl ? parseInt(portEl.value) : 8728,
                 username: userEl ? userEl.value : '',
-                password: passEl ? passEl.value : '',
-                target_user: targetUserEl ? targetUserEl.value : ''
+                password: passEl ? passEl.value : ''
             };
 
-            // Timeout controller (5 seconds)
+            // Timeout controller (20 seconds)
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
 
             try {
                 const response = await fetch(endpoint, {
@@ -193,10 +203,49 @@
                 }
             } catch (error) {
                 if (error.name === 'AbortError') {
-                    resultDiv.textContent = 'Error: Connection Timed Out (5s). Check IP/Port/Firewall.';
+                    resultDiv.textContent = 'Error: Connection Timed Out (20s). Check IP/Port/Firewall.';
                 } else {
                     resultDiv.textContent = 'Network/Fetch Error: ' + error.message;
                 }
+                resultDiv.className = 'error';
+            }
+        }
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing Connectivity...';
+            resultDiv.className = '';
+
+            const data = {
+                ip: document.getElementById('ip').value,
+                port: parseInt(document.getElementById('port').value)
+            };
+
+            try {
+                const response = await fetch('test_connection.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const json = await response.json();
+                resultDiv.textContent = JSON.stringify(json, null, 2);
+
+                if (json.status) {
+                    resultDiv.className = 'success';
+                } else {
+                    resultDiv.textContent += '\n\nANALYSIS:\n';
+                    if (json.server_ip !== '127.0.0.1' && json.server_ip !== '::1' && !json.server_ip.startsWith('192.168.')) {
+                        resultDiv.textContent += 'WARNING: You seem to be running on a PUBLIC SERVER (' + json.server_ip + ').\n';
+                        resultDiv.textContent += 'Public servers CANNOT connect to Private IPs (' + json.target_ip + ').\n';
+                        resultDiv.textContent += 'Solution: Use a VPN or Public IP for your MikroTik.';
+                    } else {
+                        resultDiv.textContent += 'Server seems local. Check Firewall or Antivirus blocking PHP.';
+                    }
+                    resultDiv.className = 'error';
+                }
+            } catch (error) {
+                resultDiv.textContent = 'Error: ' + error.message;
                 resultDiv.className = 'error';
             }
         }

@@ -30,7 +30,7 @@ try {
     $port = $input['port'] ?? 8728;
     $username = $input['username'] ?? '';
     $password = $input['password'] ?? '';
-    $target_user = $input['target_user'] ?? '';
+    // target_user removed
 
     if (!$ip || !$username || !$password) {
         throw new Exception('IP, Username, dan Password wajib diisi');
@@ -40,18 +40,26 @@ try {
     $api->port = $port;
 
     if ($api->connect($ip, $username, $password)) {
-        $params = [];
-        if (!empty($target_user)) {
-            $params['?name'] = $target_user;
-        }
-
+        // ... (connection successful logic) ...
+        // Filter di API level (jika didukung)
+        $params = ['?name' => $username];
         $users = $api->comm('/user/print', $params);
         $api->disconnect();
 
+        // Filter di PHP level (Strict)
+        $final_data = [];
+        foreach ($users as $user) {
+            if (isset($user['name']) && $user['name'] === $username) {
+                $final_data[] = $user;
+                break; // Ambil satu saja
+            }
+        }
+
         echo json_encode([
             'status' => true,
-            'data' => $users
+            'data' => $final_data
         ]);
+        exit; // Stop execution after success
     } else {
         throw new Exception('Gagal koneksi ke MikroTik (Cek IP, Port, User, Pass)');
     }
