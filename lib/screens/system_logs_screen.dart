@@ -135,12 +135,11 @@ class _SystemLogsScreenState extends State<SystemLogsScreen> {
             elevation: 0,
             centerTitle: true,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back,
-                  color: isDark ? Colors.white : Colors.black),
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => Navigator.pop(context),
             ),
-            titleTextStyle: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
+            titleTextStyle: const TextStyle(
+              color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -154,12 +153,12 @@ class _SystemLogsScreenState extends State<SystemLogsScreen> {
                       children: [
                         Icon(Icons.history,
                             size: 64,
-                            color: isDark ? Colors.white24 : Colors.grey[300]),
+                            color: isDark ? Colors.white24 : Colors.white54),
                         const SizedBox(height: 16),
                         Text(
                           'Belum ada aktivitas tercatat',
                           style: TextStyle(
-                            color: isDark ? Colors.white54 : Colors.grey,
+                            color: isDark ? Colors.white54 : Colors.white70,
                             fontSize: 16,
                           ),
                         ),
@@ -175,7 +174,8 @@ class _SystemLogsScreenState extends State<SystemLogsScreen> {
                         return const Center(
                           child: Padding(
                             padding: EdgeInsets.all(16.0),
-                            child: CircularProgressIndicator(),
+                            child:
+                                CircularProgressIndicator(color: Colors.white),
                           ),
                         );
                       }
@@ -185,116 +185,146 @@ class _SystemLogsScreenState extends State<SystemLogsScreen> {
                       final username = log['username'] ?? 'System';
                       final details = log['details'] ?? '';
                       final timestamp = log['timestamp'] ?? log['created_at'];
+                      final actionColor = _getActionColor(action);
 
-                      return Card(
+                      return Container(
                         margin: const EdgeInsets.only(bottom: 12),
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
+                        decoration: BoxDecoration(
+                          color:
+                              isDark ? const Color(0xFF1E1E1E) : Colors.white,
                           borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: _getActionColor(action)
-                                          .withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      _getActionIcon(action),
-                                      color: _getActionColor(action),
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Colored Indicator Strip
+                                Container(
+                                  width: 6,
+                                  color: actionColor,
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          action,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: _getActionColor(action),
-                                            fontSize: 14,
-                                          ),
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: actionColor.withValues(
+                                                    alpha: 0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Icon(
+                                                _getActionIcon(action),
+                                                color: actionColor,
+                                                size: 20,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    action,
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: actionColor,
+                                                      fontSize: 14,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    _formatDate(timestamp),
+                                                    style: TextStyle(
+                                                      color: isDark
+                                                          ? Colors.white54
+                                                          : Colors.grey[600],
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 8,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: isDark
+                                                    ? Colors.grey[800]
+                                                    : Colors.grey[100],
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.person_outline,
+                                                    size: 12,
+                                                    color: isDark
+                                                        ? Colors.white54
+                                                        : Colors.grey[600],
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    username,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: isDark
+                                                          ? Colors.white70
+                                                          : Colors.grey[800],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _formatDate(timestamp),
-                                          style: TextStyle(
+                                        if (details.isNotEmpty) ...[
+                                          const SizedBox(height: 12),
+                                          Divider(
+                                            height: 1,
                                             color: isDark
-                                                ? Colors.white54
-                                                : Colors.grey[600],
-                                            fontSize: 12,
+                                                ? Colors.grey[800]
+                                                : Colors.grey[200],
                                           ),
-                                        ),
+                                          const SizedBox(height: 12),
+                                          Text(
+                                            details,
+                                            style: TextStyle(
+                                              color: isDark
+                                                  ? Colors.white70
+                                                  : Colors.grey[800],
+                                              height: 1.4,
+                                            ),
+                                          ),
+                                        ],
                                       ],
                                     ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isDark
-                                          ? Colors.grey[800]
-                                          : Colors.grey[100],
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.person_outline,
-                                          size: 12,
-                                          color: isDark
-                                              ? Colors.white54
-                                              : Colors.grey[600],
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          username,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: isDark
-                                                ? Colors.white70
-                                                : Colors.grey[800],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (details.isNotEmpty) ...[
-                                const SizedBox(height: 12),
-                                Divider(
-                                  height: 1,
-                                  color: isDark
-                                      ? Colors.grey[800]
-                                      : Colors.grey[200],
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  details,
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white70
-                                        : Colors.grey[800],
-                                    height: 1.4,
                                   ),
                                 ),
                               ],
-                            ],
+                            ),
                           ),
                         ),
                       );

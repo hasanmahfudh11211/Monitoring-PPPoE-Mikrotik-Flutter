@@ -4,6 +4,7 @@ import '../providers/mikrotik_provider.dart';
 import '../services/mikrotik_service.dart';
 import '../services/api_service.dart';
 import '../services/log_service.dart';
+import '../services/log_sync_service.dart'; // Import Sync Service
 import '../providers/router_session_provider.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,6 +32,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? _lastResourceHash;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // Log Sync Service
+  LogSyncService? _logSyncService;
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +61,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     // Trigger sync ke database di background saat dashboard dibuka
     _triggerBackgroundSync();
+
+    // Start Log Sync Service (10s interval + Local Notification)
+    _logSyncService = LogSyncService(context);
+    _logSyncService?.startAutoSync();
 
     // Reduced timer frequency to prevent battery drain and memory leaks
     _timer = Timer.periodic(const Duration(seconds: 1), (_) async {
@@ -143,6 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void dispose() {
     _timer?.cancel();
     _pppStatusTimer?.cancel();
+    _logSyncService?.stopAutoSync(); // Stop Sync Service
     _provider.removeListener(_providerListener);
     super.dispose();
   }

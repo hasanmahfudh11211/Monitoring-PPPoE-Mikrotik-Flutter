@@ -10,6 +10,7 @@ import '../widgets/update_dialog.dart';
 import '../services/update_service.dart';
 import '../services/api_service.dart';
 import '../services/log_service.dart';
+import '../services/log_sync_service.dart';
 import '../providers/router_session_provider.dart';
 
 class SettingScreen extends StatefulWidget {
@@ -347,11 +348,56 @@ class _SettingScreenState extends State<SettingScreen> {
                           ),
                         ),
                         value: _showNotifications,
-                        onChanged: (bool value) {
-                          setState(() {
-                            _showNotifications = value;
-                          });
-                          _saveSettings();
+                        onChanged: (bool value) async {
+                          final logSyncService = LogSyncService(context);
+
+                          if (value) {
+                            // ENABLE
+                            bool hasPermission =
+                                await logSyncService.checkPermission();
+
+                            if (!hasPermission) {
+                              hasPermission =
+                                  await logSyncService.requestPermission();
+                              if (!hasPermission) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content:
+                                          Text('Izin notifikasi diperlukan.'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                                return;
+                              }
+                            }
+
+                            setState(() {
+                              _showNotifications = true;
+                            });
+                            await _saveSettings();
+
+                            // Notifikasi Konfirmasi Aktif
+                            await logSyncService.testNotification(
+                                title: "Status Notifikasi",
+                                body: "Notifikasi berhasil diaktifkan.");
+                          } else {
+                            // DISABLE
+                            // Kirim notifikasi dulu SEBELUM dimatikan (karena setelah false, service akan memblokir)
+                            // Tapi tunggu, service mengecek SharedPreferences.
+                            // Jadi urutannya: Kirim Notif -> Update State -> Save Prefs.
+
+                            await logSyncService.testNotification(
+                                title: "Status Notifikasi",
+                                body:
+                                    "Notifikasi dinonaktifkan. Anda tidak akan menerima update notifikasi lagi.");
+
+                            setState(() {
+                              _showNotifications = false;
+                            });
+                            await _saveSettings();
+                          }
                         },
                       ),
                       const SizedBox(height: 12),
