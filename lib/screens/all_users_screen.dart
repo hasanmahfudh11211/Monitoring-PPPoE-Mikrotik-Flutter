@@ -332,7 +332,9 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
           throw Exception('Silakan login router ulang');
         }
         await ApiService.deleteUser(
-            routerId: routerIdValue, username: user['username'] as String);
+            routerId: routerIdValue,
+            username: user['username'] as String,
+            adminUsername: routerIdProvider.username);
         if (mounted) {
           setState(() {
             _users.removeWhere((u) => u['username'] == user['username']);

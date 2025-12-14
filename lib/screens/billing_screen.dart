@@ -3,8 +3,7 @@ import '../services/api_service.dart';
 import '../widgets/gradient_container.dart';
 import '../widgets/custom_snackbar.dart';
 import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'payment_summary_screen.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
@@ -400,7 +399,7 @@ class _BillingScreenState extends State<BillingScreen> {
 
                                 try {
                                   // Safe access to prevent null pointer exceptions
-                                  final userId = user['id'];
+                                  final userId = user['id']?.toString();
                                   if (userId == null) {
                                     throw Exception('User ID tidak ditemukan');
                                   }
@@ -421,34 +420,22 @@ class _BillingScreenState extends State<BillingScreen> {
                                       .replaceAll(',', '');
                                   final amount =
                                       double.tryParse(amountRaw) ?? 0;
-                                  final url = Uri.parse(
-                                      '${ApiService.baseUrl}/payment_operations.php?operation=add');
-                                  final body = {
-                                    'router_id': routerId,
-                                    'user_id': userId,
-                                    'amount': amount,
-                                    'payment_date': DateFormat('yyyy-MM-dd')
+                                  // Use ApiService to add payment
+                                  final respData = await ApiService.addPayment(
+                                    routerId: routerId,
+                                    userId: userId,
+                                    amount: amount,
+                                    paymentDate: DateFormat('yyyy-MM-dd')
                                         .format(paymentDate),
-                                    'method': selectedMethod,
-                                    'note': noteController.text,
-                                    'created_by': 'Admin',
-                                  };
-
-                                  // Adding payment for user $userId
-                                  // Payment data: $body
-
-                                  final resp = await http.post(
-                                    url,
-                                    headers: {
-                                      'Content-Type': 'application/json'
-                                    },
-                                    body: jsonEncode(body),
+                                    method: selectedMethod,
+                                    note: noteController.text,
+                                    adminUsername:
+                                        Provider.of<RouterSessionProvider>(
+                                                context,
+                                                listen: false)
+                                            .username,
+                                    customerName: user['username'],
                                   );
-
-                                  // Payment API response status: ${resp.statusCode}
-                                  // Payment API response body: ${resp.body}
-
-                                  final respData = jsonDecode(resp.body);
                                   if (respData['success'] == true) {
                                     Navigator.of(dialogContext).pop();
                                     if (context.mounted) {
@@ -957,7 +944,7 @@ class _BillingScreenState extends State<BillingScreen> {
                                                   child: ElevatedButton.icon(
                                                     onPressed: () =>
                                                         _confirmDeletePayment(
-                                                            p),
+                                                            p, user),
                                                     icon: Icon(
                                                       Icons.delete,
                                                       size: 18,
@@ -2535,27 +2522,24 @@ Terimakasih''';
                                 .replaceAll('.', '')
                                 .replaceAll(',', '');
                             final amount = double.tryParse(amountRaw) ?? 0;
-                            final url = Uri.parse(
-                                '${ApiService.baseUrl}/payment_operations.php?operation=update');
-                            final body = {
-                              'router_id': routerId,
-                              'id': paymentId,
-                              'user_id': userId,
-                              'amount': amount,
-                              'payment_date':
-                                  DateFormat('yyyy-MM-dd').format(paymentDate),
-                              'method': selectedMethod,
-                              'note': noteController.text,
-                              'created_by': 'Admin',
-                            };
+                            final adminUsername =
+                                Provider.of<RouterSessionProvider>(context,
+                                        listen: false)
+                                    .username;
 
-                            final resp = await http.put(
-                              url,
-                              headers: {'Content-Type': 'application/json'},
-                              body: jsonEncode(body),
+                            final respData = await ApiService.updatePayment(
+                              routerId: routerId,
+                              id: int.parse(paymentId.toString()),
+                              userId: userId.toString(),
+                              amount: amount,
+                              paymentDate:
+                                  DateFormat('yyyy-MM-dd').format(paymentDate),
+                              method: selectedMethod,
+                              note: noteController.text,
+                              adminUsername: adminUsername,
+                              customerName: user['username'],
                             );
 
-                            final respData = jsonDecode(resp.body);
                             if (respData['success'] == true) {
                               Navigator.of(dialogContext).pop();
                               if (context.mounted) {
@@ -2612,7 +2596,8 @@ Terimakasih''';
     );
   }
 
-  void _confirmDeletePayment(Map<String, dynamic> payment) {
+  void _confirmDeletePayment(
+      Map<String, dynamic> payment, Map<String, dynamic> user) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
@@ -2662,17 +2647,17 @@ Terimakasih''';
                   }
 
                   final paymentId = payment['id'];
-                  final url = Uri.parse(
-                      '${ApiService.baseUrl}/payment_operations.php?operation=delete');
-                  final body = {'router_id': routerId, 'id': paymentId};
+                  final adminUsername =
+                      Provider.of<RouterSessionProvider>(context, listen: false)
+                          .username;
 
-                  final resp = await http.delete(
-                    url,
-                    headers: {'Content-Type': 'application/json'},
-                    body: jsonEncode(body),
+                  final respData = await ApiService.deletePayment(
+                    routerId: routerId,
+                    id: int.parse(paymentId.toString()),
+                    adminUsername: adminUsername,
+                    customerName: user['username'],
                   );
 
-                  final respData = jsonDecode(resp.body);
                   if (respData['success'] == true) {
                     Navigator.of(dialogContext).pop();
                     if (context.mounted) {

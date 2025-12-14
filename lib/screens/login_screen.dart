@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../providers/router_session_provider.dart';
 import '../services/mikrotik_native_service.dart';
 import '../services/api_service.dart';
+import '../services/log_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -618,6 +619,15 @@ Solusi:
 
       // Show success dialog
       _showSuccessDialog(username);
+
+      // Log Activity
+      LogService.logActivity(
+        username: username,
+        action: LogService.ACTION_LOGIN,
+        routerId: routerId,
+        details:
+            'Login berhasil via ${tryNativeFirst ? "Native API" : "REST API"}',
+      );
     } catch (e) {
       print('[LOGIN] Error saving session: $e');
       setState(() {

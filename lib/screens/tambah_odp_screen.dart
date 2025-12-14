@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+
 import '../services/api_service.dart';
 import '../providers/router_session_provider.dart';
 import '../widgets/gradient_container.dart';
 
 class TambahODPScreen extends StatefulWidget {
   final Map<String, dynamic>? odpToEdit;
-  
+
   const TambahODPScreen({
     Key? key,
     this.odpToEdit,
@@ -37,13 +36,15 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
       // Populate form with existing data
       _nameController.text = widget.odpToEdit!['name'].toString();
       _locationController.text = widget.odpToEdit!['location'].toString();
-      _mapsLinkController.text = widget.odpToEdit!['maps_link']?.toString() ?? '';
+      _mapsLinkController.text =
+          widget.odpToEdit!['maps_link']?.toString() ?? '';
       _selectedType = widget.odpToEdit!['type'].toString();
       if (_selectedType == 'splitter') {
         _selectedSplitterType = widget.odpToEdit!['splitter_type'].toString();
       } else {
         _ratioUsedController.text = widget.odpToEdit!['ratio_used'].toString();
-        _ratioTotalController.text = widget.odpToEdit!['ratio_total'].toString();
+        _ratioTotalController.text =
+            widget.odpToEdit!['ratio_total'].toString();
       }
     }
     _ratioUsedController.addListener(_onRatioUsedChanged);
@@ -94,7 +95,7 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
         // Safe parsing to prevent null pointer exceptions
         final ratioUsedText = _ratioUsedController.text.trim();
         final ratioTotalText = _ratioTotalController.text.trim();
-        
+
         if (ratioUsedText.isNotEmpty && ratioTotalText.isNotEmpty) {
           data['ratio_used'] = int.tryParse(ratioUsedText) ?? 0;
           data['ratio_total'] = int.tryParse(ratioTotalText) ?? 0;
@@ -108,28 +109,69 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
       }
 
       // Get router_id from RouterSessionProvider
-      final routerId = Provider.of<RouterSessionProvider>(context, listen: false).routerId;
+      final routerId =
+          Provider.of<RouterSessionProvider>(context, listen: false).routerId;
       if (routerId == null || routerId.isEmpty) {
         throw Exception('Router belum login. Silakan login dulu.');
       }
 
-      final response = await http.post(
-        Uri.parse('${ApiService.baseUrl}/odp_operations.php?router_id=$routerId&operation=${widget.odpToEdit != null ? 'update' : 'add'}'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(data),
-      );
+      final adminUsername =
+          Provider.of<RouterSessionProvider>(context, listen: false).username;
+
+      if (widget.odpToEdit != null) {
+        // Update
+        await ApiService.updateODP(
+          routerId: routerId,
+          id: int.parse(widget.odpToEdit!['id'].toString()),
+          name: _nameController.text,
+          location: _locationController.text,
+          mapsLink: _mapsLinkController.text,
+          type: _selectedType,
+          splitterType:
+              _selectedType == 'splitter' ? _selectedSplitterType : null,
+          ratioUsed: _selectedType == 'ratio'
+              ? int.tryParse(_ratioUsedController.text)
+              : null,
+          ratioTotal: _selectedType == 'ratio'
+              ? int.tryParse(_ratioTotalController.text)
+              : null,
+          adminUsername: adminUsername,
+        );
+      } else {
+        // Add
+        await ApiService.addODP(
+          routerId: routerId,
+          name: _nameController.text,
+          location: _locationController.text,
+          mapsLink: _mapsLinkController.text,
+          type: _selectedType,
+          splitterType:
+              _selectedType == 'splitter' ? _selectedSplitterType : null,
+          ratioUsed: _selectedType == 'ratio'
+              ? int.tryParse(_ratioUsedController.text)
+              : null,
+          ratioTotal: _selectedType == 'ratio'
+              ? int.tryParse(_ratioTotalController.text)
+              : null,
+          adminUsername: adminUsername,
+        );
+      }
+
+      // Mock response for compatibility with existing logic
+      // ApiService throws exception on failure, so if we are here, it's success.
+      const responseData = {'success': true};
 
       // Save response status: ${response.statusCode}
       // Save response body: ${response.body}
 
       if (!mounted) return;
 
-      final responseData = jsonDecode(response.body);
       if (responseData['success'] == true) {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('ODP berhasil ${widget.odpToEdit != null ? 'diperbarui' : 'ditambahkan'}'),
+            content: Text(
+                'ODP berhasil ${widget.odpToEdit != null ? 'diperbarui' : 'ditambahkan'}'),
             backgroundColor: Colors.green,
           ),
         );
@@ -158,20 +200,20 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return GradientContainer(
       child: Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          widget.odpToEdit != null ? 'Edit ODP' : 'Tambah ODP',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          title: Text(
+            widget.odpToEdit != null ? 'Edit ODP' : 'Tambah ODP',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          iconTheme: const IconThemeData(color: Colors.white),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -233,21 +275,29 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
                               color: isDark ? Colors.white70 : Colors.black54,
                             ),
                             border: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.blue.shade300 : Colors.blue,
+                                color:
+                                    isDark ? Colors.blue.shade300 : Colors.blue,
                               ),
                             ),
                           ),
@@ -270,21 +320,29 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
                               color: isDark ? Colors.white70 : Colors.black54,
                             ),
                             border: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.blue.shade300 : Colors.blue,
+                                color:
+                                    isDark ? Colors.blue.shade300 : Colors.blue,
                               ),
                             ),
                           ),
@@ -308,24 +366,34 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
                             ),
                             hintText: 'https://maps.google.com/...',
                             hintStyle: TextStyle(
-                              color: isDark ? Colors.grey.shade600 : Colors.grey.shade500,
+                              color: isDark
+                                  ? Colors.grey.shade600
+                                  : Colors.grey.shade500,
                             ),
                             border: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.blue.shade300 : Colors.blue,
+                                color:
+                                    isDark ? Colors.blue.shade300 : Colors.blue,
                               ),
                             ),
                           ),
@@ -335,14 +403,15 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
                               return 'Link Google Maps harus diisi';
                             }
                             if (!Uri.parse(value).isAbsolute) {
-                               return 'Masukkan URL yang valid';
+                              return 'Masukkan URL yang valid';
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
-                          dropdownColor: isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                          dropdownColor:
+                              isDark ? const Color(0xFF2D2D2D) : Colors.white,
                           value: _selectedType,
                           decoration: InputDecoration(
                             labelText: 'Tipe ODP',
@@ -350,21 +419,29 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
                               color: isDark ? Colors.white70 : Colors.black54,
                             ),
                             border: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: const BorderRadius.all(Radius.circular(12)),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(12)),
                               borderSide: BorderSide(
-                                color: isDark ? Colors.blue.shade300 : Colors.blue,
+                                color:
+                                    isDark ? Colors.blue.shade300 : Colors.blue,
                               ),
                             ),
                           ),
@@ -401,7 +478,8 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
                         const SizedBox(height: 16),
                         if (_selectedType == 'splitter')
                           DropdownButtonFormField<String>(
-                            dropdownColor: isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                            dropdownColor:
+                                isDark ? const Color(0xFF2D2D2D) : Colors.white,
                             value: _selectedSplitterType,
                             decoration: InputDecoration(
                               labelText: 'Tipe Splitter',
@@ -409,67 +487,81 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
                                 color: isDark ? Colors.white70 : Colors.black54,
                               ),
                               border: OutlineInputBorder(
-                                borderRadius: const BorderRadius.all(Radius.circular(12)),
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(12)),
                                 borderSide: BorderSide(
-                                  color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                  color: isDark
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade300,
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
-                                borderRadius: const BorderRadius.all(Radius.circular(12)),
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(12)),
                                 borderSide: BorderSide(
-                                  color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                  color: isDark
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade300,
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
-                                borderRadius: const BorderRadius.all(Radius.circular(12)),
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(12)),
                                 borderSide: BorderSide(
-                                  color: isDark ? Colors.blue.shade300 : Colors.blue,
+                                  color: isDark
+                                      ? Colors.blue.shade300
+                                      : Colors.blue,
                                 ),
                               ),
                             ),
                             items: [
                               DropdownMenuItem(
-                                value: '1:2', 
-                                child: Text(
-                                  '1:2',
-                                  style: TextStyle(
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                )
-                              ),
+                                  value: '1:2',
+                                  child: Text(
+                                    '1:2',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  )),
                               DropdownMenuItem(
-                                value: '1:4', 
-                                child: Text(
-                                  '1:4',
-                                  style: TextStyle(
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                )
-                              ),
+                                  value: '1:4',
+                                  child: Text(
+                                    '1:4',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  )),
                               DropdownMenuItem(
-                                value: '1:8', 
-                                child: Text(
-                                  '1:8',
-                                  style: TextStyle(
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                )
-                              ),
+                                  value: '1:8',
+                                  child: Text(
+                                    '1:8',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  )),
                               DropdownMenuItem(
-                                value: '1:16', 
-                                child: Text(
-                                  '1:16',
-                                  style: TextStyle(
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                )
-                              ),
+                                  value: '1:16',
+                                  child: Text(
+                                    '1:16',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  )),
                             ],
                             onChanged: (value) {
                               setState(() => _selectedSplitterType = value!);
                             },
                             validator: (value) {
-                              if (_selectedType == 'splitter' && (value == null || value.isEmpty)) {
+                              if (_selectedType == 'splitter' &&
+                                  (value == null || value.isEmpty)) {
                                 return 'Tipe Splitter harus dipilih';
                               }
                               return null;
@@ -482,29 +574,41 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
                                 child: TextFormField(
                                   controller: _ratioUsedController,
                                   style: TextStyle(
-                                    color: isDark ? Colors.white : Colors.black87,
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
                                   ),
                                   decoration: InputDecoration(
                                     labelText: 'Ratio 1',
                                     labelStyle: TextStyle(
-                                      color: isDark ? Colors.white70 : Colors.black54,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black54,
                                     ),
                                     border: OutlineInputBorder(
-                                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(12)),
                                       borderSide: BorderSide(
-                                        color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                        color: isDark
+                                            ? Colors.grey.shade700
+                                            : Colors.grey.shade300,
                                       ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(12)),
                                       borderSide: BorderSide(
-                                        color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                                        color: isDark
+                                            ? Colors.grey.shade700
+                                            : Colors.grey.shade300,
                                       ),
                                     ),
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(12)),
                                       borderSide: BorderSide(
-                                        color: isDark ? Colors.blue.shade300 : Colors.blue,
+                                        color: isDark
+                                            ? Colors.blue.shade300
+                                            : Colors.blue,
                                       ),
                                     ),
                                   ),
@@ -515,7 +619,9 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
                                         return 'Ratio terpakai harus diisi';
                                       }
                                       final number = int.tryParse(value);
-                                      if (number == null || number < 0 || number > 100) {
+                                      if (number == null ||
+                                          number < 0 ||
+                                          number > 100) {
                                         return 'Masukkan angka 0-100';
                                       }
                                     }
@@ -529,17 +635,23 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
                                   controller: _ratioTotalController,
                                   enabled: false,
                                   style: TextStyle(
-                                    color: isDark ? Colors.white : Colors.black87,
+                                    color:
+                                        isDark ? Colors.white : Colors.black87,
                                   ),
                                   decoration: InputDecoration(
                                     labelText: 'Ratio 2',
                                     labelStyle: TextStyle(
-                                      color: isDark ? Colors.white70 : Colors.black54,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black54,
                                     ),
                                     border: const OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(12)),
                                     ),
-                                    fillColor: isDark ? Colors.grey.shade800 : Colors.grey[200],
+                                    fillColor: isDark
+                                        ? Colors.grey.shade800
+                                        : Colors.grey[200],
                                     filled: true,
                                   ),
                                   keyboardType: TextInputType.number,
@@ -577,14 +689,17 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : const Icon(Icons.save, color: Colors.white),
                 label: Text(
                   _isLoading
                       ? 'MENYIMPAN...'
-                      : (widget.odpToEdit != null ? 'SIMPAN PERUBAHAN' : 'TAMBAH ODP'),
+                      : (widget.odpToEdit != null
+                          ? 'SIMPAN PERUBAHAN'
+                          : 'TAMBAH ODP'),
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -593,7 +708,8 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isDark ? Colors.blue.shade700 : Colors.blue.shade700,
+                  backgroundColor:
+                      isDark ? Colors.blue.shade700 : Colors.blue.shade700,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -606,4 +722,4 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
       ),
     );
   }
-} 
+}

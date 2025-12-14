@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/mikrotik_provider.dart';
 import '../services/mikrotik_service.dart';
 import '../services/api_service.dart';
+import '../services/log_service.dart';
 import '../providers/router_session_provider.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -218,6 +219,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
           if (confirm == true) {
             if (!mounted) return false;
+            // Log logout activity
+            try {
+              final session =
+                  Provider.of<RouterSessionProvider>(context, listen: false);
+              final username = session.username;
+              final routerId = session.routerId;
+
+              if (username != null && routerId != null) {
+                await LogService.logActivity(
+                  username: username,
+                  action: LogService.ACTION_LOGOUT,
+                  routerId: routerId,
+                  details: 'Logout berhasil via App',
+                );
+              }
+            } catch (e) {
+              debugPrint('Error logging logout: $e');
+            }
             Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
             return false;
           }
@@ -293,6 +312,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     );
                     if (confirm == true) {
                       if (!mounted) return;
+                      // Log logout activity
+                      try {
+                        final session = Provider.of<RouterSessionProvider>(
+                            context,
+                            listen: false);
+                        final username = session.username;
+                        final routerId = session.routerId;
+
+                        if (username != null && routerId != null) {
+                          await LogService.logActivity(
+                            username: username,
+                            action: LogService.ACTION_LOGOUT,
+                            routerId: routerId,
+                            details: 'Logout berhasil via App',
+                          );
+                        }
+                      } catch (e) {
+                        debugPrint('Error logging logout: $e');
+                      }
                       Navigator.pushNamedAndRemoveUntil(
                           context, '/', (route) => false);
                     }
@@ -470,6 +508,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     const Duration(milliseconds: 250), () {
                                   Navigator.of(context, rootNavigator: true)
                                       .pushNamed('/genieacs');
+                                });
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.history),
+                              title: const Text('System Logs'),
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                Future.delayed(
+                                    const Duration(milliseconds: 250), () {
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pushNamed('/system-logs');
                                 });
                               },
                             ),

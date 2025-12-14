@@ -560,16 +560,20 @@ class _ODPScreenState extends State<ODPScreen> {
         throw Exception('Router belum login');
       }
 
-      final response = await http.post(
-        Uri.parse(
-            '${ApiService.baseUrl}/odp_operations.php?router_id=$routerId&operation=delete'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'id': odp['id']}),
+      final adminUsername =
+          Provider.of<RouterSessionProvider>(context, listen: false).username;
+
+      await ApiService.deleteODP(
+        routerId: routerId,
+        id: int.parse(odp['id'].toString()),
+        adminUsername: adminUsername,
       );
+
+      // Mock response for compatibility
+      const data = {'success': true};
 
       if (!mounted) return;
 
-      final data = jsonDecode(response.body);
       if (data['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

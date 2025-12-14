@@ -40,7 +40,8 @@ class UpdateInfo {
       apkUrl: json['apk_url'] ?? '',
       apkSizeBytes: json['apk_size'] ?? 0,
       minimumRequiredVersion: json['minimum_required_version'] ?? '',
-      releaseNotes: List<Map<String, dynamic>>.from(json['release_notes'] ?? []),
+      releaseNotes:
+          List<Map<String, dynamic>>.from(json['release_notes'] ?? []),
       timestamp: json['timestamp'] ?? '',
     );
   }
@@ -58,29 +59,35 @@ class UpdateService {
     try {
       final baseUrl = await ConfigService.getBaseUrl();
       final packageInfo = await PackageInfo.fromPlatform();
-      
+
       final currentVersion = packageInfo.version;
       final currentBuild = int.parse(packageInfo.buildNumber);
-      
-      final url = Uri.parse('$baseUrl/check_update.php').replace(queryParameters: {
+
+      final url =
+          Uri.parse('$baseUrl/check_update.php').replace(queryParameters: {
         'current_version': currentVersion,
         'current_build': currentBuild.toString(),
       });
-      
+
       print('[UPDATE] Checking update from: $url');
-      
+
       final response = await http.get(
         url,
         headers: {'Accept': 'application/json'},
       ).timeout(const Duration(seconds: 10));
-      
-      print('[UPDATE] Response: ${response.statusCode}, Content-Type: ${response.headers['content-type']}');
-      print('[UPDATE] Body preview: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+
+      print(
+          '[UPDATE] Response: ${response.statusCode}, Content-Type: ${response.headers['content-type']}');
+      print(
+          '[UPDATE] Body preview: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
 
       // Check for HTML response (indicates redirect or error page)
       final contentType = response.headers['content-type'] ?? '';
-      if (contentType.contains('text/html') || response.body.contains('<!DOCTYPE') || response.body.contains('<html')) {
-        throw Exception('Server returned HTML instead of JSON. Check if check_update.php is uploaded correctly.');
+      if (contentType.contains('text/html') ||
+          response.body.contains('<!DOCTYPE') ||
+          response.body.contains('<html')) {
+        throw Exception(
+            'Server returned HTML instead of JSON. Check if check_update.php is uploaded correctly.');
       }
 
       if (response.statusCode == 200) {
@@ -92,9 +99,11 @@ class UpdateService {
         }
       } else if (response.statusCode == 301 || response.statusCode == 302) {
         // Handle redirect
-        throw Exception('HTTP ${response.statusCode}: Redirect detected. Make sure using HTTPS or check server configuration.');
+        throw Exception(
+            'HTTP ${response.statusCode}: Redirect detected. Make sure using HTTPS or check server configuration.');
       } else {
-        throw Exception('HTTP ${response.statusCode}: ${response.body.substring(0, response.body.length > 100 ? 100 : response.body.length)}');
+        throw Exception(
+            'HTTP ${response.statusCode}: ${response.body.substring(0, response.body.length > 100 ? 100 : response.body.length)}');
       }
     } catch (e) {
       throw Exception('Error checking for updates: $e');
@@ -129,7 +138,8 @@ class UpdateService {
   }
 
   /// Download APK file and return path
-  static Future<String> downloadApk(String apkUrl, Function(int, int) onProgress) async {
+  static Future<String> downloadApk(
+      String apkUrl, Function(int, int) onProgress) async {
     try {
       // Get downloads directory
       Directory? downloadsDir;
@@ -143,7 +153,7 @@ class UpdateService {
             downloadsDir = Directory('${downloadsDir.parent.path}/Download');
           }
         }
-        
+
         // Fallback to app directory if Download folder not accessible
         if (downloadsDir == null || !await downloadsDir.exists()) {
           downloadsDir = await getExternalStorageDirectory();
@@ -183,16 +193,20 @@ class UpdateService {
       }
 
       final totalBytes = response.contentLength ?? 0;
-      final bytes = <int>[];
+      final sink = file.openWrite();
       int downloadedBytes = 0;
 
-      await for (final chunk in response.stream) {
-        bytes.addAll(chunk);
-        downloadedBytes += chunk.length;
-        onProgress(downloadedBytes, totalBytes);
+      try {
+        await for (final chunk in response.stream) {
+          sink.add(chunk);
+          downloadedBytes += chunk.length;
+          onProgress(downloadedBytes, totalBytes);
+        }
+        await sink.flush();
+      } finally {
+        await sink.close();
       }
 
-      await file.writeAsBytes(bytes);
       return filePath;
     } catch (e) {
       throw Exception('Download error: $e');
@@ -227,14 +241,26 @@ class UpdateService {
         throw Exception('APK file not found');
       }
 
+      // Check for install packages permission on Android 8+
+      if (await Permission.requestInstallPackages.status.isDenied) {
+        final status = await Permission.requestInstallPackages.request();
+        if (status.isDenied) {
+          // If denied, we can't install directly.
+          // Usually we should guide user to settings, but OpenFile might handle the intent.
+          // Let's try to proceed, or return false to let UI handle it.
+          // Ideally, we should show a dialog explaining why we need this permission.
+          // For now, let's just try to open it, as some devices might prompt within the intent.
+        }
+      }
+
       // Open APK file using OpenFile
       // This will trigger the system installer
       final result = await OpenFile.open(filePath);
-      
-      return result.type == ResultType.done || result.type == ResultType.noAppToOpen;
+
+      return result.type == ResultType.done ||
+          result.type == ResultType.noAppToOpen;
     } catch (e) {
       throw Exception('Install error: $e');
     }
   }
 }
-

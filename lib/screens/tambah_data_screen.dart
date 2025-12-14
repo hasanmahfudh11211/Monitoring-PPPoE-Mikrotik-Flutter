@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:http/http.dart' as http;
+
 import 'dart:convert';
 import '../widgets/custom_snackbar.dart';
 import 'package:image/image.dart' as img;
@@ -41,50 +41,6 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
     _waController.dispose();
     _mapsController.dispose();
     super.dispose();
-  }
-
-  Future<bool> saveUserToServer(Map<String, dynamic> userData) async {
-    try {
-      final url = Uri.parse('${ApiService.baseUrl}/save_user.php');
-      print('[TambahData] Sending request to: $url');
-      print('[TambahData] Request body: ${jsonEncode(userData)}');
-
-      final response = await http
-          .post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(userData),
-      )
-          .timeout(
-        const Duration(seconds: 30),
-        onTimeout: () {
-          throw Exception(
-              'Koneksi timeout. Server tidak merespon dalam 30 detik.');
-        },
-      );
-
-      print('[TambahData] Response status: ${response.statusCode}');
-      print('[TambahData] Response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final result = jsonDecode(response.body);
-        if (result['success'] == true) {
-          return true;
-        } else {
-          throw Exception(result['error'] ?? 'Gagal menyimpan data ke server');
-        }
-      } else {
-        throw Exception('Server error: HTTP ${response.statusCode}');
-      }
-    } on SocketException {
-      throw Exception(
-          'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
-    } on FormatException {
-      throw Exception('Format response dari server tidak valid.');
-    } catch (e) {
-      print('[TambahData] Error: $e');
-      rethrow;
-    }
   }
 
   Future<void> _saveAdditionalData() async {
@@ -188,27 +144,28 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
         base64Image =
             'data:image/jpeg;base64,' + base64Encode(_compressedImageBytes!);
       }
-      final userData = {
-        'router_id': routerId, // PENTING: tambahkan router_id
-        'username': widget.username,
-        'password': widget.password,
-        'profile': widget.profile,
-        'wa': _waController.text.trim(),
-        'foto': base64Image ?? '',
-        'maps': _mapsController.text.trim(),
-        'tanggal_dibuat': (_tanggalDibuat ?? DateTime.now()).toIso8601String(),
-      };
-      final success = await saveUserToServer(userData);
-      if (success) {
-        if (!mounted) return;
-        CustomSnackbar.show(
-          context: context,
-          message: 'Data tambahan berhasil disimpan',
-          additionalInfo: 'Data telah disimpan ke server database',
-          isSuccess: true,
-        );
-        Navigator.of(context).pop(true); // Kembali ke dashboard
-      }
+      final adminUsername = routerSession.username;
+
+      await ApiService.saveUser(
+        routerId: routerId,
+        username: widget.username,
+        password: widget.password,
+        profile: widget.profile,
+        wa: _waController.text.trim(),
+        maps: _mapsController.text.trim(),
+        foto: base64Image,
+        tanggalDibuat: (_tanggalDibuat ?? DateTime.now()).toIso8601String(),
+        adminUsername: adminUsername,
+      );
+
+      if (!mounted) return;
+      CustomSnackbar.show(
+        context: context,
+        message: 'Data tambahan berhasil disimpan',
+        additionalInfo: 'Data telah disimpan ke server database',
+        isSuccess: true,
+      );
+      Navigator.of(context).pop(true); // Kembali ke dashboard
     } catch (e) {
       if (!mounted) return;
       final errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -326,31 +283,19 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
         base64Image =
             'data:image/jpeg;base64,' + base64Encode(_compressedImageBytes!);
       }
-      final userData = {
-        'router_id': routerId, // PENTING: tambahkan router_id
-        'username': widget.username,
-        'password': widget.password,
-        'profile': widget.profile,
-        'wa': _waController.text.trim(),
-        'foto': base64Image ?? '',
-        'maps': _mapsController.text.trim(),
-        'tanggal_dibuat': (_tanggalDibuat ?? DateTime.now()).toIso8601String(),
-      };
-      final success = await saveUserToServer(userData);
-      if (!success) {
-        if (mounted) {
-          CustomSnackbar.show(
-            context: context,
-            message: 'Gagal menyimpan data tambahan',
-            additionalInfo: 'Silakan coba lagi atau hubungi administrator',
-            isSuccess: false,
-          );
-        }
-        setState(() {
-          _isLoading = false;
-        });
-        return;
-      }
+      final adminUsername = routerSession.username;
+
+      await ApiService.saveUser(
+        routerId: routerId,
+        username: widget.username,
+        password: widget.password,
+        profile: widget.profile,
+        wa: _waController.text.trim(),
+        maps: _mapsController.text.trim(),
+        foto: base64Image,
+        tanggalDibuat: (_tanggalDibuat ?? DateTime.now()).toIso8601String(),
+        adminUsername: adminUsername,
+      );
     } catch (e) {
       if (mounted) {
         CustomSnackbar.show(

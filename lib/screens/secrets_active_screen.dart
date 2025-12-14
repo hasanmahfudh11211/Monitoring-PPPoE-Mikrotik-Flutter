@@ -946,6 +946,7 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                     await ApiService.deleteUser(
                       routerId: routerId,
                       username: user['name'] as String,
+                      adminUsername: routerSession.username,
                     );
                     print(
                         '[PPP Delete] User ${user['name']} deleted from database');

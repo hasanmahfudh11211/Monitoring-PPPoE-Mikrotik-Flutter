@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'config_service.dart';
 import 'mikrotik_service.dart';
 import 'mikrotik_native_service.dart';
+import 'log_service.dart';
 
 class ApiService {
   static String _baseUrlCache = 'https://cmmnetwork.online/api';
@@ -91,6 +92,7 @@ class ApiService {
     String? maps,
     String? foto,
     String? tanggalDibuat,
+    String? adminUsername,
   }) async {
     try {
       final baseUrl = await _getBaseUrl();
@@ -113,6 +115,15 @@ class ApiService {
         // invalidate related caches after successful mutation
         _cache.remove('all_users_with_payments');
         _cacheTimestamps.remove('all_users_with_payments');
+
+        // Log Activity
+        LogService.logActivity(
+          username: adminUsername ?? 'System/Admin',
+          action: LogService.ACTION_ADD_USER,
+          routerId: routerId,
+          details: 'added ppp secret: $username',
+        );
+
         return decoded;
       } else {
         throw Exception('Failed to save user');
@@ -130,6 +141,7 @@ class ApiService {
     String? maps,
     String? foto,
     int? odpId,
+    String? adminUsername,
   }) async {
     try {
       final baseUrl = await _getBaseUrl();
@@ -152,6 +164,15 @@ class ApiService {
           // invalidate related caches after successful mutation
           _cache.remove('all_users_with_payments');
           _cacheTimestamps.remove('all_users_with_payments');
+
+          // Log Activity
+          LogService.logActivity(
+            username: adminUsername ?? 'System/Admin',
+            action: LogService.ACTION_EDIT_USER,
+            routerId: routerId,
+            details: 'changed ppp secret: $username',
+          );
+
           return result;
         } else {
           if (result['error'] == 'DEBUG_MODE') {
@@ -318,7 +339,9 @@ class ApiService {
   /// @param routerId The router serial number
   /// @param username The username to delete
   static Future<bool> deleteUser(
-      {required String routerId, required String username}) async {
+      {required String routerId,
+      required String username,
+      String? adminUsername}) async {
     final baseUrl = await _getBaseUrl();
     final response = await http.post(
       Uri.parse('$baseUrl/delete_user.php'),
@@ -331,6 +354,15 @@ class ApiService {
         // invalidate related caches after successful mutation
         _cache.remove('all_users_with_payments');
         _cacheTimestamps.remove('all_users_with_payments');
+
+        // Log Activity
+        LogService.logActivity(
+          username: adminUsername ?? 'System/Admin',
+          action: LogService.ACTION_DELETE_USER,
+          routerId: routerId,
+          details: 'removed ppp secret: $username',
+        );
+
         return true;
       }
       throw Exception(data['error'] ?? 'Gagal menghapus user');
@@ -720,6 +752,7 @@ class ApiService {
     required double price,
     String? description,
     bool isActive = true,
+    String? adminUsername,
   }) async {
     try {
       final baseUrl = await _getBaseUrl();
@@ -751,6 +784,13 @@ class ApiService {
       }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        // Log Activity
+        LogService.logActivity(
+          username: adminUsername ?? 'System/Admin',
+          action: LogService.ACTION_ADD_PROFILE,
+          routerId: routerId,
+          details: 'added profile pricing: $profileName ($price)',
+        );
         return _decodeJsonOrThrow(response) as Map<String, dynamic>;
       } else {
         final decoded = _decodeJsonOrThrow(response) as Map<String, dynamic>;
@@ -774,6 +814,7 @@ class ApiService {
     double? price,
     String? description,
     bool? isActive,
+    String? adminUsername,
   }) async {
     try {
       if (id == null && profileName == null) {
@@ -795,6 +836,13 @@ class ApiService {
         body: json.encode(body),
       );
       if (response.statusCode == 200) {
+        // Log Activity
+        LogService.logActivity(
+          username: adminUsername ?? 'System/Admin',
+          action: LogService.ACTION_EDIT_PROFILE,
+          routerId: routerId,
+          details: 'changed profile pricing id: $id',
+        );
         return _decodeJsonOrThrow(response) as Map<String, dynamic>;
       } else {
         final decoded = _decodeJsonOrThrow(response) as Map<String, dynamic>;
@@ -810,6 +858,7 @@ class ApiService {
     required String routerId,
     int? id,
     String? profileName,
+    String? adminUsername,
   }) async {
     try {
       if (id == null && profileName == null) {
@@ -828,6 +877,13 @@ class ApiService {
         body: json.encode(body),
       );
       if (response.statusCode == 200) {
+        // Log Activity
+        LogService.logActivity(
+          username: adminUsername ?? 'System/Admin',
+          action: LogService.ACTION_DELETE_PROFILE,
+          routerId: routerId,
+          details: 'removed profile pricing: $profileName',
+        );
         return _decodeJsonOrThrow(response) as Map<String, dynamic>;
       } else {
         final decoded = _decodeJsonOrThrow(response) as Map<String, dynamic>;
@@ -895,6 +951,319 @@ class ApiService {
         } else {
           throw Exception(data['error'] ?? 'Unknown error from API');
         }
+      } else {
+        throw Exception('HTTP Error ${response.statusCode}');
+      }
+    } catch (e) {
+      throw _friendlyException(e);
+    }
+  }
+
+  // =====================================================
+  // Payment Operations
+  // =====================================================
+
+  /// Add new payment
+  static Future<Map<String, dynamic>> addPayment({
+    required String routerId,
+    required String userId,
+    required double amount,
+    required String paymentDate,
+    required String method,
+    String? note,
+    String createdBy = 'Admin',
+    String? adminUsername,
+    String? customerName,
+  }) async {
+    try {
+      final baseUrl = await _getBaseUrl();
+      final url = '$baseUrl/payment_operations.php?operation=add';
+
+      final body = {
+        'router_id': routerId,
+        'user_id': userId,
+        'amount': amount,
+        'payment_date': paymentDate,
+        'method': method,
+        'note': note ?? '',
+        'created_by': createdBy,
+      };
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = _decodeJsonOrThrow(response) as Map<String, dynamic>;
+        if (decoded['success'] == true) {
+          // Log Activity
+          LogService.logActivity(
+            username: adminUsername ?? createdBy,
+            action: LogService.ACTION_ADD_PAYMENT,
+            routerId: routerId,
+            details:
+                'added payment: $amount ($method) for user: ${customerName ?? userId}',
+          );
+          return decoded;
+        } else {
+          throw Exception(decoded['error'] ?? 'Gagal menambahkan pembayaran');
+        }
+      } else {
+        throw Exception('Server error (${response.statusCode})');
+      }
+    } catch (e) {
+      throw _friendlyException(e);
+    }
+  }
+
+  /// Update payment
+  static Future<Map<String, dynamic>> updatePayment({
+    required String routerId,
+    required int id,
+    required String userId,
+    required double amount,
+    required String paymentDate,
+    required String method,
+    String? note,
+    String? adminUsername,
+    String? customerName,
+  }) async {
+    try {
+      final baseUrl = await _getBaseUrl();
+      final url = '$baseUrl/payment_operations.php?operation=update';
+
+      final body = {
+        'router_id': routerId,
+        'id': id,
+        'user_id': userId,
+        'amount': amount,
+        'payment_date': paymentDate,
+        'method': method,
+        'note': note ?? '',
+        'created_by': 'Admin', // Keep for backward compatibility if needed
+      };
+
+      final response = await http.put(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = _decodeJsonOrThrow(response) as Map<String, dynamic>;
+        if (decoded['success'] == true) {
+          // Log Activity
+          LogService.logActivity(
+            username: adminUsername ?? 'System/Admin',
+            action: LogService.ACTION_EDIT_PAYMENT,
+            routerId: routerId,
+            details:
+                'updated payment id: $id for user: ${customerName ?? userId}',
+          );
+
+          // Invalidate cache
+          _cache.remove('all_users_with_payments');
+          _cacheTimestamps.remove('all_users_with_payments');
+        }
+        return decoded;
+      } else {
+        throw Exception('HTTP Error ${response.statusCode}');
+      }
+    } catch (e) {
+      throw _friendlyException(e);
+    }
+  }
+
+  /// Delete payment
+  static Future<Map<String, dynamic>> deletePayment({
+    required String routerId,
+    required int id,
+    String? adminUsername,
+    String? customerName,
+  }) async {
+    try {
+      final baseUrl = await _getBaseUrl();
+      final url = '$baseUrl/payment_operations.php?operation=delete';
+
+      final body = {
+        'router_id': routerId,
+        'id': id,
+      };
+
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = _decodeJsonOrThrow(response) as Map<String, dynamic>;
+        if (decoded['success'] == true) {
+          // Log Activity
+          LogService.logActivity(
+            username: adminUsername ?? 'System/Admin',
+            action: LogService.ACTION_DELETE_PAYMENT,
+            routerId: routerId,
+            details:
+                'deleted payment id: $id ${customerName != null ? 'for user: $customerName' : ''}',
+          );
+
+          // Invalidate cache
+          _cache.remove('all_users_with_payments');
+          _cacheTimestamps.remove('all_users_with_payments');
+        }
+        return decoded;
+      } else {
+        throw Exception('HTTP Error ${response.statusCode}');
+      }
+    } catch (e) {
+      throw _friendlyException(e);
+    }
+  }
+
+  /// Add ODP
+  static Future<Map<String, dynamic>> addODP({
+    required String routerId,
+    required String name,
+    required String location,
+    required String mapsLink,
+    required String type,
+    String? splitterType,
+    int? ratioUsed,
+    int? ratioTotal,
+    String? adminUsername,
+  }) async {
+    try {
+      final baseUrl = await _getBaseUrl();
+      final url =
+          '$baseUrl/odp_operations.php?router_id=$routerId&operation=add';
+
+      final body = {
+        'name': name,
+        'location': location,
+        'maps_link': mapsLink,
+        'type': type,
+        'splitter_type': splitterType,
+        'ratio_used': ratioUsed,
+        'ratio_total': ratioTotal,
+      };
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = _decodeJsonOrThrow(response) as Map<String, dynamic>;
+        if (decoded['success'] == true) {
+          // Log Activity
+          LogService.logActivity(
+            username: adminUsername ?? 'System/Admin',
+            action: LogService.ACTION_ADD_ODP,
+            routerId: routerId,
+            details: 'added odp: $name',
+          );
+        }
+        return decoded;
+      } else {
+        throw Exception('HTTP Error ${response.statusCode}');
+      }
+    } catch (e) {
+      throw _friendlyException(e);
+    }
+  }
+
+  /// Update ODP
+  static Future<Map<String, dynamic>> updateODP({
+    required String routerId,
+    required int id,
+    required String name,
+    required String location,
+    required String mapsLink,
+    required String type,
+    String? splitterType,
+    int? ratioUsed,
+    int? ratioTotal,
+    String? adminUsername,
+  }) async {
+    try {
+      final baseUrl = await _getBaseUrl();
+      final url =
+          '$baseUrl/odp_operations.php?router_id=$routerId&operation=update';
+
+      final body = {
+        'id': id,
+        'name': name,
+        'location': location,
+        'maps_link': mapsLink,
+        'type': type,
+        'splitter_type': splitterType,
+        'ratio_used': ratioUsed,
+        'ratio_total': ratioTotal,
+      };
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = _decodeJsonOrThrow(response) as Map<String, dynamic>;
+        if (decoded['success'] == true) {
+          // Log Activity
+          LogService.logActivity(
+            username: adminUsername ?? 'System/Admin',
+            action: LogService.ACTION_EDIT_ODP,
+            routerId: routerId,
+            details: 'updated odp: $name',
+          );
+        }
+        return decoded;
+      } else {
+        throw Exception('HTTP Error ${response.statusCode}');
+      }
+    } catch (e) {
+      throw _friendlyException(e);
+    }
+  }
+
+  /// Delete ODP
+  static Future<Map<String, dynamic>> deleteODP({
+    required String routerId,
+    required int id,
+    String? adminUsername,
+  }) async {
+    try {
+      final baseUrl = await _getBaseUrl();
+      final url =
+          '$baseUrl/odp_operations.php?router_id=$routerId&operation=delete';
+
+      final body = {
+        'id': id,
+      };
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = _decodeJsonOrThrow(response) as Map<String, dynamic>;
+        if (decoded['success'] == true) {
+          // Log Activity
+          LogService.logActivity(
+            username: adminUsername ?? 'System/Admin',
+            action: LogService.ACTION_DELETE_ODP,
+            routerId: routerId,
+            details: 'deleted odp id: $id',
+          );
+        }
+        return decoded;
       } else {
         throw Exception('HTTP Error ${response.statusCode}');
       }

@@ -225,6 +225,7 @@ class _DatabaseSyncScreenState extends State<DatabaseSyncScreen> {
         await ApiService.deleteUser(
           routerId: routerId,
           username: user['username'] as String,
+          adminUsername: routerSession.username,
         );
 
         if (mounted) {

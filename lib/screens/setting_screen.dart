@@ -9,6 +9,8 @@ import '../main.dart';
 import '../widgets/update_dialog.dart';
 import '../services/update_service.dart';
 import '../services/api_service.dart';
+import '../services/log_service.dart';
+import '../providers/router_session_provider.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({Key? key}) : super(key: key);
@@ -351,6 +353,15 @@ class _SettingScreenState extends State<SettingScreen> {
                           });
                           _saveSettings();
                         },
+                      ),
+                      const SizedBox(height: 12),
+                      _buildActionButton(
+                        icon: Icons.history,
+                        label: 'System Logs (Audit Trail)',
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/system-logs');
+                        },
+                        color: isDark ? Colors.blueGrey[700] : Colors.blueGrey,
                       ),
                       const SizedBox(height: 12),
                       _buildUpdateCheckButton(isDark),
@@ -856,6 +867,25 @@ class _SettingScreenState extends State<SettingScreen> {
     );
 
     if (confirm == true && mounted) {
+      // Log logout activity
+      try {
+        final session =
+            Provider.of<RouterSessionProvider>(context, listen: false);
+        final username = session.username;
+        final routerId = session.routerId;
+
+        if (username != null && routerId != null) {
+          await LogService.logActivity(
+            username: username,
+            action: LogService.ACTION_LOGOUT,
+            routerId: routerId,
+            details: 'Logout berhasil via App',
+          );
+        }
+      } catch (e) {
+        debugPrint('Error logging logout: $e');
+      }
+
       if (!mounted) return;
       Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     }

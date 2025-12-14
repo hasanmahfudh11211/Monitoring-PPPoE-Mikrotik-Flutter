@@ -17,6 +17,7 @@ import 'screens/odp_screen.dart';
 import 'screens/billing_screen.dart';
 import 'screens/genieacs_screen.dart';
 import 'screens/database_sync_screen.dart';
+import 'screens/system_logs_screen.dart';
 // import 'screens/changelog_screen.dart'; // Remove this import
 import 'services/mikrotik_service.dart';
 import 'providers/mikrotik_provider.dart';
@@ -265,6 +266,9 @@ class MyApp extends StatelessWidget {
                   ),
               '/database-sync': (context) => const MikrotikScreenWrapper(
                     child: DatabaseSyncScreen(),
+                  ),
+              '/system-logs': (context) => const MikrotikScreenWrapper(
+                    child: SystemLogsScreen(),
                   ),
               // '/changelog': (context) => const MikrotikScreenWrapper(
               //       child: ChangelogScreen(),
