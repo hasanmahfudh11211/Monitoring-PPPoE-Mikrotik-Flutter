@@ -18,14 +18,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 /**
  * CONFIGURATION - Update these values when you release a new version
  */
-const LATEST_VERSION = '1.0.2';
-const LATEST_BUILD_NUMBER = 3;
+const LATEST_VERSION = '1.0.3+4';
+const LATEST_BUILD_NUMBER = 4;
 const LATEST_APK_URL = 'https://cmmnetwork.online/files/app-release.apk';
 const APK_SIZE_BYTES = 0; // Will be calculated if APK exists
 const MINIMUM_REQUIRED_VERSION = '1.0.0'; // Force update if user has older version
 
 // Optional: Add release notes
 const RELEASE_NOTES = [
+    [
+        'version' => '1.0.3+4',
+        'build' => 4,
+        'date' => '2025-12-15',
+        'notes' => [
+            'Penambahan fitur live notifications',
+            'Perbaikan tombol back di layar login',
+            'Peningkatan stabilitas aplikasi'
+        ]
+    ],
     [
         'version' => '1.0.2',
         'build' => 3,
