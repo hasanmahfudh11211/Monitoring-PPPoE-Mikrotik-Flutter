@@ -913,10 +913,12 @@ class _SettingScreenState extends State<SettingScreen> {
     );
 
     if (confirm == true && mounted) {
+      // Capture session early
+      final session =
+          Provider.of<RouterSessionProvider>(context, listen: false);
+
       // Log logout activity
       try {
-        final session =
-            Provider.of<RouterSessionProvider>(context, listen: false);
         final username = session.username;
         final routerId = session.routerId;
 
@@ -932,7 +934,12 @@ class _SettingScreenState extends State<SettingScreen> {
         debugPrint('Error logging logout: $e');
       }
 
+      // Clear session immediately after logging (or even if logging fails)
+      // We use the captured session variable to ensure we don't rely on context if unmounted
+      session.clearSession();
+
       if (!mounted) return;
+
       Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
     }
   }

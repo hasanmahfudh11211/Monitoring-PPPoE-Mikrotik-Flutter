@@ -36,6 +36,13 @@ class MikrotikScreenWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<RouterSessionProvider>(
       builder: (context, session, _) {
+        // Prevent crash during logout: Check if session is active
+        if (!session.isSessionActive) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
         return FutureBuilder<MikrotikProvider>(
           future: session.getMikrotikProvider(),
           builder: (context, snapshot) {

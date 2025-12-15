@@ -11,6 +11,7 @@ import '../providers/router_session_provider.dart';
 import '../services/mikrotik_native_service.dart';
 import '../services/api_service.dart';
 import '../services/log_service.dart';
+import '../services/live_monitor_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -61,6 +62,9 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void initState() {
     super.initState();
+    // Failsafe: Ensure live monitor is stopped when on login screen
+    LiveMonitorService().stopMonitoring();
+
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       setState(() {});
@@ -741,12 +745,20 @@ Solusi:
 
     return WillPopScope(
       onWillPop: () async {
-        // Check if keyboard is open
-        if (FocusScope.of(context).hasFocus) {
+        // Check if keyboard is visible
+        final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+
+        // If keyboard is visible, just close it (default behavior of back button)
+        // We return true to let the system handle the back press which closes the keyboard
+        // OR we can return false and unfocus manually.
+        // Better UX: If keyboard is open, back button closes it.
+        // If we return false here, we consume the event.
+        if (isKeyboardVisible) {
           FocusScope.of(context).unfocus();
           return false;
         }
 
+        // If keyboard is NOT visible, show exit confirmation
         final shouldExit = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(

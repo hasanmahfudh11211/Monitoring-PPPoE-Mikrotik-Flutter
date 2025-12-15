@@ -24,7 +24,7 @@ try {
     $sql = "SELECT id, created_at as timestamp, username, action, details, ip_address 
             FROM system_logs 
             WHERE router_id = ? 
-            ORDER BY created_at DESC 
+            ORDER BY id DESC 
             LIMIT ? OFFSET ?";
 
     $stmt = $conn->prepare($sql);

@@ -90,23 +90,52 @@ class _SystemLogsScreenState extends State<SystemLogsScreen> {
     }
   }
 
-  Color _getActionColor(String action) {
-    if (action.contains('DELETE')) return Colors.redAccent;
-    if (action.contains('ADD')) return Colors.green;
-    if (action.contains('EDIT') || action.contains('UPDATE'))
+  Color _getActionColor(String action, String details) {
+    final lowerAction = action.toLowerCase();
+    final lowerDetails = details.toLowerCase();
+
+    if (lowerAction.contains('delete')) return Colors.redAccent;
+    if (lowerAction.contains('add')) return Colors.green;
+    if (lowerAction.contains('edit') || lowerAction.contains('update')) {
       return Colors.orange;
-    if (action.contains('LOGIN') || action.contains('LOGOUT'))
-      return Colors.blueAccent;
+    }
+    if (lowerAction.contains('login')) return Colors.blueAccent;
+    if (lowerAction.contains('logout')) return Colors.grey;
+
+    // PPPoE specific coloring
+    if (lowerAction.contains('pppoe')) {
+      if (lowerDetails.contains('connected') &&
+          !lowerDetails.contains('disconnected')) {
+        return Colors.green;
+      }
+      if (lowerDetails.contains('disconnected') ||
+          lowerDetails.contains('terminating')) {
+        return Colors.red;
+      }
+      return Colors.blue;
+    }
+
+    // Error/Warning specific coloring
+    if (lowerAction.contains('error') || lowerAction.contains('failure')) {
+      return Colors.red;
+    }
+    if (lowerAction.contains('warning')) return Colors.orange;
+
     return Colors.grey;
   }
 
   IconData _getActionIcon(String action) {
     if (action.contains('DELETE')) return Icons.delete_rounded;
-    if (action.contains('ADD')) return Icons.add_circle_rounded;
+    if (action.contains('ADD')) {
+      if (action.contains('PAYMENT')) return Icons.payments_rounded;
+      return Icons.add_circle_rounded;
+    }
     if (action.contains('EDIT') || action.contains('UPDATE'))
       return Icons.edit_rounded;
     if (action.contains('LOGIN')) return Icons.login_rounded;
     if (action.contains('LOGOUT')) return Icons.logout_rounded;
+    if (action.contains('PPPoE')) return Icons.router_rounded;
+    if (action.contains('ERROR')) return Icons.error_outline_rounded;
     return Icons.info_rounded;
   }
 
@@ -118,6 +147,75 @@ class _SystemLogsScreenState extends State<SystemLogsScreen> {
     } catch (e) {
       return dateStr;
     }
+  }
+
+  String _formatLogDetails(String details) {
+    String displayMsg = details;
+
+    // 1. Remove "->:"
+    if (displayMsg.contains('->:')) {
+      displayMsg = displayMsg.replaceAll('->:', '').trim();
+    }
+
+    // 2. Format PPPoE tags <pppoe-username>: status
+    final pppoeRegex = RegExp(r'<pppoe-(.+?)>: (.+)');
+    final match = pppoeRegex.firstMatch(displayMsg);
+
+    if (match != null) {
+      final username = match.group(1);
+      final status = match.group(2)?.trim() ?? "";
+
+      if (status.toLowerCase() == "connected") {
+        displayMsg = "User $username telah terhubung.";
+      } else if (status.toLowerCase() == "disconnected") {
+        displayMsg = "User $username telah terputus.";
+      } else {
+        displayMsg = "User $username: $status";
+      }
+    } else {
+      // Fallback cleanup
+      if (displayMsg.contains('<') && displayMsg.contains('>')) {
+        displayMsg = displayMsg.replaceAll('<', '').replaceAll('>', '');
+      }
+      if (displayMsg.contains('pppoe-')) {
+        displayMsg = displayMsg.replaceAll('pppoe-', 'User ');
+      }
+    }
+
+    // 3. Format Payment Logs
+    // Pattern: "added payment: 1000000.0 (Cash) for user: username"
+    if (displayMsg.toLowerCase().contains('added payment')) {
+      final paymentRegex =
+          RegExp(r'added payment: ([\d\.]+) \((.+?)\) for user: (.+)');
+      final payMatch = paymentRegex.firstMatch(displayMsg);
+      if (payMatch != null) {
+        final amountStr = payMatch.group(1) ?? '0';
+        final method = payMatch.group(2) ?? '-';
+        final user = payMatch.group(3) ?? '-';
+
+        try {
+          final amount = double.parse(amountStr);
+          final formattedAmount = NumberFormat.currency(
+                  locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0)
+              .format(amount);
+
+          displayMsg =
+              "Pembayaran diterima $formattedAmount ($method) dari user $user";
+        } catch (e) {
+          // Fallback if parsing fails
+          displayMsg = displayMsg
+              .replaceAll('added payment:', 'Pembayaran:')
+              .replaceAll('for user:', 'dari user:');
+        }
+      }
+    }
+
+    // Capitalize first letter
+    if (displayMsg.isNotEmpty) {
+      displayMsg = displayMsg[0].toUpperCase() + displayMsg.substring(1);
+    }
+
+    return displayMsg;
   }
 
   @override
@@ -185,24 +283,25 @@ class _SystemLogsScreenState extends State<SystemLogsScreen> {
                       final username = log['username'] ?? 'System';
                       final details = log['details'] ?? '';
                       final timestamp = log['timestamp'] ?? log['created_at'];
-                      final actionColor = _getActionColor(action);
+                      final actionColor = _getActionColor(action, details);
+                      final formattedDetails = _formatLogDetails(details);
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
                           color:
                               isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           child: IntrinsicHeight(
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -224,10 +323,10 @@ class _SystemLogsScreenState extends State<SystemLogsScreen> {
                                             Container(
                                               padding: const EdgeInsets.all(8),
                                               decoration: BoxDecoration(
-                                                color: actionColor.withValues(
-                                                    alpha: 0.1),
+                                                color: actionColor
+                                                    .withOpacity(0.1),
                                                 borderRadius:
-                                                    BorderRadius.circular(8),
+                                                    BorderRadius.circular(10),
                                               ),
                                               child: Icon(
                                                 _getActionIcon(action),
@@ -247,78 +346,82 @@ class _SystemLogsScreenState extends State<SystemLogsScreen> {
                                                       fontWeight:
                                                           FontWeight.bold,
                                                       color: actionColor,
-                                                      fontSize: 14,
+                                                      fontSize: 15,
                                                     ),
                                                   ),
                                                   const SizedBox(height: 4),
-                                                  Text(
-                                                    _formatDate(timestamp),
-                                                    style: TextStyle(
-                                                      color: isDark
-                                                          ? Colors.white54
-                                                          : Colors.grey[600],
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 4,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: isDark
-                                                    ? Colors.grey[800]
-                                                    : Colors.grey[100],
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.person_outline,
-                                                    size: 12,
-                                                    color: isDark
-                                                        ? Colors.white54
-                                                        : Colors.grey[600],
-                                                  ),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    username,
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color: isDark
-                                                          ? Colors.white70
-                                                          : Colors.grey[800],
-                                                    ),
+                                                  Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.access_time,
+                                                        size: 12,
+                                                        color: isDark
+                                                            ? Colors.white54
+                                                            : Colors.grey[600],
+                                                      ),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        _formatDate(timestamp),
+                                                        style: TextStyle(
+                                                          color: isDark
+                                                              ? Colors.white54
+                                                              : Colors
+                                                                  .grey[600],
+                                                          fontSize: 12,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
                                                 ],
                                               ),
                                             ),
                                           ],
                                         ),
-                                        if (details.isNotEmpty) ...[
-                                          const SizedBox(height: 12),
-                                          Divider(
-                                            height: 1,
-                                            color: isDark
-                                                ? Colors.grey[800]
-                                                : Colors.grey[200],
-                                          ),
-                                          const SizedBox(height: 12),
+                                        const SizedBox(height: 12),
+                                        if (formattedDetails.isNotEmpty) ...[
                                           Text(
-                                            details,
+                                            formattedDetails,
                                             style: TextStyle(
                                               color: isDark
-                                                  ? Colors.white70
-                                                  : Colors.grey[800],
+                                                  ? Colors.white
+                                                  : Colors.black87,
+                                              fontSize: 14,
                                               height: 1.4,
                                             ),
                                           ),
+                                          const SizedBox(height: 12),
                                         ],
+                                        Divider(
+                                          height: 1,
+                                          color: isDark
+                                              ? Colors.grey[800]
+                                              : Colors.grey[200],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.person_outline,
+                                              size: 14,
+                                              color: isDark
+                                                  ? Colors.white54
+                                                  : Colors.grey[600],
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              username == 'System'
+                                                  ? 'Mikrotik'
+                                                  : 'Aplikasi ($username)',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: isDark
+                                                    ? Colors.white54
+                                                    : Colors.grey[600],
+                                                fontStyle: FontStyle.italic,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ],
                                     ),
                                   ),

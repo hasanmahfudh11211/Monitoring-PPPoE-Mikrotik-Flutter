@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/mikrotik_service.dart';
 import '../services/mikrotik_native_service.dart';
 import 'mikrotik_provider.dart';
+import '../services/live_monitor_service.dart';
 
 class RouterSessionProvider extends ChangeNotifier {
   String? routerId; // serial-number
@@ -10,6 +11,9 @@ class RouterSessionProvider extends ChangeNotifier {
   String? port;
   String? username;
   String? password;
+
+  bool get isSessionActive =>
+      ip != null && port != null && username != null && password != null;
 
   RouterSessionProvider() {
     // Auto-restore sesi dari SharedPreferences saat provider dibuat
@@ -68,7 +72,7 @@ class RouterSessionProvider extends ChangeNotifier {
     required String port,
     required String username,
     required String password,
-  }) {
+  }) async {
     this.routerId = routerId;
     this.ip = ip;
     this.port = port;
@@ -78,8 +82,21 @@ class RouterSessionProvider extends ChangeNotifier {
     // Reset service on new session
     _disposeService();
 
-    _persist();
+    await _persist();
     notifyListeners();
+
+    // Start Live Monitor
+    try {
+      final srv = await getService();
+      // Initialize notification plugin first
+      await LiveMonitorService().init();
+      // Start monitoring
+      // Use routerId or username@ip as name
+      final name = "$username@$ip";
+      LiveMonitorService().startMonitoring(srv, name, ip);
+    } catch (e) {
+      debugPrint("Failed to start live monitor: $e");
+    }
   }
 
   void clearSession() {
@@ -90,6 +107,9 @@ class RouterSessionProvider extends ChangeNotifier {
     password = null;
 
     _disposeService();
+
+    // Stop Live Monitor
+    LiveMonitorService().stopMonitoring();
 
     _clearPrefs();
     notifyListeners();
@@ -140,6 +160,11 @@ class RouterSessionProvider extends ChangeNotifier {
       username = usr;
       password = pwd;
       notifyListeners();
+
+      // Note: We do NOT auto-start Live Monitor here.
+      // The app starts at LoginScreen, so we should wait for explicit login
+      // or Dashboard initialization to start monitoring.
+      // saveSession() will start it upon login.
     }
   }
 }

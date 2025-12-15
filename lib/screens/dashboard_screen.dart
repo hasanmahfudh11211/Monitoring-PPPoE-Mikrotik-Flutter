@@ -246,6 +246,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             } catch (e) {
               debugPrint('Error logging logout: $e');
             }
+            // Clear session to stop live monitor
+            Provider.of<RouterSessionProvider>(context, listen: false)
+                .clearSession();
             Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
             return false;
           }
@@ -340,6 +343,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       } catch (e) {
                         debugPrint('Error logging logout: $e');
                       }
+                      // Clear session to stop live monitor
+                      Provider.of<RouterSessionProvider>(context, listen: false)
+                          .clearSession();
                       Navigator.pushNamedAndRemoveUntil(
                           context, '/', (route) => false);
                     }

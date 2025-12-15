@@ -22,8 +22,11 @@ class LogSyncService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  // Future to track initialization
+  late Future<void> _initFuture;
+
   LogSyncService(this.context) {
-    _initNotifications();
+    _initFuture = _initNotifications();
   }
 
   Future<void> _initNotifications() async {
@@ -43,6 +46,9 @@ class LogSyncService {
   }
 
   Future<void> _showSystemNotification(String title, String body) async {
+    // Ensure initialized
+    await _initFuture;
+
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'mikrotik_monitor_channel', // id
@@ -148,10 +154,12 @@ class LogSyncService {
           action = 'PPPoE';
         }
       } else if (topics.contains('account')) {
-        if (msg.contains('logged in') ||
-            msg.contains('logged out') ||
-            msg.contains('created') ||
-            msg.contains('removed')) {
+        // Filter out logs containing "->:" (usually repetitive hotspot/ppp login logs)
+        if (!msg.contains('->:') &&
+            (msg.contains('logged in') ||
+                msg.contains('logged out') ||
+                msg.contains('created') ||
+                msg.contains('removed'))) {
           isImportant = true;
           action = 'ACCOUNT';
         }
@@ -355,33 +363,103 @@ class LogSyncService {
   }
 
   Future<void> _processLogForNotification(Map<String, dynamic> log) async {
-    // Cek preferensi user sebelum menampilkan notifikasi
-    // Kita lakukan di sini agar lebih pasti
+    // 1. Cek preferensi user
     try {
-      // Perlu import shared_preferences
-      // final prefs = await SharedPreferences.getInstance();
-      // final showNotifications = prefs.getBool('showNotifications') ?? true;
-      // if (!showNotifications) {
-      //   debugPrint('[LogSync] Notification suppressed by user setting.');
-      //   return;
-      // }
-      // SEMENTARA: Kita asumsikan true dulu sampai import ditambahkan
+      final prefs = await SharedPreferences.getInstance();
+      final showNotifications = prefs.getBool('showNotifications') ?? true;
+      if (!showNotifications) {
+        debugPrint('[LogSync] Notification suppressed by user setting.');
+        return;
+      }
     } catch (e) {
       debugPrint('[LogSync] Error checking prefs: $e');
     }
 
-    final msg = log['message'].toString().toLowerCase();
+    String msg = log['message'].toString();
+    final lowerMsg = msg.toLowerCase();
     debugPrint('[LogSync] Processing notification for: $msg');
 
-    // Cek filter notifikasi
-    if (msg.contains('disconnected') ||
-        msg.contains('connected') ||
-        msg.contains('peer is not') ||
-        msg.contains('failure') ||
-        msg.contains('logged in') ||
-        msg.contains('logged out')) {
-      debugPrint('[LogSync] Triggering notification for: $msg');
-      await _showSystemNotification("Mikrotik Alert", log['message']);
+    // 2. Format Pesan agar lebih rapi
+    // Contoh Log Asli: "<pppoe-gembong@wati>: connected"
+    // Target: "User gembong@wati connected"
+
+    // Regex untuk menangkap pattern <pppoe-USERNAME>: STATUS
+    // Menangkap apa saja di dalam <pppoe-...> dan setelahnya
+    final pppoeRegex = RegExp(r'<pppoe-(.+?)>: (.+)');
+    final match = pppoeRegex.firstMatch(msg);
+
+    String title = "Mikrotik Alert";
+    String body = msg;
+
+    if (match != null) {
+      final username = match.group(1);
+      final status = match.group(2);
+
+      // Bersihkan status jika ada trailing chars
+      String cleanStatus = status?.trim() ?? "";
+
+      if (cleanStatus.toLowerCase() == "connected") {
+        title = "PPPoE Connected";
+        body = "User $username telah terhubung.";
+      } else if (cleanStatus.toLowerCase() == "disconnected") {
+        title = "PPPoE Disconnected";
+        body = "User $username telah terputus.";
+      } else {
+        // Fallback untuk status lain
+        body = "User $username: $cleanStatus";
+      }
+    } else {
+      // Coba handling manual jika regex tidak match tapi ada keyword
+      if (lowerMsg.contains('pppoe') || lowerMsg.contains('ppp')) {
+        // Hapus karakter < > jika ada
+        body = body.replaceAll('<', '').replaceAll('>', '');
+        // Ganti "pppoe-" dengan "User "
+        body = body.replaceAll('pppoe-', 'User ');
+      }
+    }
+
+    // 3. Cek Payment
+    if (lowerMsg.contains('added payment')) {
+      title = "Pembayaran Berhasil";
+      // Format: added payment: 1000000.0 (Cash) for user: username
+      final paymentRegex =
+          RegExp(r'added payment: ([\d\.]+) \((.+?)\) for user: (.+)');
+      final payMatch = paymentRegex.firstMatch(msg);
+      if (payMatch != null) {
+        final amountStr = payMatch.group(1) ?? '0';
+        final method = payMatch.group(2) ?? '-';
+        final user = payMatch.group(3) ?? '-';
+        try {
+          final amount = double.parse(amountStr);
+          // Manual formatting since we might not have NumberFormat here or want simple format
+          // Using basic string manipulation for "Rp " prefix
+          final amountFixed = amount.toStringAsFixed(0).replaceAllMapped(
+              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+          body = "Diterima Rp $amountFixed ($method) dari $user";
+        } catch (e) {
+          body = msg;
+        }
+      }
+    }
+
+    // 4. Ignore Scheduler Error (User Request)
+    if (lowerMsg.contains('scheduler') && lowerMsg.contains('failed')) {
+      debugPrint('[LogSync] Scheduler error ignored.');
+      return;
+    }
+
+    // 5. Cek filter dan Tampilkan
+    if (lowerMsg.contains('disconnected') ||
+        lowerMsg.contains('connected') ||
+        lowerMsg.contains('peer is not') ||
+        lowerMsg.contains('failure') ||
+        lowerMsg.contains('failed') ||
+        lowerMsg.contains('error') ||
+        (lowerMsg.contains('logged in') && !lowerMsg.contains('via winbox')) ||
+        (lowerMsg.contains('logged out') && !lowerMsg.contains('via winbox')) ||
+        lowerMsg.contains('added payment')) {
+      debugPrint('[LogSync] Triggering notification: $title - $body');
+      await _showSystemNotification(title, body);
     } else {
       debugPrint('[LogSync] Log ignored by filter.');
     }

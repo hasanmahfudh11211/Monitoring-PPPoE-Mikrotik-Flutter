@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/log_sync_service.dart';
 import '../widgets/gradient_container.dart';
 import '../widgets/custom_snackbar.dart';
 import 'package:intl/intl.dart';
@@ -439,6 +440,41 @@ class _BillingScreenState extends State<BillingScreen> {
                                   if (respData['success'] == true) {
                                     Navigator.of(dialogContext).pop();
                                     if (context.mounted) {
+                                      // Trigger Notification
+                                      try {
+                                        final amountFixed = amount
+                                            .toStringAsFixed(0)
+                                            .replaceAllMapped(
+                                                RegExp(
+                                                    r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                                (Match m) => '${m[1]}.');
+                                        final dateStr =
+                                            DateFormat('dd MMM yyyy')
+                                                .format(paymentDate);
+                                        final adminUser =
+                                            Provider.of<RouterSessionProvider>(
+                                                    context,
+                                                    listen: false)
+                                                .username;
+
+                                        final notifBody =
+                                            "Nama : ${user['username']}\n"
+                                            "Nominal : Rp. $amountFixed\n"
+                                            "Metode : $selectedMethod\n"
+                                            "Tanggal : $dateStr\n"
+                                            "Catatan : ${noteController.text}\n"
+                                            "Oleh : $adminUser";
+
+                                        await LogSyncService(context)
+                                            .testNotification(
+                                          title: "Pembayaran Berhasil",
+                                          body: notifBody,
+                                        );
+                                      } catch (e) {
+                                        debugPrint(
+                                            "Error showing notification: $e");
+                                      }
+
                                       await showSuccessDialog(context,
                                           'Pembayaran berhasil ditambahkan!');
                                       if (mounted) {
@@ -2542,9 +2578,37 @@ Terimakasih''';
 
                             if (respData['success'] == true) {
                               Navigator.of(dialogContext).pop();
-                              if (context.mounted) {
-                                await showSuccessDialog(
-                                    context, 'Pembayaran berhasil diupdate!');
+                              if (mounted) {
+                                // Trigger Notification
+                                try {
+                                  final amountFixed = amount
+                                      .toStringAsFixed(0)
+                                      .replaceAllMapped(
+                                          RegExp(
+                                              r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                          (Match m) => '${m[1]}.');
+                                  final dateStr = DateFormat('dd MMM yyyy')
+                                      .format(paymentDate);
+
+                                  final notifBody =
+                                      "Nama : ${user['username']}\n"
+                                      "Nominal : Rp. $amountFixed\n"
+                                      "Metode : $selectedMethod\n"
+                                      "Tanggal : $dateStr\n"
+                                      "Catatan : ${noteController.text}\n"
+                                      "Oleh : $adminUsername";
+
+                                  await LogSyncService(this.context)
+                                      .testNotification(
+                                    title: "Pembayaran Diperbarui",
+                                    body: notifBody,
+                                  );
+                                } catch (e) {
+                                  debugPrint("Error showing notification: $e");
+                                }
+
+                                await showSuccessDialog(this.context,
+                                    'Pembayaran berhasil diupdate!');
                                 if (mounted) {
                                   // Refresh data setelah berhasil mengupdate pembayaran
                                   _loadUsers();
@@ -2660,7 +2724,42 @@ Terimakasih''';
 
                   if (respData['success'] == true) {
                     Navigator.of(dialogContext).pop();
-                    if (context.mounted) {
+                    if (mounted) {
+                      // Trigger Notification
+                      try {
+                        final amountVal = double.tryParse(
+                                payment['amount']?.toString() ?? '0') ??
+                            0;
+                        final amountFixed = amountVal
+                            .toStringAsFixed(0)
+                            .replaceAllMapped(
+                                RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                (Match m) => '${m[1]}.');
+                        final method = payment['method']?.toString() ?? '-';
+                        final pDateStr =
+                            payment['payment_date']?.toString() ?? '-';
+                        String dateDisplay = pDateStr;
+                        try {
+                          final pDate = DateTime.parse(pDateStr);
+                          dateDisplay = DateFormat('dd MMM yyyy').format(pDate);
+                        } catch (_) {}
+
+                        final note = payment['note']?.toString() ?? '-';
+                        final notifBody = "Nama : ${user['username']}\n"
+                            "Nominal : Rp. $amountFixed\n"
+                            "Metode : $method\n"
+                            "Tanggal : $dateDisplay\n"
+                            "Catatan : $note\n"
+                            "Oleh : $adminUsername";
+
+                        await LogSyncService(this.context).testNotification(
+                          title: "Pembayaran Dihapus",
+                          body: notifBody,
+                        );
+                      } catch (e) {
+                        debugPrint("Error showing notification: $e");
+                      }
+
                       await showSuccessDialog(
                           context, 'Pembayaran berhasil dihapus!');
                       if (mounted) {
