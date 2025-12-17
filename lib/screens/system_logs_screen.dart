@@ -166,9 +166,9 @@ class _SystemLogsScreenState extends State<SystemLogsScreen> {
       final status = match.group(2)?.trim() ?? "";
 
       if (status.toLowerCase() == "connected") {
-        displayMsg = "User $username telah terhubung.";
+        displayMsg = "User $username terhubung.";
       } else if (status.toLowerCase() == "disconnected") {
-        displayMsg = "User $username telah terputus.";
+        displayMsg = "User $username terputus.";
       } else {
         displayMsg = "User $username: $status";
       }

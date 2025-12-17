@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/log_sync_service.dart';
 import '../widgets/gradient_container.dart';
 import '../widgets/custom_snackbar.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
 import 'package:intl/intl.dart';
 
 import 'package:flutter/services.dart';
@@ -1261,23 +1264,25 @@ class _BillingScreenState extends State<BillingScreen> {
         'Pembayaran ${DateFormat('MMMM yyyy', 'id_ID').format(_selectedMonth)}';
 
     // Set automatic message based on payment status
-    String message;
-    if (isLunas) {
-      message = '''Halo ${user['username']},
+    // Load custom templates
+    final prefs = await SharedPreferences.getInstance();
+    final templateLunas = prefs.getString('template_lunas') ??
+        '''Halo [nama],
 
 Terima kasih atas pembayaran Anda. Status pembayaran Anda sudah *LUNAS*.
 
-*$periodText*
-Total Pembayaran: Rp ${currencyFormat.format(totalPayments)}
+*[periode]*
+Total Pembayaran: [total]
 
 Terima kasih telah menjadi pelanggan setia kami! 🙏''';
-    } else {
-      message = '''Assalamu'alaikum Pelanggan Yth,
+
+    final templateTagihan = prefs.getString('template_tagihan') ??
+        '''Assalamu'alaikum Pelanggan Yth,
 
 Kami sampaikan bahwa tagihan anda sudah maksimal.
 Segera lakukan pembayaran agar tidak otomatis terisolir.
 
-*$periodText*
+*[periode]*
 
 Pembayaran bisa melalui transfer ke:
 
@@ -1288,205 +1293,306 @@ Pembayaran bisa melalui transfer ke:
 Atas nama *M Zidni ilman*
 
 Terimakasih''';
-    }
+
+    // Prepare replacements
+    final replacements = {
+      '[nama]': user['username'] ?? '',
+      '[total]': 'Rp ${currencyFormat.format(totalPayments)}',
+      '[bulan]': DateFormat('MMMM yyyy', 'id_ID').format(_selectedMonth),
+      '[periode]': periodText,
+      '[admin]':
+          Provider.of<RouterSessionProvider>(context, listen: false).username ??
+              'Admin',
+    };
+
+    // Select template and replace placeholders
+    String message = isLunas ? templateLunas : templateTagihan;
+    replacements.forEach((key, value) {
+      message = message.replaceAll(key, value);
+    });
+
+    // Check for image
+    final imagePath = isLunas
+        ? prefs.getString('image_lunas')
+        : prefs.getString('image_tagihan');
+    bool includeImage = imagePath != null && File(imagePath).existsSync();
+    bool useImage = includeImage; // Default state for checkbox
 
     // Show confirmation dialog
     await showDialog(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            children: [
-              Icon(
-                Icons.message,
-                color: isDark ? Colors.green.shade300 : Colors.green.shade700,
-                size: 24,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Kirim Pesan WhatsApp',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
-                    fontSize: 18,
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.message,
+                    color:
+                        isDark ? Colors.green.shade300 : Colors.green.shade700,
+                    size: 24,
                   ),
-                ),
-              ),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // User info
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.person,
-                              size: 16,
-                              color: isDark ? Colors.white70 : Colors.black54),
-                          const SizedBox(width: 6),
-                          Text(
-                            user['username'] ?? '-',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.phone,
-                              size: 16,
-                              color: isDark ? Colors.white70 : Colors.black54),
-                          const SizedBox(width: 6),
-                          Text(
-                            phoneNumber,
-                            style: TextStyle(
-                              color: isDark ? Colors.white70 : Colors.black54,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            isLunas ? Icons.check_circle : Icons.warning,
-                            size: 16,
-                            color: isLunas ? Colors.green : Colors.orange,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            isLunas ? 'LUNAS' : 'BELUM LUNAS',
-                            style: TextStyle(
-                              color: isLunas ? Colors.green : Colors.orange,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Pesan yang akan dikirim:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  constraints: const BoxConstraints(
-                    maxHeight: 300, // Batasi tinggi maksimal
-                  ),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color:
-                          isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-                    ),
-                  ),
-                  child: SingleChildScrollView(
+                  const SizedBox(width: 8),
+                  Expanded(
                     child: Text(
-                      message,
+                      'Kirim Pesan WhatsApp',
                       style: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.black87,
-                        fontSize: 13,
-                        height: 1.5, // Line height untuk readability
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                        fontSize: 18,
                       ),
                     ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // User info
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.grey.shade800
+                            : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.person,
+                                  size: 16,
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black54),
+                              const SizedBox(width: 6),
+                              Text(
+                                user['username'] ?? '-',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.phone,
+                                  size: 16,
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black54),
+                              const SizedBox(width: 6),
+                              Text(
+                                phoneNumber,
+                                style: TextStyle(
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black54,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                isLunas ? Icons.check_circle : Icons.warning,
+                                size: 16,
+                                color: isLunas ? Colors.green : Colors.orange,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                isLunas ? 'LUNAS' : 'BELUM LUNAS',
+                                style: TextStyle(
+                                  color: isLunas ? Colors.green : Colors.orange,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Pesan yang akan dikirim:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      constraints: const BoxConstraints(
+                        maxHeight: 300, // Batasi tinggi maksimal
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color:
+                            isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.grey.shade700
+                              : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: SingleChildScrollView(
+                        child: Text(
+                          message,
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.black87,
+                            fontSize: 13,
+                            height: 1.5, // Line height untuk readability
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (includeImage) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.blue.withOpacity(0.1)
+                              : Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.blue.withOpacity(0.3)
+                                : Colors.blue.shade100,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              value: useImage,
+                              onChanged: (value) {
+                                setState(() {
+                                  useImage = value ?? false;
+                                });
+                              },
+                            ),
+                            Expanded(
+                              child: Text(
+                                'Sertakan Gambar Header\n(Perlu pilih kontak manual)',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color:
+                                      isDark ? Colors.white70 : Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (useImage)
+                        Container(
+                          height: 100,
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(top: 8),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(imagePath!),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(
+                    'BATAL',
+                    style: TextStyle(
+                      color: isDark ? Colors.blue.shade300 : Colors.blue,
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    Navigator.of(dialogContext).pop();
+
+                    try {
+                      if (useImage && imagePath != null) {
+                        // Send Image + Text (Share Plus)
+                        if (mounted) {
+                          CustomSnackbar.show(
+                            context: context,
+                            message: 'Membuka dialog share...',
+                            isSuccess: true,
+                          );
+                        }
+                        await Share.shareXFiles(
+                          [XFile(imagePath)],
+                          text: message,
+                        );
+                      } else {
+                        // Send Text Only (Direct Link)
+                        // Format phone number
+                        String formattedPhone =
+                            phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+                        if (formattedPhone.startsWith('0')) {
+                          formattedPhone = '62${formattedPhone.substring(1)}';
+                        } else if (!formattedPhone.startsWith('62')) {
+                          formattedPhone = '62$formattedPhone';
+                        }
+
+                        final whatsappUrl = Uri.parse(
+                          'https://wa.me/$formattedPhone?text=${Uri.encodeComponent(message)}',
+                        );
+
+                        if (await canLaunchUrl(whatsappUrl)) {
+                          await launchUrl(whatsappUrl,
+                              mode: LaunchMode.externalApplication);
+                          if (mounted) {
+                            CustomSnackbar.show(
+                              context: context,
+                              message: 'Membuka WhatsApp...',
+                              isSuccess: true,
+                            );
+                          }
+                        } else {
+                          throw Exception('Tidak dapat membuka WhatsApp');
+                        }
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        CustomSnackbar.show(
+                          context: context,
+                          message: 'Gagal mengirim pesan',
+                          additionalInfo: e.toString(),
+                          isSuccess: false,
+                        );
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.send, color: Colors.white),
+                  label: const Text(
+                    'KIRIM',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade700,
                   ),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(
-                'BATAL',
-                style: TextStyle(
-                  color: isDark ? Colors.blue.shade300 : Colors.blue,
-                ),
-              ),
-            ),
-            ElevatedButton.icon(
-              onPressed: () async {
-                // Format phone number for WhatsApp (remove leading 0, add 62)
-                String formattedPhone =
-                    phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
-                if (formattedPhone.startsWith('0')) {
-                  formattedPhone = '62${formattedPhone.substring(1)}';
-                } else if (!formattedPhone.startsWith('62')) {
-                  formattedPhone = '62$formattedPhone';
-                }
-
-                // Create WhatsApp URL
-                final whatsappUrl = Uri.parse(
-                  'https://wa.me/$formattedPhone?text=${Uri.encodeComponent(message)}',
-                );
-
-                try {
-                  if (await canLaunchUrl(whatsappUrl)) {
-                    await launchUrl(whatsappUrl,
-                        mode: LaunchMode.externalApplication);
-                    if (dialogContext.mounted) {
-                      Navigator.of(dialogContext).pop();
-                    }
-                    if (mounted) {
-                      CustomSnackbar.show(
-                        context: context,
-                        message: 'Membuka WhatsApp...',
-                        isSuccess: true,
-                      );
-                    }
-                  } else {
-                    throw Exception('Tidak dapat membuka WhatsApp');
-                  }
-                } catch (e) {
-                  if (dialogContext.mounted) {
-                    CustomSnackbar.show(
-                      context: dialogContext,
-                      message: 'Gagal membuka WhatsApp',
-                      additionalInfo: e.toString(),
-                      isSuccess: false,
-                    );
-                  }
-                }
-              },
-              icon: const Icon(Icons.send, color: Colors.white),
-              label: const Text(
-                'KIRIM',
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade700,
-              ),
-            ),
-          ],
+            );
+          },
         );
       },
     );

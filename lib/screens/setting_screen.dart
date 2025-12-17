@@ -12,6 +12,7 @@ import '../services/api_service.dart';
 import '../services/log_service.dart';
 import '../services/log_sync_service.dart';
 import '../providers/router_session_provider.dart';
+import 'message_template_screen.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({Key? key}) : super(key: key);
@@ -399,6 +400,20 @@ class _SettingScreenState extends State<SettingScreen> {
                             await _saveSettings();
                           }
                         },
+                      ),
+                      const SizedBox(height: 12),
+                      _buildActionButton(
+                        icon: Icons.message,
+                        label: 'Template Pesan WhatsApp',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const MessageTemplateScreen()),
+                          );
+                        },
+                        color: isDark ? Colors.blueGrey[700] : Colors.blueGrey,
                       ),
                       const SizedBox(height: 12),
                       _buildActionButton(

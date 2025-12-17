@@ -400,10 +400,10 @@ class LogSyncService {
 
       if (cleanStatus.toLowerCase() == "connected") {
         title = "PPPoE Connected";
-        body = "User $username telah terhubung.";
+        body = "User $username terhubung.";
       } else if (cleanStatus.toLowerCase() == "disconnected") {
         title = "PPPoE Disconnected";
-        body = "User $username telah terputus.";
+        body = "User $username terputus.";
       } else {
         // Fallback untuk status lain
         body = "User $username: $cleanStatus";

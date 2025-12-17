@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:url_launcher/url_launcher.dart';
+import 'package:android_intent_plus/android_intent.dart';
+
 import '../widgets/custom_snackbar.dart';
 import 'package:image/image.dart' as img;
 import '../services/api_service.dart';
@@ -142,6 +145,39 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
         additionalInfo: e.toString(),
         isSuccess: false,
       );
+    }
+  }
+
+  Future<void> _openContactsApp() async {
+    try {
+      const intent = AndroidIntent(
+        action: 'android.intent.action.VIEW',
+        data: 'content://contacts/people/',
+      );
+      await intent.launch();
+    } catch (e) {
+      if (mounted) {
+        CustomSnackbar.show(
+          context: context,
+          message: 'Gagal membuka kontak',
+          additionalInfo: e.toString(),
+          isSuccess: false,
+        );
+      }
+    }
+  }
+
+  Future<void> _openMaps() async {
+    final Uri url = Uri.parse('https://maps.google.com');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        CustomSnackbar.show(
+          context: context,
+          message: 'Gagal membuka Maps',
+          additionalInfo: 'Tidak dapat membuka aplikasi Maps',
+          isSuccess: false,
+        );
+      }
     }
   }
 
@@ -365,6 +401,7 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
                           style: TextStyle(
                             color: isDark ? Colors.white : Colors.black87,
                           ),
+                          keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
                             labelText: 'Nomor WhatsApp',
                             labelStyle: TextStyle(
@@ -374,6 +411,15 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
                               Icons.phone,
                               color:
                                   isDark ? Colors.blue.shade300 : Colors.blue,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                Icons.contacts,
+                                color:
+                                    isDark ? Colors.blue.shade300 : Colors.blue,
+                              ),
+                              onPressed: _openContactsApp,
+                              tooltip: 'Buka Kontak',
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -399,7 +445,6 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
                               ),
                             ),
                           ),
-                          keyboardType: TextInputType.phone,
                         ),
                         const SizedBox(height: 16),
 
@@ -418,6 +463,15 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
                               Icons.location_on,
                               color:
                                   isDark ? Colors.blue.shade300 : Colors.blue,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Image.asset(
+                                'assets/pngimg.com - google_maps_pin_PNG26.png',
+                                width: 24,
+                                height: 24,
+                              ),
+                              onPressed: _openMaps,
+                              tooltip: 'Buka Google Maps',
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),

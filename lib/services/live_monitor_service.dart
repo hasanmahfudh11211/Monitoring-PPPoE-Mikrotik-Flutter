@@ -61,11 +61,12 @@ class LiveMonitorService {
   }
 
   Future<void> _updateNotification(String routerName, String ip) async {
-    if (_service == null || !_isMonitoring) return;
+    final service = _service;
+    if (service == null || !_isMonitoring) return;
 
     try {
       // 1. Fetch System Resource
-      final resource = await _service!.getResource();
+      final resource = await service.getResource();
       final cpu = resource['cpu-load'] ?? '0';
       final uptime = resource['uptime'] ?? '-';
 
@@ -86,7 +87,7 @@ class LiveMonitorService {
         // But we need to know WHICH interface.
 
         if (_monitoredInterfaceName == null) {
-          final interfaces = await _service!.getInterface();
+          final interfaces = await service.getInterface();
           // Find first running interface, prefer 'ether1' or 'pppoe-out1'
           final running =
               interfaces.where((i) => i['running'] == 'true').toList();
@@ -105,7 +106,7 @@ class LiveMonitorService {
         if (_monitoredInterfaceName != null) {
           // Use getTraffic from service which handles the diff
           // Note: This takes 1 second to complete!
-          final traffic = await _service!.getTraffic(_monitoredInterfaceName!);
+          final traffic = await service.getTraffic(_monitoredInterfaceName!);
 
           final tx = (traffic['tx-rate'] as double? ?? 0.0);
           final rx = (traffic['rx-rate'] as double? ?? 0.0);

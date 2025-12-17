@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
+import 'package:url_launcher/url_launcher.dart';
+import 'package:android_intent_plus/android_intent.dart';
+
 import 'dart:convert';
 import '../widgets/custom_snackbar.dart';
 import 'package:image/image.dart' as img;
@@ -398,6 +401,39 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
     }
   }
 
+  Future<void> _openContactsApp() async {
+    try {
+      const intent = AndroidIntent(
+        action: 'android.intent.action.VIEW',
+        data: 'content://contacts/people/',
+      );
+      await intent.launch();
+    } catch (e) {
+      if (mounted) {
+        CustomSnackbar.show(
+          context: context,
+          message: 'Gagal membuka kontak',
+          additionalInfo: e.toString(),
+          isSuccess: false,
+        );
+      }
+    }
+  }
+
+  Future<void> _openMaps() async {
+    final Uri url = Uri.parse('https://maps.google.com');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        CustomSnackbar.show(
+          context: context,
+          message: 'Gagal membuka Maps',
+          additionalInfo: 'Tidak dapat membuka aplikasi Maps',
+          isSuccess: false,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GradientContainer(
@@ -462,13 +498,19 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                     padding: const EdgeInsets.all(4.0),
                     child: TextFormField(
                       controller: _waController,
-                      decoration: const InputDecoration(
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
                         labelText: 'Nomor WA',
                         border: InputBorder.none,
-                        prefixIcon: Icon(Icons.phone),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                        prefixIcon: const Icon(Icons.phone),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.contacts),
+                          onPressed: _openContactsApp,
+                          tooltip: 'Buka Kontak',
+                        ),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                       ),
-                      keyboardType: TextInputType.phone,
                     ),
                   ),
                 ),
@@ -484,13 +526,23 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                     padding: const EdgeInsets.all(4.0),
                     child: TextFormField(
                       controller: _mapsController,
-                      decoration: const InputDecoration(
+                      keyboardType: TextInputType.url,
+                      decoration: InputDecoration(
                         labelText: 'Link Google Maps',
                         border: InputBorder.none,
-                        prefixIcon: Icon(Icons.map),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                        prefixIcon: const Icon(Icons.map),
+                        suffixIcon: IconButton(
+                          icon: Image.asset(
+                            'assets/pngimg.com - google_maps_pin_PNG26.png',
+                            width: 24,
+                            height: 24,
+                          ),
+                          onPressed: _openMaps,
+                          tooltip: 'Buka Google Maps',
+                        ),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                       ),
-                      keyboardType: TextInputType.url,
                     ),
                   ),
                 ),

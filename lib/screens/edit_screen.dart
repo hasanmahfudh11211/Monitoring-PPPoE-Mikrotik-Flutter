@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/mikrotik_provider.dart';
+import '../widgets/gradient_container.dart';
 
 class EditScreen extends StatefulWidget {
   final Map<String, dynamic> user;
@@ -37,10 +38,10 @@ class _EditScreenState extends State<EditScreen> {
         _error = null;
         _isLoadingProfiles = true;
       });
-      
+
       final provider = Provider.of<MikrotikProvider>(context, listen: false);
       final profiles = await provider.service.getPPPProfile();
-      
+
       if (mounted) {
         final loadedProfiles = profiles
             .map((profile) => profile['name'].toString())
@@ -83,7 +84,8 @@ class _EditScreenState extends State<EditScreen> {
       barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
-          Widget buildDetailRow(IconData icon, String label, String value, {bool isPassword = false}) {
+          Widget buildDetailRow(IconData icon, String label, String value,
+              {bool isPassword = false}) {
             return Row(
               children: [
                 Icon(icon, size: 20, color: Colors.grey.shade600),
@@ -113,12 +115,15 @@ class _EditScreenState extends State<EditScreen> {
                             ),
                             IconButton(
                               icon: Icon(
-                                obscureDialogPassword ? Icons.visibility_off : Icons.visibility,
+                                obscureDialogPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                                 size: 20,
                               ),
                               onPressed: () {
                                 setDialogState(() {
-                                  obscureDialogPassword = !obscureDialogPassword;
+                                  obscureDialogPassword =
+                                      !obscureDialogPassword;
                                 });
                               },
                             ),
@@ -174,7 +179,7 @@ class _EditScreenState extends State<EditScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Success Title
                     const Text(
                       'User Berhasil Diperbarui',
@@ -186,7 +191,7 @@ class _EditScreenState extends State<EditScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // User Details
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -197,28 +202,31 @@ class _EditScreenState extends State<EditScreen> {
                       ),
                       child: Column(
                         children: [
-                          buildDetailRow(Icons.person, 'Username', _usernameController.text),
+                          buildDetailRow(Icons.person, 'Username',
+                              _usernameController.text),
                           const SizedBox(height: 8),
                           buildDetailRow(
-                            Icons.lock, 
-                            'Password', 
+                            Icons.lock,
+                            'Password',
                             _passwordController.text,
                             isPassword: true,
                           ),
                           const SizedBox(height: 8),
-                          buildDetailRow(Icons.category, 'Profile', _selectedProfile ?? ''),
+                          buildDetailRow(Icons.category, 'Profile',
+                              _selectedProfile ?? ''),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // OK Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.of(context).pop(); // Close dialog
-                          Navigator.of(context).pop(true); // Return to previous screen with refresh flag
+                          Navigator.of(context).pop(
+                              true); // Return to previous screen with refresh flag
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue.shade800,
@@ -270,7 +278,7 @@ class _EditScreenState extends State<EditScreen> {
 
     try {
       final provider = Provider.of<MikrotikProvider>(context, listen: false);
-      
+
       await provider.service.updatePPPSecret(
         widget.user['name'],
         {
@@ -287,13 +295,12 @@ class _EditScreenState extends State<EditScreen> {
 
       // Refresh data
       provider.refreshData();
-
     } catch (e) {
       if (!mounted) return;
-      
+
       final errorMessage = e.toString().replaceAll('Exception: ', '');
       setState(() => _error = errorMessage);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
@@ -318,11 +325,12 @@ class _EditScreenState extends State<EditScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+    return GradientContainer(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
         extendBody: true,
         appBar: AppBar(
-          backgroundColor: Theme.of(context).primaryColor,
+          backgroundColor: Colors.transparent,
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.white),
           title: const Text(
@@ -383,13 +391,17 @@ class _EditScreenState extends State<EditScreen> {
                         labelText: 'Password',
                         border: InputBorder.none,
                         prefixIcon: const Icon(Icons.lock),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                           ),
                           onPressed: () {
-                            setState(() => _obscurePassword = !_obscurePassword);
+                            setState(
+                                () => _obscurePassword = !_obscurePassword);
                           },
                         ),
                       ),
@@ -413,38 +425,39 @@ class _EditScreenState extends State<EditScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: _isLoadingProfiles
-                      ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: CircularProgressIndicator(),
+                        ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
+                        : DropdownButtonFormField<String>(
+                            value: _selectedProfile,
+                            decoration: const InputDecoration(
+                              labelText: 'Profile',
+                              border: InputBorder.none,
+                              prefixIcon: Icon(Icons.category),
+                              contentPadding:
+                                  EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            items: _profiles.map((String profile) {
+                              return DropdownMenuItem<String>(
+                                value: profile,
+                                child: Text(profile),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                _selectedProfile = newValue;
+                              });
+                            },
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Profile harus dipilih';
+                              }
+                              return null;
+                            },
                           ),
-                        )
-                      : DropdownButtonFormField<String>(
-                          value: _selectedProfile,
-                          decoration: const InputDecoration(
-                            labelText: 'Profile',
-                            border: InputBorder.none,
-                            prefixIcon: Icon(Icons.category),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                          items: _profiles.map((String profile) {
-                            return DropdownMenuItem<String>(
-                              value: profile,
-                              child: Text(profile),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedProfile = newValue;
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Profile harus dipilih';
-                            }
-                            return null;
-                          },
-                        ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -472,7 +485,8 @@ class _EditScreenState extends State<EditScreen> {
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
                         : const Text('SIMPAN'),
@@ -490,6 +504,7 @@ class _EditScreenState extends State<EditScreen> {
             ),
           ),
         ),
-      );
+      ),
+    );
   }
-} 
+}
