@@ -61,6 +61,9 @@ class _BillingScreenState extends State<BillingScreen> {
   // Tambahkan state sementara untuk filter manual
   DateTime? _tempSelectedMonth;
 
+  // Sort Option
+  String _sortOption = 'nameAsc'; // nameAsc, nameDesc, statusPaid, statusUnpaid
+
   @override
   void initState() {
     super.initState();
@@ -1707,6 +1710,164 @@ Terimakasih''';
                         ),
                       ),
                       const SizedBox(width: 8),
+                      // Sort Button
+                      Container(
+                        decoration: BoxDecoration(
+                          color:
+                              isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: PopupMenuButton<String>(
+                          tooltip: 'Urutkan',
+                          icon: Icon(
+                            Icons.sort,
+                            color: isDark
+                                ? Colors.blue.shade300
+                                : Colors.blue.shade700,
+                            size: 24,
+                          ),
+                          color:
+                              isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                          onSelected: (String value) {
+                            setState(() {
+                              _sortOption = value;
+                            });
+                          },
+                          itemBuilder: (BuildContext context) =>
+                              <PopupMenuEntry<String>>[
+                            PopupMenuItem<String>(
+                              value: 'nameAsc',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.sort_by_alpha,
+                                      size: 20,
+                                      color: _sortOption == 'nameAsc'
+                                          ? (isDark
+                                              ? Colors.blue.shade300
+                                              : Colors.blue)
+                                          : (isDark
+                                              ? Colors.white70
+                                              : Colors.black54)),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Nama - Default (A-Z)',
+                                    style: TextStyle(
+                                      color: _sortOption == 'nameAsc'
+                                          ? (isDark
+                                              ? Colors.blue.shade300
+                                              : Colors.blue)
+                                          : (isDark
+                                              ? Colors.white
+                                              : Colors.black87),
+                                      fontWeight: _sortOption == 'nameAsc'
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'nameDesc',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.sort_by_alpha,
+                                      size: 20,
+                                      color: _sortOption == 'nameDesc'
+                                          ? (isDark
+                                              ? Colors.blue.shade300
+                                              : Colors.blue)
+                                          : (isDark
+                                              ? Colors.white70
+                                              : Colors.black54)),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Nama (Z-A)',
+                                    style: TextStyle(
+                                      color: _sortOption == 'nameDesc'
+                                          ? (isDark
+                                              ? Colors.blue.shade300
+                                              : Colors.blue)
+                                          : (isDark
+                                              ? Colors.white
+                                              : Colors.black87),
+                                      fontWeight: _sortOption == 'nameDesc'
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuDivider(),
+                            PopupMenuItem<String>(
+                              value: 'statusPaid',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.check_circle_outline,
+                                      size: 20,
+                                      color: _sortOption == 'statusPaid'
+                                          ? (isDark
+                                              ? Colors.blue.shade300
+                                              : Colors.blue)
+                                          : (isDark
+                                              ? Colors.white70
+                                              : Colors.black54)),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Lunas',
+                                    style: TextStyle(
+                                      color: _sortOption == 'statusPaid'
+                                          ? (isDark
+                                              ? Colors.blue.shade300
+                                              : Colors.blue)
+                                          : (isDark
+                                              ? Colors.white
+                                              : Colors.black87),
+                                      fontWeight: _sortOption == 'statusPaid'
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'statusUnpaid',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.cancel_outlined,
+                                      size: 20,
+                                      color: _sortOption == 'statusUnpaid'
+                                          ? (isDark
+                                              ? Colors.blue.shade300
+                                              : Colors.blue)
+                                          : (isDark
+                                              ? Colors.white70
+                                              : Colors.black54)),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Belum Lunas',
+                                    style: TextStyle(
+                                      color: _sortOption == 'statusUnpaid'
+                                          ? (isDark
+                                              ? Colors.blue.shade300
+                                              : Colors.blue)
+                                          : (isDark
+                                              ? Colors.white
+                                              : Colors.black87),
+                                      fontWeight: _sortOption == 'statusUnpaid'
+                                          ? FontWeight.bold
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       Container(
                         decoration: BoxDecoration(
                           color:
@@ -2875,9 +3036,39 @@ Terimakasih''';
       }).toList();
     }
 
-    // Urutkan berdasarkan username A-Z saja (seperti sebelumnya)
-    filtered
-        .sort((a, b) => (a['username'] ?? '').compareTo(b['username'] ?? ''));
+    // Urutkan berdasarkan opsi yang dipilih
+    switch (_sortOption) {
+      case 'nameDesc':
+        filtered.sort(
+            (a, b) => (b['username'] ?? '').compareTo(a['username'] ?? ''));
+        break;
+      case 'statusPaid':
+        filtered.sort((a, b) {
+          final paidA = _hasUserPaidForSelectedMonth(a);
+          final paidB = _hasUserPaidForSelectedMonth(b);
+          if (paidA == paidB) {
+            return (a['username'] ?? '').compareTo(b['username'] ?? '');
+          }
+          return paidB ? 1 : -1; // Paid first
+        });
+        break;
+      case 'statusUnpaid':
+        filtered.sort((a, b) {
+          final paidA = _hasUserPaidForSelectedMonth(a);
+          final paidB = _hasUserPaidForSelectedMonth(b);
+          if (paidA == paidB) {
+            return (a['username'] ?? '').compareTo(b['username'] ?? '');
+          }
+          return paidA ? 1 : -1; // Unpaid first
+        });
+        break;
+      case 'nameAsc':
+      default:
+        filtered.sort(
+            (a, b) => (a['username'] ?? '').compareTo(b['username'] ?? ''));
+        break;
+    }
+
     return filtered;
   }
 

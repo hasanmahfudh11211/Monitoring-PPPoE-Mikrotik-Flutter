@@ -932,7 +932,7 @@ class _PaymentSummaryScreenState extends State<PaymentSummaryScreen>
   }
 }
 
-class MonthlyPaymentDetailScreen extends StatelessWidget {
+class MonthlyPaymentDetailScreen extends StatefulWidget {
   final int month;
   final int year;
   final bool isDark;
@@ -945,12 +945,386 @@ class MonthlyPaymentDetailScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final String monthYearTitle =
-        DateFormat('MMMM yyyy', 'id_ID').format(DateTime(year, month));
-    final currencyFormat = NumberFormat('#,##0', 'id_ID');
+  State<MonthlyPaymentDetailScreen> createState() =>
+      _MonthlyPaymentDetailScreenState();
+}
+
+class _MonthlyPaymentDetailScreenState extends State<MonthlyPaymentDetailScreen>
+    with SingleTickerProviderStateMixin {
+  late Future<List<Map<String, dynamic>>> _paymentsFuture;
+  bool showPrintPanel = false;
+  bool isProcessing = false;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  final currencyFormat = NumberFormat('#,##0', 'id_ID');
+
+  @override
+  void initState() {
+    super.initState();
+    _initPaymentsFuture();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _initPaymentsFuture() {
     final routerId =
         Provider.of<RouterSessionProvider>(context, listen: false).routerId;
+    if (routerId != null) {
+      setState(() {
+        _paymentsFuture = ApiService.fetchAllPaymentsForMonthYear(
+            widget.month, widget.year,
+            routerId: routerId);
+      });
+    }
+  }
+
+  void _showSnackBar(String message, {bool success = true}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: success ? Colors.green : Colors.red,
+      ),
+    );
+  }
+
+  Future<void> _exportExcel(List<Map<String, dynamic>> payments) async {
+    setState(() => isProcessing = true);
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final monthName = DateFormat('MMMM_yyyy', 'id_ID')
+          .format(DateTime(widget.year, widget.month));
+      final file = File('${dir.path}/pembayaran_$monthName.xlsx');
+      final excel = Excel.createExcel();
+      final sheet = excel['Pembayaran'];
+
+      // Header
+      sheet.appendRow([
+        TextCellValue('No'),
+        TextCellValue('Tanggal'),
+        TextCellValue('Username'),
+        TextCellValue('Metode'),
+        TextCellValue('Jumlah'),
+        TextCellValue('Catatan'),
+      ]);
+
+      // Data
+      double totalNominal = 0;
+      for (var i = 0; i < payments.length; i++) {
+        final p = payments[i];
+        final username = (p['username'] ?? p['user_id'] ?? '-').toString();
+        final amount = double.tryParse(p['amount'].toString()) ?? 0;
+        final method = (p['method'] ?? '-').toString();
+        final date = (p['payment_date'] ?? '-').toString();
+        final note = (p['note'] ?? '').toString();
+
+        totalNominal += amount;
+
+        sheet.appendRow([
+          IntCellValue(i + 1),
+          TextCellValue(date),
+          TextCellValue(username),
+          TextCellValue(method),
+          DoubleCellValue(amount),
+          TextCellValue(note),
+        ]);
+      }
+
+      // Footer Total
+      sheet.appendRow([
+        TextCellValue(''),
+        TextCellValue(''),
+        TextCellValue(''),
+        TextCellValue('Total'),
+        DoubleCellValue(totalNominal),
+        TextCellValue(''),
+      ]);
+
+      await file.writeAsBytes(excel.encode()!);
+      _showSnackBar('Berhasil mengekspor ke ${file.path}');
+      await OpenFile.open(file.path);
+    } catch (e) {
+      _showSnackBar('Gagal ekspor Excel: $e', success: false);
+    } finally {
+      setState(() => isProcessing = false);
+    }
+  }
+
+  Future<void> _printSummary(List<Map<String, dynamic>> payments) async {
+    final pdfDoc = await _buildPdfDocument(payments);
+    await Printing.layoutPdf(
+      onLayout: (format) => pdfDoc.save(),
+    );
+    _showSnackBar('Berhasil mengirim ke printer!');
+  }
+
+  Future<pw.Document> _buildPdfDocument(
+      List<Map<String, dynamic>> payments) async {
+    final pdf = pw.Document();
+    final wmLogo = pw.MemoryImage(
+        (await rootBundle.load('assets/Mikrotik-logo.png'))
+            .buffer
+            .asUint8List());
+
+    final monthYearTitle = DateFormat('MMMM yyyy', 'id_ID')
+        .format(DateTime(widget.year, widget.month));
+
+    pdf.addPage(pw.MultiPage(
+        pageTheme: pw.PageTheme(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          buildBackground: (context) => pw.FullPage(
+            ignoreMargins: true,
+            child: pw.Center(
+              child: pw.Opacity(
+                opacity: 0.07,
+                child: pw.Image(wmLogo, width: 350),
+              ),
+            ),
+          ),
+        ),
+        build: (context) {
+          return [
+            pw.Center(
+              child: pw.Text('Laporan Pembayaran - $monthYearTitle',
+                  style: pw.TextStyle(
+                      fontSize: 18, fontWeight: pw.FontWeight.bold)),
+            ),
+            pw.SizedBox(height: 24),
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+              columnWidths: {
+                0: const pw.FixedColumnWidth(25), // No
+                1: const pw.FixedColumnWidth(65), // Tanggal
+                2: const pw.FlexColumnWidth(1.5), // Username
+                3: const pw.FixedColumnWidth(50), // Metode
+                4: const pw.FixedColumnWidth(70), // Jumlah
+                5: const pw.FlexColumnWidth(2), // Catatan
+              },
+              children: [
+                // Header
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                  children: [
+                    _buildPdfCell('No', isHeader: true),
+                    _buildPdfCell('Tanggal', isHeader: true),
+                    _buildPdfCell('Username', isHeader: true),
+                    _buildPdfCell('Metode', isHeader: true),
+                    _buildPdfCell('Jumlah', isHeader: true),
+                    _buildPdfCell('Keterangan', isHeader: true),
+                  ],
+                ),
+                // Data
+                ...payments.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  final p = entry.value;
+                  final username =
+                      (p['username'] ?? p['user_id'] ?? '-').toString();
+                  final amount = double.tryParse(p['amount'].toString()) ?? 0;
+                  final method = (p['method'] ?? '-').toString();
+                  final date = (p['payment_date'] ?? '-').toString();
+                  final note = (p['note'] ?? '').toString();
+
+                  return pw.TableRow(
+                    children: [
+                      _buildPdfCell('${i + 1}'),
+                      _buildPdfCell(date),
+                      _buildPdfCell(username),
+                      _buildPdfCell(method),
+                      _buildPdfCell(
+                          NumberFormat.currency(
+                                  locale: 'id_ID',
+                                  symbol: 'Rp ',
+                                  decimalDigits: 0)
+                              .format(amount),
+                          alignRight: true),
+                      _buildPdfCell(note),
+                    ],
+                  );
+                }),
+                // Total
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                  children: [
+                    _buildPdfCell(''),
+                    _buildPdfCell(''),
+                    _buildPdfCell('Total', isHeader: true),
+                    _buildPdfCell(''),
+                    _buildPdfCell(
+                        NumberFormat.currency(
+                                locale: 'id_ID',
+                                symbol: 'Rp ',
+                                decimalDigits: 0)
+                            .format(payments.fold<double>(
+                                0,
+                                (sum, p) =>
+                                    sum +
+                                    (double.tryParse(p['amount'].toString()) ??
+                                        0))),
+                        alignRight: true,
+                        isHeader: true),
+                    _buildPdfCell(''),
+                  ],
+                ),
+              ],
+            )
+          ];
+        }));
+    return pdf;
+  }
+
+  pw.Widget _buildPdfCell(String text,
+      {bool isHeader = false, bool alignRight = false}) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.all(6),
+      child: pw.Text(
+        text,
+        textAlign: alignRight ? pw.TextAlign.right : pw.TextAlign.left,
+        style: pw.TextStyle(
+          fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
+          fontSize: 10,
+        ),
+      ),
+    );
+  }
+
+  void _showPaymentDetailDialog(Map<String, dynamic> p) {
+    final username = (p['username'] ?? p['user_id'] ?? '-').toString();
+    final nominal = double.tryParse(p['amount'].toString()) ?? 0;
+    final method = (p['method'] ?? '-').toString();
+    final paymentDate = p['payment_date'] ?? '-';
+    final note = (p['note'] ?? '-').toString();
+    final admin = (p['admin_name'] ?? '-').toString();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: widget.isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Detail Pembayaran',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: widget.isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 24),
+            _buildDetailRow(Icons.person, 'Username', username),
+            _buildDetailRow(Icons.monetization_on, 'Jumlah',
+                'Rp ${currencyFormat.format(nominal)}'),
+            _buildDetailRow(Icons.calendar_today, 'Tanggal', paymentDate),
+            _buildDetailRow(Icons.payment, 'Metode', method),
+            _buildDetailRow(Icons.note, 'Catatan', note),
+            _buildDetailRow(Icons.admin_panel_settings, 'Admin', admin),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Tutup'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: widget.isDark
+                  ? Colors.blue.withOpacity(0.1)
+                  : Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              size: 20,
+              color:
+                  widget.isDark ? Colors.blue.shade300 : Colors.blue.shade700,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: widget.isDark
+                        ? Colors.grey.shade400
+                        : Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: widget.isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final String monthYearTitle = DateFormat('MMMM yyyy', 'id_ID')
+        .format(DateTime(widget.year, widget.month));
+    final routerId =
+        Provider.of<RouterSessionProvider>(context, listen: false).routerId;
+
     if (routerId == null) {
       return Scaffold(
         appBar: AppBar(
@@ -959,6 +1333,7 @@ class MonthlyPaymentDetailScreen extends StatelessWidget {
         body: const Center(child: Text('Silakan login router ulang')),
       );
     }
+
     return GradientContainer(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -966,391 +1341,448 @@ class MonthlyPaymentDetailScreen extends StatelessWidget {
           title: Text(monthYearTitle),
           backgroundColor: Colors.transparent,
           elevation: 0,
-          iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.white),
+          iconTheme:
+              IconThemeData(color: widget.isDark ? Colors.white : Colors.white),
+          titleTextStyle: TextStyle(
+            color: widget.isDark ? Colors.white : Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.print),
+              tooltip: 'Export Data',
+              onPressed: () {
+                setState(() {
+                  showPrintPanel = !showPrintPanel;
+                  if (showPrintPanel) {
+                    _animationController.forward();
+                  } else {
+                    _animationController.reverse();
+                  }
+                });
+              },
+            ),
+          ],
         ),
-        body: FutureBuilder<List<Map<String, dynamic>>>(
-          future: ApiService.fetchAllPaymentsForMonthYear(month, year,
-              routerId: routerId),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      color: isDark ? Colors.blue[200] : Colors.blue[600],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Memuat detail pembayaran...',
-                      style: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.black54,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            } else if (snapshot.hasError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(20),
+        body: Column(
+          children: [
+            // Export Panel
+            if (showPrintPanel)
+              SizeTransition(
+                sizeFactor: _fadeAnimation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Container(
                       decoration: BoxDecoration(
-                        color:
-                            isDark ? Colors.red.shade900 : Colors.red.shade50,
-                        shape: BoxShape.circle,
+                        color: widget.isDark
+                            ? const Color(0xFF2D2D2D)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: widget.isDark
+                                ? Colors.black26
+                                : Colors.grey.withOpacity(0.1),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      child: Icon(
-                        Icons.error_outline,
-                        color: isDark ? Colors.red.shade300 : Colors.red,
-                        size: 50,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text('Gagal memuat data',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.red.shade200 : Colors.red,
-                        )),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        snapshot.error.toString(),
-                        style: TextStyle(
-                          color: isDark ? Colors.white70 : Colors.black54,
-                          fontSize: 13,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: 150,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          // Rebuild the widget to retry
-                          (context as Element).markNeedsBuild();
-                        },
-                        icon: const Icon(Icons.refresh, size: 18),
-                        label: const Text('Coba Lagi'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              isDark ? Colors.grey[700] : Colors.blue,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.payment_outlined,
-                      color: isDark ? Colors.grey.shade600 : Colors.grey,
-                      size: 60,
-                    ),
-                    const SizedBox(height: 16),
-                    Text('Tidak ada pembayaran.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: isDark ? Colors.white70 : Colors.black54,
-                        )),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Belum ada pembayaran yang dicatat untuk bulan ini.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark ? Colors.white54 : Colors.black38,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              );
-            }
-            final payments = snapshot.data!;
-
-            // Calculate total for this month
-            final totalAmount = payments.fold<double>(0.0, (sum, p) {
-              return sum + (double.tryParse(p['amount'].toString()) ?? 0);
-            });
-
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blueGrey.withOpacity(0.06),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                      border: Border.all(
-                        color: Colors.grey.shade200,
-                        width: 1,
-                      ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    child: Row(
-                      children: [
-                        Icon(Icons.analytics,
-                            color: isDark
-                                ? Colors.blue.shade300
-                                : const Color(0xFF1565C0)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Export Data Bulan Ini',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  widget.isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
                             children: [
-                              Text(
-                                'Total Bulan Ini',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? Colors.white : Colors.black87,
-                                  fontSize: 13,
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.picture_as_pdf,
+                                      color: Colors.white),
+                                  label: const Text('PDF'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFD32F2F),
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  onPressed: isProcessing
+                                      ? null
+                                      : () async {
+                                          try {
+                                            final data = await _paymentsFuture;
+                                            await _printSummary(data);
+                                          } catch (e) {
+                                            _showSnackBar(
+                                                'Gagal export PDF: $e',
+                                                success: false);
+                                          }
+                                        },
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Rp ${currencyFormat.format(totalAmount)}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark
-                                      ? Colors.green.shade300
-                                      : const Color(0xFF2E7D32),
-                                  fontSize: 16,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.table_chart,
+                                      color: Colors.white),
+                                  label: const Text('Excel'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green.shade700,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  onPressed: isProcessing
+                                      ? null
+                                      : () async {
+                                          try {
+                                            final data = await _paymentsFuture;
+                                            await _exportExcel(data);
+                                          } catch (e) {
+                                            _showSnackBar(
+                                                'Gagal export Excel: $e',
+                                                success: false);
+                                          }
+                                        },
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (isProcessing)
+                            const Padding(
+                              padding: EdgeInsets.only(top: 16),
+                              child: LinearProgressIndicator(),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+            Expanded(
+              child: FutureBuilder<List<Map<String, dynamic>>>(
+                future: _paymentsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color:
+                            widget.isDark ? Colors.blue[200] : Colors.blue[600],
+                      ),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('Tidak ada data'));
+                  }
+
+                  final payments = snapshot.data!;
+                  final totalAmount = payments.fold<double>(0.0, (sum, p) {
+                    return sum + (double.tryParse(p['amount'].toString()) ?? 0);
+                  });
+
+                  return Column(
+                    children: [
+                      // Total Summary Card
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blueGrey.withOpacity(0.06),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          child: Row(
+                            children: [
+                              Icon(Icons.analytics,
+                                  color: widget.isDark
+                                      ? Colors.blue.shade300
+                                      : const Color(0xFF1565C0)),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Total Bulan Ini',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: widget.isDark
+                                            ? Colors.white
+                                            : Colors.black87,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Rp ${currencyFormat.format(totalAmount)}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: widget.isDark
+                                            ? Colors.green.shade300
+                                            : const Color(0xFF2E7D32),
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: widget.isDark
+                                      ? Colors.blue.shade900
+                                      : Colors.blue.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${payments.length} pembayaran',
+                                  style: TextStyle(
+                                    color: widget.isDark
+                                        ? Colors.blue.shade300
+                                        : Colors.blue.shade700,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        Container(
+                      ),
+
+                      // List Items
+                      Expanded(
+                        child: ListView.builder(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? Colors.blue.shade900
-                                : Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '${payments.length} pembayaran',
-                            style: TextStyle(
-                              color: isDark
-                                  ? Colors.blue.shade300
-                                  : Colors.blue.shade700,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                // List of payments
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 18),
-                    itemCount: payments.length,
-                    itemBuilder: (context, i) {
-                      final p = payments[i];
-                      final username =
-                          (p['username'] ?? p['user_id'] ?? '-').toString();
-                      final nominal =
-                          double.tryParse(p['amount'].toString()) ?? 0;
-                      final method = (p['method'] ?? '-').toString();
-                      final paymentDate = p['payment_date'] ?? '-';
-                      final note = (p['note'] ?? '').toString();
-                      final avatarColor = Colors
-                          .primaries[
-                              username.hashCode % Colors.primaries.length]
-                          .shade300;
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blueGrey.withOpacity(0.08),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: Colors.grey.shade200,
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Header with user info and amount
-                            Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CircleAvatar(
-                                    backgroundColor: avatarColor,
-                                    radius: 24,
-                                    child: Text(
-                                      username.isNotEmpty
-                                          ? username[0].toUpperCase()
-                                          : '-',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20,
-                                          color: Colors.white),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          username,
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 16,
-                                              color: isDark
-                                                  ? Colors.blue.shade200
-                                                  : const Color(0xFF1565C0)),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Rp ${currencyFormat.format(nominal)}',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18,
-                                              color: isDark
-                                                  ? Colors.green.shade300
-                                                  : const Color(0xFF43A047)),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: method.toLowerCase() == 'cash'
-                                          ? (isDark
-                                              ? Colors.green.shade900
-                                              : Colors.green.shade100)
-                                          : (isDark
-                                              ? Colors.blue.shade900
-                                              : Colors.blue.shade100),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      method,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: method.toLowerCase() == 'cash'
-                                            ? (isDark
-                                                ? Colors.green.shade300
-                                                : Colors.green.shade700)
-                                            : (isDark
-                                                ? Colors.blue.shade300
-                                                : Colors.blue.shade700),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // Payment details
-                            Container(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                              horizontal: 16, vertical: 18),
+                          itemCount: payments.length,
+                          itemBuilder: (context, i) {
+                            final p = payments[i];
+                            final username =
+                                (p['username'] ?? p['user_id'] ?? '-')
+                                    .toString();
+                            final nominal =
+                                double.tryParse(p['amount'].toString()) ?? 0;
+                            final method = (p['method'] ?? '-').toString();
+                            final paymentDate = p['payment_date'] ?? '-';
+                            final note = (p['note'] ?? '').toString();
+                            final avatarColor = Colors
+                                .primaries[
+                                    username.hashCode % Colors.primaries.length]
+                                .shade300;
+
+                            return InkWell(
+                              onTap: () => _showPaymentDetailDialog(p),
+                              borderRadius: BorderRadius.circular(16),
                               child: Container(
-                                padding: const EdgeInsets.all(12),
+                                margin: const EdgeInsets.only(bottom: 14),
                                 decoration: BoxDecoration(
-                                  color: isDark
-                                      ? const Color(0xFF2D2D2D)
-                                      : Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(12),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.blueGrey.withOpacity(0.08),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                  border: Border.all(
+                                    color: Colors.grey.shade200,
+                                    width: 1,
+                                  ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Row(
-                                      children: [
-                                        Icon(Icons.calendar_today,
-                                            size: 16,
-                                            color: isDark
-                                                ? Colors.grey.shade400
-                                                : Colors.blueGrey.shade300),
-                                        const SizedBox(width: 8),
-                                        Text(paymentDate,
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: isDark
-                                                    ? Colors.white70
-                                                    : Colors.black87)),
-                                        const Spacer(),
-                                      ],
+                                    Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: avatarColor,
+                                            radius: 24,
+                                            child: Text(
+                                              username.isNotEmpty
+                                                  ? username[0].toUpperCase()
+                                                  : '-',
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20,
+                                                  color: Colors.white),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  username,
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontSize: 16,
+                                                      color: widget.isDark
+                                                          ? Colors.blue.shade200
+                                                          : const Color(
+                                                              0xFF1565C0)),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  'Rp ${currencyFormat.format(nominal)}',
+                                                  style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 18,
+                                                      color: widget.isDark
+                                                          ? Colors
+                                                              .green.shade300
+                                                          : const Color(
+                                                              0xFF43A047)),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color: method.toLowerCase() ==
+                                                      'cash'
+                                                  ? (widget.isDark
+                                                      ? Colors.green.shade900
+                                                      : Colors.green.shade100)
+                                                  : (widget.isDark
+                                                      ? Colors.blue.shade900
+                                                      : Colors.blue.shade100),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              method,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: method.toLowerCase() ==
+                                                        'cash'
+                                                    ? (widget.isDark
+                                                        ? Colors.green.shade300
+                                                        : Colors.green.shade700)
+                                                    : (widget.isDark
+                                                        ? Colors.blue.shade300
+                                                        : Colors.blue.shade700),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    if (note.isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 10),
-                                        child: Row(
+                                    Container(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          16, 0, 16, 16),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: widget.isDark
+                                              ? const Color(0xFF2D2D2D)
+                                              : Colors.grey.shade50,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        child: Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Icon(Icons.sticky_note_2,
-                                                size: 16,
-                                                color: isDark
-                                                    ? Colors.orange.shade300
-                                                    : Colors.orange.shade400),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: Text(note,
-                                                  style: TextStyle(
-                                                      fontSize: 13,
-                                                      color: isDark
-                                                          ? Colors.white70
-                                                          : Colors.black87)),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.calendar_today,
+                                                    size: 16,
+                                                    color: widget.isDark
+                                                        ? Colors.grey.shade400
+                                                        : Colors
+                                                            .blueGrey.shade300),
+                                                const SizedBox(width: 8),
+                                                Text(paymentDate,
+                                                    style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: widget.isDark
+                                                            ? Colors.white70
+                                                            : Colors.black87)),
+                                                const Spacer(),
+                                              ],
                                             ),
+                                            if (note.isNotEmpty)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 10),
+                                                child: Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Icon(Icons.sticky_note_2,
+                                                        size: 16,
+                                                        color: widget.isDark
+                                                            ? Colors
+                                                                .orange.shade300
+                                                            : Colors.orange
+                                                                .shade400),
+                                                    const SizedBox(width: 8),
+                                                    Expanded(
+                                                      child: Text(note,
+                                                          style: TextStyle(
+                                                              fontSize: 13,
+                                                              color: widget.isDark
+                                                                  ? Colors
+                                                                      .white70
+                                                                  : Colors
+                                                                      .black87)),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
                                           ],
                                         ),
                                       ),
+                                    ),
                                   ],
                                 ),
                               ),
-                            ),
-                          ],
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
