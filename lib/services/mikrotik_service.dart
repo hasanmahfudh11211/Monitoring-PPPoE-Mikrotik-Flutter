@@ -399,10 +399,12 @@ class MikrotikService {
   }
 
   Future<List<Map<String, dynamic>>> getLog() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/log'),
-      headers: _headers,
-    );
+    final response = await http
+        .get(
+          Uri.parse('$baseUrl/log'),
+          headers: _headers,
+        )
+        .timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data is List) {

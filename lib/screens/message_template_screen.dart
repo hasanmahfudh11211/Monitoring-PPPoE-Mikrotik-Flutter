@@ -3,10 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/gradient_container.dart';
 import '../widgets/custom_snackbar.dart';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
-import 'dart:io';
 import '../main.dart';
 
 class MessageTemplateScreen extends StatefulWidget {
@@ -21,8 +17,6 @@ class _MessageTemplateScreenState extends State<MessageTemplateScreen>
   late TabController _tabController;
   final TextEditingController _lunasController = TextEditingController();
   final TextEditingController _tagihanController = TextEditingController();
-  String? _lunasImagePath;
-  String? _tagihanImagePath;
   bool _isLoading = true;
 
   // Default Templates
@@ -79,8 +73,6 @@ Terimakasih''';
             prefs.getString('template_lunas') ?? defaultLunas;
         _tagihanController.text =
             prefs.getString('template_tagihan') ?? defaultTagihan;
-        _lunasImagePath = prefs.getString('image_lunas');
-        _tagihanImagePath = prefs.getString('image_tagihan');
       });
     } catch (e) {
       if (mounted) {
@@ -106,16 +98,10 @@ Terimakasih''';
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('template_lunas', _lunasController.text);
       await prefs.setString('template_tagihan', _tagihanController.text);
-      if (_lunasImagePath != null) {
-        await prefs.setString('image_lunas', _lunasImagePath!);
-      } else {
-        await prefs.remove('image_lunas');
-      }
-      if (_tagihanImagePath != null) {
-        await prefs.setString('image_tagihan', _tagihanImagePath!);
-      } else {
-        await prefs.remove('image_tagihan');
-      }
+
+      // Remove image keys if they exist (cleanup)
+      await prefs.remove('image_lunas');
+      await prefs.remove('image_tagihan');
 
       if (mounted) {
         CustomSnackbar.show(
@@ -170,52 +156,9 @@ Terimakasih''';
       setState(() {
         _lunasController.text = defaultLunas;
         _tagihanController.text = defaultTagihan;
-        _lunasImagePath = null;
-        _tagihanImagePath = null;
       });
       await _saveTemplates();
     }
-  }
-
-  Future<void> _pickImage(bool isLunas) async {
-    try {
-      final picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-
-      if (image != null) {
-        final appDir = await getApplicationDocumentsDirectory();
-        final fileName = path.basename(image.path);
-        final savedImage =
-            await File(image.path).copy('${appDir.path}/$fileName');
-
-        setState(() {
-          if (isLunas) {
-            _lunasImagePath = savedImage.path;
-          } else {
-            _tagihanImagePath = savedImage.path;
-          }
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        CustomSnackbar.show(
-          context: context,
-          message: 'Gagal mengambil gambar',
-          additionalInfo: e.toString(),
-          isSuccess: false,
-        );
-      }
-    }
-  }
-
-  void _removeImage(bool isLunas) {
-    setState(() {
-      if (isLunas) {
-        _lunasImagePath = null;
-      } else {
-        _tagihanImagePath = null;
-      }
-    });
   }
 
   @override
@@ -267,10 +210,8 @@ Terimakasih''';
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        _buildEditor(
-                            _lunasController, isDark, true, _lunasImagePath),
-                        _buildEditor(_tagihanController, isDark, false,
-                            _tagihanImagePath),
+                        _buildEditor(_lunasController, isDark),
+                        _buildEditor(_tagihanController, isDark),
                       ],
                     ),
                   ),
@@ -281,8 +222,7 @@ Terimakasih''';
     );
   }
 
-  Widget _buildEditor(TextEditingController controller, bool isDark,
-      bool isLunas, String? imagePath) {
+  Widget _buildEditor(TextEditingController controller, bool isDark) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -299,73 +239,6 @@ Terimakasih''';
       ),
       child: Column(
         children: [
-          // Image Header Section
-          Container(
-            width: double.infinity,
-            height: 120,
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: isDark ? Colors.black26 : Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isDark ? Colors.white10 : Colors.black12,
-              ),
-            ),
-            child: imagePath != null
-                ? Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          File(imagePath),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: InkWell(
-                          onTap: () => _removeImage(isLunas),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                : InkWell(
-                    onTap: () => _pickImage(isLunas),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.add_photo_alternate,
-                          size: 32,
-                          color: isDark ? Colors.white38 : Colors.grey[400],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Tambah Gambar Header',
-                          style: TextStyle(
-                            color: isDark ? Colors.white38 : Colors.grey[500],
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-          ),
           Expanded(
             child: TextField(
               controller: controller,

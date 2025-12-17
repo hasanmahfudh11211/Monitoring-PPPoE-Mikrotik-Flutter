@@ -5,6 +5,7 @@ import '../widgets/gradient_container.dart';
 
 import '../main.dart';
 import 'dart:convert';
+import 'dart:async';
 
 class LogScreen extends StatefulWidget {
   const LogScreen({Key? key}) : super(key: key);
@@ -18,21 +19,37 @@ class _LogScreenState extends State<LogScreen> {
   String? _error;
   List<Map<String, dynamic>> _logs = [];
   bool _isRefreshing = false;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _fetchLogs();
+    _startAutoRefresh();
   }
 
-  Future<void> _fetchLogs() async {
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startAutoRefresh() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _fetchLogs(silent: true);
+    });
+  }
+
+  Future<void> _fetchLogs({bool silent = false}) async {
     if (_isRefreshing) return;
 
-    setState(() {
-      _isLoading = true;
-      _error = null;
-      _isRefreshing = true;
-    });
+    if (!silent) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
+    _isRefreshing = true;
 
     try {
       final provider = context.read<MikrotikProvider>();
@@ -509,17 +526,8 @@ class _LogScreenState extends State<LogScreen> {
           iconTheme: const IconThemeData(color: Colors.white),
           actions: [
             IconButton(
-              icon: _isRefreshing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Icon(Icons.refresh, color: Colors.white),
-              onPressed: _isRefreshing ? null : _handleRefresh,
+              icon: const Icon(Icons.refresh, color: Colors.white),
+              onPressed: _handleRefresh,
             ),
           ],
         ),
