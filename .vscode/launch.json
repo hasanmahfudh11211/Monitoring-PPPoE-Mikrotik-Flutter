@@ -7,7 +7,7 @@
       "type": "dart",
       "program": "lib/main.dart",
       "flutterMode": "debug",
-      "preLaunchTask": "flutter pub get",
+      "preLaunchTask": "flutter clean & get",
       // Skip some checks for faster launch
       "vmAdditionalArgs": [
         "--disable-vm-service-publication"

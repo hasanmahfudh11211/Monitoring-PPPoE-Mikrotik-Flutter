@@ -1064,7 +1064,6 @@ class _MonthlyPaymentDetailScreenState extends State<MonthlyPaymentDetailScreen>
     await Printing.layoutPdf(
       onLayout: (format) => pdfDoc.save(),
     );
-    _showSnackBar('Berhasil mengirim ke printer!');
   }
 
   Future<pw.Document> _buildPdfDocument(
@@ -1103,12 +1102,12 @@ class _MonthlyPaymentDetailScreenState extends State<MonthlyPaymentDetailScreen>
             pw.Table(
               border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
               columnWidths: {
-                0: const pw.FixedColumnWidth(25), // No
-                1: const pw.FixedColumnWidth(65), // Tanggal
+                0: const pw.FixedColumnWidth(35), // No (Widened)
+                1: const pw.FixedColumnWidth(80), // Tanggal
                 2: const pw.FlexColumnWidth(1.5), // Username
                 3: const pw.FixedColumnWidth(50), // Metode
-                4: const pw.FixedColumnWidth(70), // Jumlah
-                5: const pw.FlexColumnWidth(2), // Catatan
+                4: const pw.FlexColumnWidth(1), // Keterangan (Swapped)
+                5: const pw.FixedColumnWidth(90), // Jumlah (Swapped)
               },
               children: [
                 // Header
@@ -1119,8 +1118,8 @@ class _MonthlyPaymentDetailScreenState extends State<MonthlyPaymentDetailScreen>
                     _buildPdfCell('Tanggal', isHeader: true),
                     _buildPdfCell('Username', isHeader: true),
                     _buildPdfCell('Metode', isHeader: true),
-                    _buildPdfCell('Jumlah', isHeader: true),
-                    _buildPdfCell('Keterangan', isHeader: true),
+                    _buildPdfCell('Keterangan', isHeader: true), // Swapped
+                    _buildPdfCell('Jumlah', isHeader: true), // Swapped
                   ],
                 ),
                 // Data
@@ -1140,14 +1139,14 @@ class _MonthlyPaymentDetailScreenState extends State<MonthlyPaymentDetailScreen>
                       _buildPdfCell(date),
                       _buildPdfCell(username),
                       _buildPdfCell(method),
+                      _buildPdfCell(note), // Swapped
                       _buildPdfCell(
                           NumberFormat.currency(
                                   locale: 'id_ID',
                                   symbol: 'Rp ',
                                   decimalDigits: 0)
                               .format(amount),
-                          alignRight: true),
-                      _buildPdfCell(note),
+                          alignRight: true), // Swapped
                     ],
                   );
                 }),
@@ -1157,8 +1156,9 @@ class _MonthlyPaymentDetailScreenState extends State<MonthlyPaymentDetailScreen>
                   children: [
                     _buildPdfCell(''),
                     _buildPdfCell(''),
-                    _buildPdfCell('Total', isHeader: true),
                     _buildPdfCell(''),
+                    _buildPdfCell(''),
+                    _buildPdfCell('Total', isHeader: true, alignRight: true),
                     _buildPdfCell(
                         NumberFormat.currency(
                                 locale: 'id_ID',
@@ -1172,7 +1172,6 @@ class _MonthlyPaymentDetailScreenState extends State<MonthlyPaymentDetailScreen>
                                         0))),
                         alignRight: true,
                         isHeader: true),
-                    _buildPdfCell(''),
                   ],
                 ),
               ],
@@ -1406,16 +1405,21 @@ class _MonthlyPaymentDetailScreenState extends State<MonthlyPaymentDetailScreen>
                             ),
                           ),
                           const SizedBox(height: 16),
-                          Row(
+                          Column(
                             children: [
-                              Expanded(
+                              SizedBox(
+                                width: double.infinity,
+                                height: 45,
                                 child: ElevatedButton.icon(
                                   icon: const Icon(Icons.picture_as_pdf,
                                       color: Colors.white),
-                                  label: const Text('PDF'),
+                                  label: const Text('Export PDF'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFFD32F2F),
                                     foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
                                   onPressed: isProcessing
                                       ? null
@@ -1431,15 +1435,20 @@ class _MonthlyPaymentDetailScreenState extends State<MonthlyPaymentDetailScreen>
                                         },
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 45,
                                 child: ElevatedButton.icon(
                                   icon: const Icon(Icons.table_chart,
                                       color: Colors.white),
-                                  label: const Text('Excel'),
+                                  label: const Text('Export Excel'),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.green.shade700,
                                     foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
                                   ),
                                   onPressed: isProcessing
                                       ? null

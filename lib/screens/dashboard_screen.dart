@@ -8,6 +8,7 @@ import '../services/log_sync_service.dart'; // Import Sync Service
 import '../providers/router_session_provider.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:ui';
 import '../widgets/gradient_container.dart';
 import 'all_users_screen.dart';
 
@@ -528,13 +529,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             ListTile(
                               leading: const Icon(Icons.history),
-                              title: const Text('System Logs'),
+                              title: const Text('Logs'),
                               onTap: () {
                                 Navigator.of(context).pop();
                                 Future.delayed(
                                     const Duration(milliseconds: 250), () {
                                   Navigator.of(context, rootNavigator: true)
-                                      .pushNamed('/system-logs');
+                                      .pushNamed('/log');
                                 });
                               },
                             ),
@@ -655,16 +656,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   const Icon(Icons.access_time,
                                       color: Colors.white70, size: 18),
                                   const SizedBox(width: 6),
-                                  Text('Uptime: $_uptimeDisplay',
+                                  Expanded(
+                                    child: Text(
+                                      'Uptime: $_uptimeDisplay',
                                       style: const TextStyle(
-                                          color: Colors.white70, fontSize: 14)),
-                                  const SizedBox(width: 18),
+                                          color: Colors.white70, fontSize: 14),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
                                   const Icon(Icons.speed,
                                       color: Colors.white70, size: 18),
-                                  const SizedBox(width: 6),
-                                  Text('CPU: $_cpuLoad%',
-                                      style: const TextStyle(
-                                          color: Colors.white70, fontSize: 14)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'CPU: $_cpuLoad%',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 14,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ],
@@ -719,8 +729,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             const SizedBox(height: 16),
                             _billingBox(context),
-                            const SizedBox(height: 16),
-                            _logBox(context),
                           ],
                         ),
                       ),
@@ -729,27 +737,80 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 );
               },
             ),
-            bottomNavigationBar: BottomNavigationBar(
-              type: BottomNavigationBarType.fixed,
-              currentIndex: 0,
-              items: const [
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.dashboard), label: 'Dashboard'),
-                BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Tambah'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.vpn_key), label: 'Profile'),
-                BottomNavigationBarItem(
-                    icon: Icon(Icons.settings), label: 'Setting'),
-              ],
-              onTap: (index) {
-                if (index == 1) {
-                  Navigator.pushNamed(context, '/tambah');
-                } else if (index == 2) {
-                  Navigator.pushNamed(context, '/ppp-profile');
-                } else if (index == 3) {
-                  Navigator.pushNamed(context, '/setting');
-                }
-              },
+            bottomNavigationBar: Container(
+              margin: const EdgeInsets.fromLTRB(20, 0, 20, 30),
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 40,
+                    spreadRadius: 0,
+                    offset: const Offset(0, 20),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.4),
+                        width: 1.5,
+                      ),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withOpacity(0.8),
+                          Colors.white.withOpacity(0.5),
+                        ],
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildNavItem(
+                          context,
+                          icon: Icons.dashboard_rounded,
+                          label: 'Home',
+                          isSelected: true,
+                          onTap: () {},
+                        ),
+                        _buildNavItem(
+                          context,
+                          icon: Icons.add_circle_outline_rounded,
+                          label: 'Tambah',
+                          isSelected: false,
+                          onTap: () => Navigator.pushNamed(context, '/tambah'),
+                        ),
+                        _buildNavItem(
+                          context,
+                          icon: Icons.vpn_key_rounded,
+                          label: 'Profile',
+                          isSelected: false,
+                          onTap: () =>
+                              Navigator.pushNamed(context, '/ppp-profile'),
+                        ),
+                        _buildNavItem(
+                          context,
+                          icon: Icons.settings_rounded,
+                          label: 'Setting',
+                          isSelected: false,
+                          onTap: () => Navigator.pushNamed(context, '/setting'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -942,7 +1003,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _logBox(BuildContext context) {
+  Widget _billingBox(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
@@ -954,71 +1015,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.orange.withOpacity(0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: InkWell(
-        onTap: () => Navigator.pushNamed(context, '/log'),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.list_alt,
-                color: Colors.white,
-                size: 28,
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: Text(
-                  'Log',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.arrow_forward,
-                color: Colors.white,
-                size: 28,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _billingBox(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.green.withValues(alpha: 0.2),
+            color: Colors.orange.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1062,6 +1059,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Icons.arrow_forward,
                 color: Colors.white,
                 size: 28,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(BuildContext context,
+      {required IconData icon,
+      required String label,
+      required bool isSelected,
+      required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: isSelected
+            ? BoxDecoration(
+                color: const Color(0xFFE3F2FD),
+                borderRadius: BorderRadius.circular(20),
+              )
+            : null,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected
+                  ? const Color(0xFF0277BD)
+                  : const Color(0xFF455A64),
+              size: 26,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected
+                    ? const Color(0xFF0277BD)
+                    : const Color(0xFF455A64),
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
           ],

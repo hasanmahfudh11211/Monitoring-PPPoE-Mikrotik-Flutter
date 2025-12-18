@@ -9,6 +9,7 @@ class MikrotikService {
   String? username;
   String? password;
   bool enableLogging;
+  final http.Client _client = http.Client();
 
   MikrotikService({
     this.ip,
@@ -97,7 +98,7 @@ class MikrotikService {
         'User': username ?? '-',
       });
       await _probeConnectivity();
-      final response = await http
+      final response = await _client
           .get(
             uri,
             headers: _headers,
@@ -190,7 +191,7 @@ class MikrotikService {
         'PasswordLen': '${password?.length ?? 0}',
       });
       await _probeConnectivity();
-      final response = await http
+      final response = await _client
           .get(
         uri,
         headers: _headers,
@@ -340,7 +341,7 @@ class MikrotikService {
   }
 
   Future<Map<String, dynamic>> getResource() async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$baseUrl/system/resource'),
       headers: _headers,
     );
@@ -352,7 +353,7 @@ class MikrotikService {
   }
 
   Future<List<Map<String, dynamic>>> getPPPActive() async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$baseUrl/ppp/active'),
       headers: _headers,
     );
@@ -369,7 +370,7 @@ class MikrotikService {
   }
 
   Future<void> disconnectSession(String sessionId) async {
-    final response = await http.post(
+    final response = await _client.post(
       Uri.parse('$baseUrl/ppp/active/remove'),
       headers: _headers,
       body: jsonEncode({
@@ -382,7 +383,7 @@ class MikrotikService {
   }
 
   Future<List<Map<String, dynamic>>> getPPPSecret() async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$baseUrl/ppp/secret'),
       headers: _headers,
     );
@@ -399,7 +400,7 @@ class MikrotikService {
   }
 
   Future<List<Map<String, dynamic>>> getLog() async {
-    final response = await http
+    final response = await _client
         .get(
           Uri.parse('$baseUrl/log'),
           headers: _headers,
@@ -418,7 +419,7 @@ class MikrotikService {
   }
 
   Future<List<Map<String, dynamic>>> getInterface() async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$baseUrl/interface'),
       headers: _headers,
     );
@@ -435,7 +436,7 @@ class MikrotikService {
   }
 
   Future<List<Map<String, dynamic>>> getPPPProfile() async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$baseUrl/ppp/profile'),
       headers: _headers,
     );
@@ -483,7 +484,7 @@ class MikrotikService {
     };
 
     try {
-      final response = await http.post(
+      final response = await _client.post(
         url,
         headers: _headers,
         body: jsonEncode(requestBody),
@@ -552,7 +553,7 @@ class MikrotikService {
     };
 
     try {
-      final response = await http.post(
+      final response = await _client.post(
         url,
         headers: _headers,
         body: jsonEncode(requestBody),
@@ -587,7 +588,7 @@ class MikrotikService {
         orElse: () => throw Exception('User tidak ditemukan'),
       );
 
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse('$baseUrl/ppp/secret/remove'),
         headers: _headers,
         body: jsonEncode({
@@ -612,7 +613,7 @@ class MikrotikService {
   }
 
   Future<Map<String, dynamic>> getTraffic(String interfaceId) async {
-    final response = await http.get(
+    final response = await _client.get(
       Uri.parse('$baseUrl/interface/$interfaceId'),
       headers: _headers,
     );
@@ -621,7 +622,7 @@ class MikrotikService {
       if (data is Map<String, dynamic>) {
         // Calculate rates by comparing values over time
         await Future.delayed(const Duration(seconds: 1)); // Wait 1 second
-        final secondResponse = await http.get(
+        final secondResponse = await _client.get(
           Uri.parse('$baseUrl/interface/$interfaceId'),
           headers: _headers,
         );
@@ -666,7 +667,7 @@ class MikrotikService {
   /// Note: This endpoint may not be available on all devices/firmware versions
   Future<List<Map<String, dynamic>>> getSystemUsers() async {
     try {
-      final response = await http
+      final response = await _client
           .get(
             Uri.parse('$baseUrl/system/user'),
             headers: _headers,
@@ -703,7 +704,7 @@ class MikrotikService {
   /// Note: This endpoint may not be available on all devices/firmware versions
   Future<List<Map<String, dynamic>>> getSystemUserGroups() async {
     try {
-      final response = await http
+      final response = await _client
           .get(
             Uri.parse('$baseUrl/system/user/group'),
             headers: _headers,

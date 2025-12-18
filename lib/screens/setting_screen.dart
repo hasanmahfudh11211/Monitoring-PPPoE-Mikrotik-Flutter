@@ -39,6 +39,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _loadAppVersion() async {
     final packageInfo = await PackageInfo.fromPlatform();
+    if (!mounted) return;
     setState(() {
       _appVersion = packageInfo.version;
     });
@@ -46,6 +47,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _loadCurrentSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _currentIp = prefs.getString('ip') ?? '';
       _currentPort = prefs.getString('port') ?? '';
@@ -57,7 +59,9 @@ class _SettingScreenState extends State<SettingScreen> {
     if (_currentIp.isNotEmpty &&
         _currentPort.isNotEmpty &&
         _currentUsername.isNotEmpty) {
-      _loadUserGroupInfo();
+      if (mounted) {
+        _loadUserGroupInfo();
+      }
     }
   }
 
@@ -69,6 +73,7 @@ class _SettingScreenState extends State<SettingScreen> {
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _loadingGroup = true;
       _currentUserGroup = ''; // Reset group info while loading
@@ -87,17 +92,21 @@ class _SettingScreenState extends State<SettingScreen> {
         password: await _getPassword(),
       );
 
+      if (!mounted) return;
       setState(() {
         _currentUserGroup = group;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _currentUserGroup = '---';
       });
     } finally {
-      setState(() {
-        _loadingGroup = false;
-      });
+      if (mounted) {
+        setState(() {
+          _loadingGroup = false;
+        });
+      }
     }
   }
 

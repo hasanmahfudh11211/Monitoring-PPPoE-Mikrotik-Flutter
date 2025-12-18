@@ -60,9 +60,15 @@ class LiveMonitorService {
     _notificationsPlugin.cancel(_notificationId);
   }
 
+  bool _isFetching = false;
+
   Future<void> _updateNotification(String routerName, String ip) async {
     final service = _service;
     if (service == null || !_isMonitoring) return;
+
+    // Prevent overlapping requests
+    if (_isFetching) return;
+    _isFetching = true;
 
     try {
       // 1. Fetch System Resource
@@ -130,6 +136,8 @@ class LiveMonitorService {
     } catch (e) {
       debugPrint('LiveMonitor Error: $e');
       // Don't stop monitoring on error, just skip this update
+    } finally {
+      _isFetching = false;
     }
   }
 
