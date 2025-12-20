@@ -45,3 +45,52 @@ if (themeToggleBtn) {
         setTheme(isDark ? 'light' : 'dark');
     });
 }
+
+// Initialize AOS
+if (typeof AOS !== 'undefined') {
+    AOS.init({
+        once: true,
+        offset: 100,
+    });
+}
+
+// Initialize Swiper
+if (typeof Swiper !== 'undefined' && document.querySelector('.mySwiper')) {
+    var swiper = new Swiper(".mySwiper", {
+        effect: "coverflow",
+        grabCursor: true,
+        centeredSlides: true,
+        slidesPerView: "auto",
+        coverflowEffect: {
+            rotate: 50,
+            stretch: 0,
+            depth: 100,
+            modifier: 1,
+            slideShadows: true,
+        },
+        pagination: {
+            el: ".swiper-pagination",
+        },
+        navigation: {
+            nextEl: ".swiper-button-next",
+            prevEl: ".swiper-button-prev",
+        },
+        autoplay: {
+            delay: 2500,
+            disableOnInteraction: false,
+        },
+    });
+}
+
+// FAQ Accordion
+const faqItems = document.querySelectorAll('.faq-item');
+if (faqItems.length > 0) {
+    faqItems.forEach(item => {
+        const question = item.querySelector('.faq-question');
+        if (question) {
+            question.addEventListener('click', () => {
+                item.classList.toggle('active');
+            });
+        }
+    });
+}

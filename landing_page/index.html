@@ -36,7 +36,6 @@
           <li><a href="features.html">Fitur</a></li>
           <li><a href="about.html">Tentang</a></li>
           <li><a href="contact.html">Kontak</a></li>
-          <li><a href="contact.html">Kontak</a></li>
           <li><a href="/api/download.php" class="btn-primary">Unduh Sekarang</a></li>
           <li>
             <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
@@ -71,7 +70,7 @@
           <!-- Placeholder for App Screenshot -->
           <div class="phone-mockup">
             <div class="screen">
-              <img src="assets/img/dashboard.jpg" alt="App Screenshot" style="width: 100%; height: 100%; object-fit: contain; background-color: #f0f0f0;">
+              <img id="hero-img" src="assets/img/dashboard.jpg" alt="App Screenshot" style="width: 100%; height: 100%; object-fit: contain; background-color: #f0f0f0;">
             </div>
           </div>
         </div>
@@ -128,6 +127,40 @@
               router Anda down.
             </p>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screenshots Section -->
+    <section id="screenshots" class="screenshots">
+      <div class="container">
+        <div class="section-header" data-aos="fade-up">
+          <h2>Tampilan Aplikasi</h2>
+          <p>Antarmuka yang modern dan mudah digunakan.</p>
+        </div>
+        
+        <!-- Swiper -->
+        <div class="swiper mySwiper" data-aos="fade-up" data-aos-delay="100">
+          <div class="swiper-wrapper">
+            <div class="swiper-slide">
+              <div class="screenshot-frame">
+                <img src="assets/img/dashboard.jpg" alt="Dashboard" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
+              </div>
+            </div>
+            <div class="swiper-slide">
+              <div class="screenshot-frame">
+                <img src="assets/img/dashboard.jpg" alt="User List" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
+              </div>
+            </div>
+            <div class="swiper-slide">
+              <div class="screenshot-frame">
+                <img src="assets/img/dashboard.jpg" alt="Logs" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
+              </div>
+            </div>
+          </div>
+          <div class="swiper-pagination"></div>
+          <div class="swiper-button-next"></div>
+          <div class="swiper-button-prev"></div>
         </div>
       </div>
     </section>
@@ -280,45 +313,9 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     
     <script>
-      AOS.init({
-        once: true, // Animasi hanya berjalan sekali saat scroll
-        offset: 100, // Offset trigger animasi
-      });
-
-      // Initialize Swiper
-      var swiper = new Swiper(".mySwiper", {
-        effect: "coverflow",
-        grabCursor: true,
-        centeredSlides: true,
-        slidesPerView: "auto",
-        coverflowEffect: {
-          rotate: 50,
-          stretch: 0,
-          depth: 100,
-          modifier: 1,
-          slideShadows: true,
-        },
-        pagination: {
-          el: ".swiper-pagination",
-        },
-        navigation: {
-          nextEl: ".swiper-button-next",
-          prevEl: ".swiper-button-prev",
-        },
-        autoplay: {
-          delay: 2500,
-          disableOnInteraction: false,
-        },
-      });
-
-      // FAQ Accordion
-      const faqItems = document.querySelectorAll('.faq-item');
-      faqItems.forEach(item => {
-        const question = item.querySelector('.faq-question');
-        question.addEventListener('click', () => {
-          item.classList.toggle('active');
-        });
-      });
+      // Initialize Swiper (moved to script.js but kept here if needed for specific page logic, but we are moving it)
+      // Leaving empty or removing if fully moved.
+      // Since we moved it to script.js, we can remove this block.
     </script>
   </body>
 </html>
