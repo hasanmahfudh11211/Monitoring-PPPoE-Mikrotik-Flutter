@@ -23,6 +23,11 @@
                 <li><a href="about.html" class="active">Tentang</a></li>
                 <li><a href="contact.html">Kontak</a></li>
                 <li><a href="/api/download.php" class="btn-primary">Unduh</a></li>
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </li>
             </ul>
             <div class="menu-toggle">
                 <i class="fas fa-bars"></i>
@@ -135,12 +140,7 @@
     <script>
         AOS.init({ once: true, offset: 100 });
         
-        // Mobile Menu
-        const menuToggle = document.querySelector('.menu-toggle');
-        const navLinks = document.querySelector('.nav-links');
-        menuToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-        });
+    <script src="script.js"></script>
     </script>
 </body>
 </html>
