@@ -1226,7 +1226,7 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
               builder: (context) {
                 final filteredUsers = _getFilteredUsersByPPP(_pppSecrets);
                 return Container(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
                   child: Text(
                     'Total User: ${filteredUsers.length}${_searchQuery.isNotEmpty ? ' (${filteredUsers.length} ditampilkan)' : ''}',
                     style: TextStyle(

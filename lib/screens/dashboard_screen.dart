@@ -685,14 +685,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       _secretBox(context, provider),
                       const SizedBox(height: 16),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.zero,
                         child: Column(
                           children: [
                             Row(
                               children: [
                                 Expanded(
                                   child: AspectRatio(
-                                    aspectRatio: 1,
+                                    aspectRatio: 1.3,
                                     child: _statGridBox(
                                       context,
                                       Icons.wifi,
@@ -710,7 +710,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 const SizedBox(width: 15),
                                 Expanded(
                                   child: AspectRatio(
-                                    aspectRatio: 1,
+                                    aspectRatio: 1.3,
                                     child: _statGridBox(
                                       context,
                                       Icons.wifi_off,
@@ -873,28 +873,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.white, size: 28),
-            const SizedBox(height: 8),
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(height: 4),
             Text(
               label,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w800,
                 color: Colors.white,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             if (label != 'Log')
               Text(
                 value == -1 ? '***' : value.toString(),
                 style: const TextStyle(
-                  fontSize: 28,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               )
             else
-              const Icon(Icons.arrow_forward, color: Colors.white, size: 24),
+              const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
           ],
         ),
       ),
@@ -912,7 +912,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
       borderRadius: BorderRadius.circular(15),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           gradient: const LinearGradient(

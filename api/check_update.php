@@ -16,16 +16,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 /**
- * CONFIGURATION - Update these values when you release a new version
+ * CONFIGURATION
+ * Now loaded from version_config.php
  */
-const LATEST_VERSION = '1.0.3+4';
-const LATEST_BUILD_NUMBER = 4;
-const LATEST_APK_URL = 'https://cmmnetwork.online/files/app-release.apk';
+require_once __DIR__ . '/version_config.php';
+
+// Construct the tracking URL
+// Assuming download.php is in the same directory as this script
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$domainName = $_SERVER['HTTP_HOST'];
+$path = dirname($_SERVER['PHP_SELF']);
+$TRACKING_URL = $protocol . $domainName . $path . '/download.php';
+
+// Use constants from version_config.php
+// LATEST_VERSION, LATEST_BUILD_NUMBER, MINIMUM_REQUIRED_VERSION are now available
 const APK_SIZE_BYTES = 0; // Will be calculated if APK exists
-const MINIMUM_REQUIRED_VERSION = '1.0.0'; // Force update if user has older version
 
 // Optional: Add release notes
 const RELEASE_NOTES = [
+    [
+        'version' => '1.0.4+5',
+        'build' => 5,
+        'date' => '2025-12-19',
+        'notes' => [
+            'Perbaikan layout Dashboard (kartu simetris & proporsional)',
+            'Penyesuaian padding footer di halaman detail',
+            'Peningkatan stabilitas aplikasi'
+        ]
+    ],
     [
         'version' => '1.0.3+4',
         'build' => 4,
@@ -150,8 +168,8 @@ try {
         'update_required' => $updateRequired,
         'latest_version' => LATEST_VERSION,
         'latest_build' => LATEST_BUILD_NUMBER,
-        'apk_url' => LATEST_APK_URL,
-        'apk_size' => getApkSize(LATEST_APK_URL),
+        'apk_url' => $TRACKING_URL, // Points to download.php
+        'apk_size' => getApkSize(REAL_APK_URL), // Check size of actual file
         'minimum_required_version' => MINIMUM_REQUIRED_VERSION,
         'release_notes' => RELEASE_NOTES,
         'timestamp' => date('Y-m-d H:i:s')

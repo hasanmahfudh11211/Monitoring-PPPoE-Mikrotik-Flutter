@@ -499,8 +499,7 @@ class _PPPProfilePageState extends State<PPPProfilePage> {
                         // Footer with total count
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
                           decoration: BoxDecoration(
                             color:
                                 isDark ? const Color(0xFF1E1E1E) : Colors.white,

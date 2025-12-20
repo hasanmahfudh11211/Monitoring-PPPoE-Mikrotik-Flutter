@@ -1746,8 +1746,7 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 18, vertical: 18),
+                              padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [

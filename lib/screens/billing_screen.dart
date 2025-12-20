@@ -2282,8 +2282,7 @@ Terimakasih''';
                       ),
                       // Footer: jumlah user dan total pembayaran
                       Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

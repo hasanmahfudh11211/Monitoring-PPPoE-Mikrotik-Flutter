@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mikrotik Monitor - Kelola Jaringan Anda dengan Mudah</title>
+    <meta
+      name="description"
+      content="Aplikasi monitoring Mikrotik terbaik untuk memantau trafik, manajemen user, dan log sistem secara real-time."
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Font Awesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <!-- AOS Animation CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="container">
+        <a href="#" class="logo">
+          <i class="fas fa-network-wired"></i> Mikrotik Monitor
+        </a>
+        <ul class="nav-links">
+          <li><a href="#features">Fitur</a></li>
+          <li><a href="#about">Tentang</a></li>
+          <li><a href="/api/download.php" class="btn-primary">Unduh Sekarang</a></li>
+        </ul>
+        <div class="menu-toggle">
+          <i class="fas fa-bars"></i>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-bg-overlay"></div>
+      <div class="container">
+        <div class="hero-content" data-aos="fade-right" data-aos-duration="1000">
+          <h1>Pantau Jaringan Mikrotik Anda Secara Real-time</h1>
+          <p>
+            Solusi lengkap untuk manajemen bandwidth, monitoring user, dan
+            analisis log sistem dalam satu genggaman.
+          </p>
+          <div class="hero-buttons">
+            <a href="/api/download.php" class="btn-primary"
+              ><i class="fab fa-android"></i> Download APK</a
+            >
+            <a href="#features" class="btn-secondary">Pelajari Lebih Lanjut</a>
+          </div>
+        </div>
+        <div class="hero-image" data-aos="fade-left" data-aos-duration="1000">
+          <!-- Placeholder for App Screenshot -->
+          <div class="phone-mockup">
+            <div class="screen">
+              <i
+                class="fas fa-chart-line fa-5x"
+                style="color: var(--primary-color)"
+              ></i>
+              <p>App Screenshot</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+      <div class="container">
+        <div class="section-header">
+          <h2>Fitur Unggulan</h2>
+          <p>
+            Semua yang Anda butuhkan untuk mengelola jaringan dengan efisien.
+          </p>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="icon-box">
+              <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <h3>Monitoring Real-time</h3>
+            <p>
+              Pantau penggunaan CPU, Memori, dan Trafik Interface secara
+              langsung dengan grafik interaktif.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="icon-box">
+              <i class="fas fa-users-cog"></i>
+            </div>
+            <h3>Manajemen User</h3>
+            <p>
+              Kelola pengguna PPPoE dengan mudah. Tambah, edit, atau
+              hapus user dalam hitungan detik.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="icon-box">
+              <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h3>Log Sistem Lengkap</h3>
+            <p>
+              Akses log sistem router Anda kapan saja untuk troubleshooting dan
+              audit keamanan yang lebih baik.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="icon-box">
+              <i class="fas fa-bell"></i>
+            </div>
+            <h3>Notifikasi Pintar</h3>
+            <p>
+              Dapatkan pemberitahuan instan jika ada masalah pada jaringan atau
+              router Anda down.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="testimonials">
+      <div class="container">
+        <div class="section-header" data-aos="fade-up">
+          <h2>Apa Kata Mereka?</h2>
+          <p>Pengalaman pengguna yang telah terbantu oleh Mikrotik Monitor.</p>
+        </div>
+        <div class="testimonial-grid">
+          <div class="testimonial-card" data-aos="flip-left" data-aos-delay="100">
+            <div class="user-info">
+              <div class="user-avatar">
+                <i class="fas fa-user"></i>
+              </div>
+              <div>
+                <h4>Budi Santoso</h4>
+                <span>Network Admin</span>
+              </div>
+            </div>
+            <p>"Aplikasi ini sangat membantu saya memantau trafik jaringan kantor dari mana saja. Notifikasinya sangat responsif!"</p>
+            <div class="stars">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            </div>
+          </div>
+          <div class="testimonial-card" data-aos="flip-left" data-aos-delay="200">
+            <div class="user-info">
+              <div class="user-avatar">
+                <i class="fas fa-user"></i>
+              </div>
+              <div>
+                <h4>Siti Aminah</h4>
+                <span>Pemilik Warnet</span>
+              </div>
+            </div>
+            <p>"Manajemen user hotspot jadi jauh lebih mudah. Tidak perlu buka laptop lagi, cukup dari HP semua beres."</p>
+            <div class="stars">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+            </div>
+          </div>
+          <div class="testimonial-card" data-aos="flip-left" data-aos-delay="300">
+            <div class="user-info">
+              <div class="user-avatar">
+                <i class="fas fa-user"></i>
+              </div>
+              <div>
+                <h4>Rudi Hartono</h4>
+                <span>Freelancer IT</span>
+              </div>
+            </div>
+            <p>"Fitur log-nya sangat detail. Sangat berguna untuk troubleshooting saat ada klien yang komplain masalah koneksi."</p>
+            <div class="stars">
+              <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq">
+      <div class="container">
+        <div class="section-header" data-aos="fade-up">
+          <h2>Pertanyaan Umum (FAQ)</h2>
+          <p>Jawaban atas pertanyaan yang sering diajukan.</p>
+        </div>
+        <div class="faq-container">
+          <div class="faq-item" data-aos="fade-up" data-aos-delay="100">
+            <div class="faq-question">
+              <h3>Apakah aplikasi ini gratis?</h3>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+              <p>Ya, aplikasi Mikrotik Monitor dapat diunduh dan digunakan secara gratis dengan fitur dasar yang lengkap.</p>
+            </div>
+          </div>
+          <div class="faq-item" data-aos="fade-up" data-aos-delay="200">
+            <div class="faq-question">
+              <h3>Router Mikrotik apa saja yang didukung?</h3>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+              <p>Aplikasi ini mendukung hampir semua jenis router Mikrotik yang menjalankan RouterOS v6 maupun v7 dengan API service yang diaktifkan.</p>
+            </div>
+          </div>
+          <div class="faq-item" data-aos="fade-up" data-aos-delay="300">
+            <div class="faq-question">
+              <h3>Bagaimana cara mengaktifkan API di Mikrotik?</h3>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="faq-answer">
+              <p>Anda bisa mengaktifkannya melalui Winbox di menu IP > Services, lalu aktifkan service 'api' (port default 8728).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action / Download -->
+    <section id="download" class="cta">
+      <div class="container">
+        <h2>Siap Mengoptimalkan Jaringan Anda?</h2>
+        <p>
+          Dapatkan aplikasi Mikrotik Monitor sekarang dan rasakan kemudahannya.
+        </p>
+        <a href="/api/download.php" class="btn-light"
+          ><i class="fas fa-download"></i> Download Versi Terbaru</a
+        >
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <h3>Mikrotik Monitor</h3>
+            <p>Aplikasi monitoring jaringan terpercaya.</p>
+          </div>
+          <div class="footer-links">
+            <h4>Tautan</h4>
+            <ul>
+              <li><a href="#">Beranda</a></li>
+              <li><a href="#features">Fitur</a></li>
+              <li><a href="#">Kebijakan Privasi</a></li>
+            </ul>
+          </div>
+          <div class="footer-social">
+            <h4>Ikuti Kami</h4>
+            <div class="social-icons">
+              <a href="#"><i class="fab fa-facebook"></i></a>
+              <a href="#"><i class="fab fa-twitter"></i></a>
+              <a href="#"><i class="fab fa-github"></i></a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2025 Mikrotik Monitor. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Simple Mobile Menu Toggle
+      const menuToggle = document.querySelector(".menu-toggle");
+      const navLinks = document.querySelector(".nav-links");
+
+      menuToggle.addEventListener("click", () => {
+        navLinks.classList.toggle("active");
+      });
+    </script>
+    
+    <!-- AOS Animation Script -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init({
+        once: true, // Animasi hanya berjalan sekali saat scroll
+        offset: 100, // Offset trigger animasi
+      });
+
+      // FAQ Accordion
+      const faqItems = document.querySelectorAll('.faq-item');
+      faqItems.forEach(item => {
+        const question = item.querySelector('.faq-question');
+        question.addEventListener('click', () => {
+          item.classList.toggle('active');
+        });
+      });
+    </script>
+  </body>
+</html>
