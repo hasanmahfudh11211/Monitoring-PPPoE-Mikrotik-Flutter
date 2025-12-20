@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tentang Kami - Mikrotik Monitor</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-network-wired"></i> Mikrotik Monitor
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Beranda</a></li>
+                <li><a href="features.html">Fitur</a></li>
+                <li><a href="about.html" class="active">Tentang</a></li>
+                <li><a href="contact.html">Kontak</a></li>
+                <li><a href="/api/download.php" class="btn-primary">Unduh</a></li>
+            </ul>
+            <div class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <h1>Tentang Kami</h1>
+            <p>Mengenal lebih dekat tim di balik Mikrotik Monitor.</p>
+        </div>
+    </header>
+
+    <!-- Story Section -->
+    <section class="about-story">
+        <div class="container">
+            <div class="story-content" data-aos="fade-up">
+                <h2>Visi & Misi</h2>
+                <p>Mikrotik Monitor lahir dari kebutuhan akan alat manajemen jaringan yang praktis, mobile, dan handal. Kami memahami bahwa admin jaringan tidak selalu berada di depan komputer.</p>
+                <p>Misi kami adalah menyederhanakan kompleksitas manajemen RouterOS ke dalam antarmuka mobile yang intuitif, memungkinkan Anda mengontrol jaringan dari mana saja, kapan saja.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team">
+        <div class="container">
+            <div class="section-header" data-aos="fade-up">
+                <h2>Tim Pengembang</h2>
+                <p>Orang-orang berdedikasi yang membangun aplikasi ini.</p>
+            </div>
+            <div class="team-grid">
+                <!-- Member 1 -->
+                <div class="team-card" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="team-img">
+                        <i class="fas fa-user-tie fa-4x"></i>
+                    </div>
+                    <h3>Hasan Mahfudh</h3>
+                    <span>Lead Developer</span>
+                    <p>Fullstack Developer dengan spesialisasi di Flutter dan Backend PHP.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <!-- Member 2 -->
+                <div class="team-card" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="team-img">
+                        <i class="fas fa-user-ninja fa-4x"></i>
+                    </div>
+                    <h3>Anggota Tim 2</h3>
+                    <span>UI/UX Designer</span>
+                    <p>Merancang antarmuka yang bersih dan pengalaman pengguna yang mulus.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-dribbble"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <!-- Member 3 -->
+                <div class="team-card" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="team-img">
+                        <i class="fas fa-user-astronaut fa-4x"></i>
+                    </div>
+                    <h3>Anggota Tim 3</h3>
+                    <span>Network Specialist</span>
+                    <p>Ahli jaringan Mikrotik yang memastikan integrasi API berjalan sempurna.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fas fa-globe"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h3>Mikrotik Monitor</h3>
+                    <p>Solusi manajemen jaringan dalam genggaman.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Menu</h4>
+                    <ul>
+                        <li><a href="index.html">Beranda</a></li>
+                        <li><a href="features.html">Fitur</a></li>
+                        <li><a href="about.html">Tentang</a></li>
+                        <li><a href="contact.html">Kontak</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="privacy.html">Kebijakan Privasi</a></li>
+                        <li><a href="#">Syarat & Ketentuan</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Mikrotik Monitor. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ once: true, offset: 100 });
+        
+        // Mobile Menu
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navLinks = document.querySelector('.nav-links');
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>
