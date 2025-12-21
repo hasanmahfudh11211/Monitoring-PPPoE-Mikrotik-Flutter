@@ -34,8 +34,8 @@ const currentTheme = localStorage.getItem('theme');
 if (currentTheme) {
     setTheme(currentTheme);
 } else {
-    // Default to light if no preference
-    setTheme('light');
+    // Default to dark if no preference
+    setTheme('dark');
 }
 
 // Event Listener
@@ -47,12 +47,20 @@ if (themeToggleBtn) {
 }
 
 // Initialize AOS
-if (typeof AOS !== 'undefined') {
-    AOS.init({
-        once: true,
-        offset: 100,
-    });
-}
+window.addEventListener('load', () => {
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            once: true,
+            offset: 100,
+            duration: 800,
+        });
+    } else {
+        // Fallback: If AOS fails to load, make everything visible
+        document.querySelectorAll('[data-aos]').forEach(el => {
+            el.removeAttribute('data-aos');
+        });
+    }
+});
 
 // Initialize Swiper
 if (typeof Swiper !== 'undefined' && document.querySelector('.mySwiper')) {
