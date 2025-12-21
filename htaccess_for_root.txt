@@ -1,4 +1,0 @@
-RewriteEngine On
-
-# Arahkan domain.com/download ke api/download.php
-RewriteRule ^download/?$ api/download.php [L]
