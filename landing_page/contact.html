@@ -4,99 +4,315 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hubungi Kami - Mikrotik Monitor</title>
-    <link rel="stylesheet" href="style.css?v=2.1">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="description" content="Hubungi tim support Mikrotik Monitor untuk bantuan, pertanyaan, atau masukan. Kami siap membantu Anda.">
+    <meta name="keywords" content="Contact Support, Mikrotik Help, Network Assistance, Customer Service, Email Support">
+    <link rel="canonical" href="https://cmmnetwork.online/contact.html" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cmmnetwork.online/contact.html" />
+    <meta property="og:title" content="Hubungi Kami - Mikrotik Monitor" />
+    <meta property="og:description" content="Hubungi tim support Mikrotik Monitor untuk bantuan, pertanyaan, atau masukan. Kami siap membantu Anda." />
+    <meta property="og:image" content="https://cmmnetwork.online/assets/img/logo.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:url" content="https://cmmnetwork.online/contact.html" />
+    <meta property="twitter:title" content="Hubungi Kami - Mikrotik Monitor" />
+    <meta property="twitter:description" content="Hubungi tim support Mikrotik Monitor untuk bantuan, pertanyaan, atau masukan. Kami siap membantu Anda." />
+    <meta property="twitter:image" content="https://cmmnetwork.online/assets/img/logo.png" />
+
+    <link rel="icon" href="assets/img/logo.png" type="image/png">
+    
+    <!-- Tailwind CSS & Shadcn Config -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          container: {
+            center: true,
+            padding: "2rem",
+            screens: {
+              "2xl": "1400px",
+            },
+          },
+          extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              input: "hsl(var(--input))",
+              ring: "hsl(var(--ring))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+              primary: {
+                DEFAULT: "hsl(var(--primary))",
+                foreground: "hsl(var(--primary-foreground))",
+              },
+              secondary: {
+                DEFAULT: "hsl(var(--secondary))",
+                foreground: "hsl(var(--secondary-foreground))",
+              },
+              destructive: {
+                DEFAULT: "hsl(var(--destructive))",
+                foreground: "hsl(var(--destructive-foreground))",
+              },
+              muted: {
+                DEFAULT: "hsl(var(--muted))",
+                foreground: "hsl(var(--muted-foreground))",
+              },
+              accent: {
+                DEFAULT: "hsl(var(--accent))",
+                foreground: "hsl(var(--accent-foreground))",
+              },
+              popover: {
+                DEFAULT: "hsl(var(--popover))",
+                foreground: "hsl(var(--popover-foreground))",
+              },
+              card: {
+                DEFAULT: "hsl(var(--card))",
+                foreground: "hsl(var(--card-foreground))",
+              },
+            },
+            borderRadius: {
+              lg: "var(--radius)",
+              md: "calc(var(--radius) - 2px)",
+              sm: "calc(var(--radius) - 4px)",
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            animation: {
+              'float': 'float 6s ease-in-out infinite',
+            },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-20px)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style type="text/tailwindcss">
+      @layer base {
+        :root {
+          --background: 0 0% 100%;
+          --foreground: 240 10% 3.9%;
+          --card: 0 0% 100%;
+          --card-foreground: 240 10% 3.9%;
+          --popover: 0 0% 100%;
+          --popover-foreground: 240 10% 3.9%;
+          --primary: 240 5.9% 10%;
+          --primary-foreground: 0 0% 98%;
+          --secondary: 240 4.8% 95.9%;
+          --secondary-foreground: 240 5.9% 10%;
+          --muted: 240 4.8% 95.9%;
+          --muted-foreground: 240 3.8% 46.1%;
+          --accent: 240 4.8% 95.9%;
+          --accent-foreground: 240 5.9% 10%;
+          --destructive: 0 84.2% 60.2%;
+          --destructive-foreground: 0 0% 98%;
+          --border: 240 5.9% 90%;
+          --input: 240 5.9% 90%;
+          --ring: 240 10% 3.9%;
+          --radius: 0.5rem;
+        }
+        .dark {
+          --background: 240 10% 3.9%;
+          --foreground: 0 0% 98%;
+          --card: 240 10% 3.9%;
+          --card-foreground: 0 0% 98%;
+          --popover: 240 10% 3.9%;
+          --popover-foreground: 0 0% 98%;
+          --primary: 0 0% 98%;
+          --primary-foreground: 240 5.9% 10%;
+          --secondary: 240 3.7% 15.9%;
+          --secondary-foreground: 0 0% 98%;
+          --muted: 240 3.7% 15.9%;
+          --muted-foreground: 240 5% 64.9%;
+          --accent: 240 3.7% 15.9%;
+          --accent-foreground: 0 0% 98%;
+          --destructive: 0 62.8% 30.6%;
+          --destructive-foreground: 0 0% 98%;
+          --border: 240 3.7% 15.9%;
+          --input: 240 3.7% 15.9%;
+          --ring: 240 4.9% 83.9%;
+        }
+        * {
+          @apply border-border;
+        }
+        body {
+          @apply bg-background text-foreground antialiased relative overflow-x-hidden;
+        }
+        
+        /* Glassmorphism Utility */
+        .glass {
+          @apply bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/20 dark:border-white/10 shadow-xl;
+        }
+        
+        /* Blob Animations */
+        .blob {
+          @apply absolute rounded-full filter blur-3xl opacity-30 -z-10 animate-blob;
+        }
+        .blob-1 {
+          @apply top-0 left-0 w-72 h-72 bg-purple-300 dark:bg-purple-900 mix-blend-multiply dark:mix-blend-screen;
+        }
+        .blob-2 {
+          @apply top-0 right-0 w-72 h-72 bg-yellow-300 dark:bg-yellow-900 mix-blend-multiply dark:mix-blend-screen animation-delay-2000;
+        }
+        .blob-3 {
+          @apply -bottom-8 left-20 w-72 h-72 bg-pink-300 dark:bg-pink-900 mix-blend-multiply dark:mix-blend-screen animation-delay-4000;
+        }
+        
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      }
+    </style>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 </head>
 <body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
     <!-- Navbar -->
-    <nav class="navbar">
-        <div class="container">
-            <a href="index.html" class="logo">
-                <img src="assets/img/logo.png" alt="Mikrotik PPPoE Monitor Logo" style="height: 40px; margin-right: 10px; vertical-align: middle;">
-                Mikrotik <span>PPPoE Monitor</span>
+    <nav class="sticky top-0 z-50 w-full border-b border-white/20 dark:border-white/10 glass supports-[backdrop-filter]:bg-white/60">
+      <div class="container flex h-16 max-w-screen-2xl items-center justify-between px-4 md:px-8">
+        <a href="index.html" class="flex items-center gap-2 font-bold text-xl tracking-tight">
+          <img src="assets/img/logo.png" alt="Logo" class="h-8 w-8">
+          <span>Mikrotik <span class="text-primary">Monitor</span></span>
+        </a>
+        <ul class="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
+          <li><a href="index.html" class="transition-colors hover:text-foreground">Beranda</a></li>
+          <li><a href="features.html" class="transition-colors hover:text-foreground">Fitur</a></li>
+          <li><a href="about.html" class="transition-colors hover:text-foreground">Tentang</a></li>
+          <li><a href="contact.html" class="text-foreground transition-colors hover:text-foreground">Kontak</a></li>
+        </ul>
+        <div class="hidden md:flex items-center gap-4">
+           <button id="theme-toggle" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+              <i class="fas fa-moon"></i>
+            </button>
+            <a href="download.html" class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+              Unduh Sekarang
             </a>
-            <ul class="nav-links">
-                <li><a href="index.html">Beranda</a></li>
-                <li><a href="features.html">Fitur</a></li>
-                <li><a href="about.html">Tentang</a></li>
-                <li><a href="contact.html" class="active">Kontak</a></li>
-                <li><a href="/api/download.php" class="btn-primary">Unduh</a></li>
-                <li>
-                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                </li>
-            </ul>
-            <div class="menu-toggle">
-                <i class="fas fa-bars"></i>
-            </div>
         </div>
+        <div class="md:hidden flex items-center gap-4">
+             <button class="menu-toggle inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+              <i class="fas fa-bars"></i>
+            </button>
+        </div>
+      </div>
+      <!-- Mobile Menu -->
+      <div id="mobile-menu" class="hidden md:hidden absolute top-16 left-0 w-full bg-background border-b border-border p-4 flex flex-col gap-4 shadow-lg z-40">
+          <a href="index.html" class="text-sm font-medium transition-colors hover:text-primary">Beranda</a>
+          <a href="features.html" class="text-sm font-medium transition-colors hover:text-primary">Fitur</a>
+          <a href="about.html" class="text-sm font-medium transition-colors hover:text-primary">Tentang</a>
+          <a href="contact.html" class="text-sm font-medium transition-colors hover:text-primary">Kontak</a>
+          <a href="download.html" class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+              Unduh Sekarang
+          </a>
+      </div>
     </nav>
 
     <!-- Header -->
-    <header class="page-header">
-        <div class="container">
-            <h1>Hubungi Kami</h1>
-            <p>Punya pertanyaan atau butuh bantuan? Kami siap membantu.</p>
+    <section class="w-full py-24 lg:py-32 bg-background text-center">
+        <div class="container px-4 md:px-6">
+            <div class="flex flex-col items-center justify-center space-y-8" data-aos="fade-up">
+                <div class="space-y-4 max-w-3xl">
+                    <h1 class="text-4xl font-bold tracking-tighter sm:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+                        Hubungi Kami
+                    </h1>
+                    <p class="text-xl text-muted-foreground">
+                        Punya pertanyaan atau butuh bantuan? Kami siap membantu.
+                    </p>
+                </div>
+            </div>
         </div>
-    </header>
+    </section>
 
     <!-- Contact Section -->
-    <section class="contact-section">
-        <div class="container">
-            <div class="contact-grid">
+    <section class="w-full py-12 md:py-24 bg-muted/50">
+        <div class="container px-4 md:px-6">
+            <div class="grid gap-12 lg:grid-cols-2">
                 <!-- Contact Info -->
-                <div class="contact-info" data-aos="fade-right">
-                    <h3>Informasi Kontak</h3>
-                    <p>Jangan ragu untuk menghubungi kami melalui saluran berikut:</p>
-                    
-                    <div class="info-item">
-                        <i class="fas fa-envelope"></i>
-                        <div>
-                            <h4>Email</h4>
-                            <p>support@cmmnetwork.online</p>
-                        </div>
+                <div class="space-y-8" data-aos="fade-right">
+                    <div class="space-y-2">
+                        <h3 class="text-2xl font-bold tracking-tighter">Informasi Kontak</h3>
+                        <p class="text-muted-foreground">Jangan ragu untuk menghubungi kami melalui saluran berikut:</p>
                     </div>
                     
-                    <div class="info-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <div>
-                            <h4>Alamat</h4>
-                            <p>Jl. Kampus No. 123, Indonesia</p>
+                    <div class="space-y-6">
+                        <div class="flex items-start gap-4">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                <i class="fas fa-envelope text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">Email</h4>
+                                <p class="text-sm text-muted-foreground">support@cmmnetwork.online</p>
+                            </div>
                         </div>
-                    </div>
+                        
+                        <div class="flex items-start gap-4">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                <i class="fas fa-map-marker-alt text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">Alamat</h4>
+                                <p class="text-sm text-muted-foreground">Jl. Teknologi No. 10, Jakarta Selatan, Indonesia</p>
+                            </div>
+                        </div>
 
-                    <div class="info-item">
-                        <i class="fab fa-whatsapp"></i>
-                        <div>
-                            <h4>WhatsApp</h4>
-                            <p>+62 812-3456-7890</p>
+                        <div class="flex items-start gap-4">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                <i class="fab fa-whatsapp text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">WhatsApp</h4>
+                                <p class="text-sm text-muted-foreground">+62 812-3456-7890</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Contact Form -->
-                <div class="contact-form-card" data-aos="fade-left">
-                    <form action="#" method="POST">
-                        <div class="form-group">
-                            <label for="name">Nama Lengkap</label>
-                            <input type="text" id="name" name="name" placeholder="Masukkan nama Anda" required>
+                <div class="rounded-xl border border-white/20 dark:border-white/10 glass text-card-foreground shadow-sm p-6" data-aos="fade-left">
+                    <form action="mailto:support@cmmnetwork.online" method="POST" enctype="text/plain" id="contactForm" class="space-y-4">
+                        <div class="space-y-2">
+                            <label for="name" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Nama Lengkap</label>
+                            <input type="text" id="name" name="name" placeholder="Masukkan nama Anda" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                         </div>
-                        <div class="form-group">
-                            <label for="email">Alamat Email</label>
-                            <input type="email" id="email" name="email" placeholder="contoh@email.com" required>
+                        <div class="space-y-2">
+                            <label for="email" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Alamat Email</label>
+                            <input type="email" id="email" name="email" placeholder="contoh@email.com" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                         </div>
-                        <div class="form-group">
-                            <label for="subject">Subjek</label>
-                            <input type="text" id="subject" name="subject" placeholder="Judul pesan" required>
+                        <div class="space-y-2">
+                            <label for="subject" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Subjek</label>
+                            <input type="text" id="subject" name="subject" placeholder="Judul pesan" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                         </div>
-                        <div class="form-group">
-                            <label for="message">Pesan</label>
-                            <textarea id="message" name="message" rows="5" placeholder="Tulis pesan Anda di sini..." required></textarea>
+                        <div class="space-y-2">
+                            <label for="message" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Pesan</label>
+                            <textarea id="message" name="message" rows="5" placeholder="Tulis pesan Anda di sini..." required class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"></textarea>
                         </div>
-                        <button type="submit" class="btn-primary" style="width: 100%;">Kirim Pesan</button>
+                        <button type="submit" class="inline-flex h-10 w-full items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground ring-offset-background transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50">
+                            Kirim Pesan
+                        </button>
                     </form>
                 </div>
             </div>
@@ -104,33 +320,25 @@
     </section>
 
     <!-- Footer -->
-    <footer>
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-logo">
-            <h3>Mikrotik Monitor</h3>
-            <p>Aplikasi monitoring jaringan terpercaya.</p>
-          </div>
-          <div class="footer-links">
-            <h4>Tautan</h4>
-            <ul>
-              <li><a href="index.html">Beranda</a></li>
-              <li><a href="features.html">Fitur</a></li>
-              <li><a href="privacy.html">Kebijakan Privasi</a></li>
-            </ul>
-          </div>
-          <div class="footer-social">
-            <h4>Ikuti Kami</h4>
-            <div class="social-icons">
-              <a href="#"><i class="fab fa-facebook"></i></a>
-              <a href="#"><i class="fab fa-twitter"></i></a>
-              <a href="#"><i class="fab fa-github"></i></a>
-            </div>
-          </div>
+    <footer class="w-full py-6 bg-background border-t border-border">
+      <div class="container flex flex-col md:flex-row items-center justify-between gap-4 px-4 md:px-6">
+        <div class="flex flex-col items-center md:items-start gap-1">
+          <h3 class="text-lg font-bold">Mikrotik Monitor</h3>
+          <p class="text-sm text-muted-foreground">Aplikasi monitoring jaringan terpercaya.</p>
         </div>
-        <div class="footer-bottom">
-          <p>&copy; 2025 Mikrotik Monitor. All rights reserved.</p>
+        <div class="flex gap-6 text-sm font-medium text-muted-foreground">
+          <a href="index.html" class="hover:text-foreground transition-colors">Beranda</a>
+          <a href="features.html" class="hover:text-foreground transition-colors">Fitur</a>
+          <a href="privacy.html" class="hover:text-foreground transition-colors">Kebijakan Privasi</a>
         </div>
+        <div class="flex gap-4">
+          <a href="#" aria-label="Facebook" class="text-muted-foreground hover:text-foreground transition-colors"><i class="fab fa-facebook text-lg"></i></a>
+          <a href="#" aria-label="Twitter" class="text-muted-foreground hover:text-foreground transition-colors"><i class="fab fa-twitter text-lg"></i></a>
+          <a href="#" aria-label="GitHub" class="text-muted-foreground hover:text-foreground transition-colors"><i class="fab fa-github text-lg"></i></a>
+        </div>
+      </div>
+      <div class="container mt-4 text-center text-xs text-muted-foreground">
+        <p>&copy; 2025 Mikrotik Monitor. All rights reserved.</p>
       </div>
     </footer>
 

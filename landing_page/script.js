@@ -1,31 +1,42 @@
 // Mobile Menu Toggle
 const menuToggle = document.querySelector('.menu-toggle');
-const navLinks = document.querySelector('.nav-links');
+const mobileMenu = document.getElementById('mobile-menu');
 
-if (menuToggle) {
+if (menuToggle && mobileMenu) {
     menuToggle.addEventListener('click', () => {
-        navLinks.classList.toggle('active');
+        mobileMenu.classList.toggle('hidden');
+        const icon = menuToggle.querySelector('i');
+        if (mobileMenu.classList.contains('hidden')) {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+        } else {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+        }
     });
 }
 
 // Dark Mode Toggle
 const themeToggleBtn = document.getElementById('theme-toggle');
-const body = document.body;
+const html = document.documentElement;
 const icon = themeToggleBtn ? themeToggleBtn.querySelector('i') : null;
-const heroImg = document.getElementById('hero-img');
 
 // Function to set theme
 function setTheme(theme) {
     if (theme === 'dark') {
-        body.setAttribute('data-theme', 'dark');
+        html.classList.add('dark');
         localStorage.setItem('theme', 'dark');
-        if (icon) icon.classList.replace('fa-moon', 'fa-sun');
-        if (heroImg) heroImg.src = 'assets/img/dashboard-dark.jpg';
+        if (icon) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
     } else {
-        body.removeAttribute('data-theme');
+        html.classList.remove('dark');
         localStorage.setItem('theme', 'light');
-        if (icon) icon.classList.replace('fa-sun', 'fa-moon');
-        if (heroImg) heroImg.src = 'assets/img/dashboard.jpg';
+        if (icon) {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
     }
 }
 
@@ -41,7 +52,7 @@ if (currentTheme) {
 // Event Listener
 if (themeToggleBtn) {
     themeToggleBtn.addEventListener('click', () => {
-        const isDark = body.getAttribute('data-theme') === 'dark';
+        const isDark = html.classList.contains('dark');
         setTheme(isDark ? 'light' : 'dark');
     });
 }
@@ -54,11 +65,6 @@ window.addEventListener('load', () => {
             offset: 100,
             duration: 800,
         });
-    } else {
-        // Fallback: If AOS fails to load, make everything visible
-        document.querySelectorAll('[data-aos]').forEach(el => {
-            el.removeAttribute('data-aos');
-        });
     }
 });
 
@@ -70,35 +76,103 @@ if (typeof Swiper !== 'undefined' && document.querySelector('.mySwiper')) {
         centeredSlides: true,
         slidesPerView: "auto",
         coverflowEffect: {
-            rotate: 50,
+            rotate: 0,
             stretch: 0,
             depth: 100,
-            modifier: 1,
-            slideShadows: true,
+            modifier: 2.5,
+            slideShadows: false,
         },
         pagination: {
             el: ".swiper-pagination",
+            clickable: true,
         },
         navigation: {
             nextEl: ".swiper-button-next",
             prevEl: ".swiper-button-prev",
         },
         autoplay: {
-            delay: 2000,
+            delay: 3000,
             disableOnInteraction: false,
         },
+        loop: true,
     });
 }
 
-// FAQ Accordion
+// FAQ Accordion (Shadcn Style)
+const faqButtons = document.querySelectorAll('.faq-question'); // In HTML we used class="faq-question" on the button container or button itself?
+// Wait, in index.html I used:
+// <div class="faq-item ...">
+//   <div class="faq-question ...">...</div>
+//   <div class="faq-answer ...">...</div>
+// </div>
+// Let's stick to that structure for compatibility with my previous HTML edits.
+
 const faqItems = document.querySelectorAll('.faq-item');
 if (faqItems.length > 0) {
     faqItems.forEach(item => {
         const question = item.querySelector('.faq-question');
-        if (question) {
+        const answer = item.querySelector('.faq-answer');
+        const icon = question.querySelector('i');
+
+        if (question && answer) {
             question.addEventListener('click', () => {
-                item.classList.toggle('active');
+                const isHidden = answer.classList.contains('hidden');
+                
+                // Close all others (optional, but good for accordion)
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.querySelector('.faq-answer').classList.add('hidden');
+                        otherItem.querySelector('.faq-question i').classList.remove('rotate-180');
+                    }
+                });
+
+                if (isHidden) {
+                    answer.classList.remove('hidden');
+                    icon.classList.add('rotate-180');
+                } else {
+                    answer.classList.add('hidden');
+                    icon.classList.remove('rotate-180');
+                }
             });
+        }
+    });
+}
+
+// Back to Top Button
+const backToTopBtn = document.createElement('button');
+backToTopBtn.className = 'fixed bottom-8 right-8 z-50 hidden h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2';
+backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+backToTopBtn.setAttribute('aria-label', 'Back to Top');
+document.body.appendChild(backToTopBtn);
+
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) {
+        backToTopBtn.classList.remove('hidden');
+        backToTopBtn.classList.add('flex');
+    } else {
+        backToTopBtn.classList.add('hidden');
+        backToTopBtn.classList.remove('flex');
+    }
+});
+
+backToTopBtn.addEventListener('click', () => {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+});
+
+// Contact Form Validation
+const contactForm = document.getElementById('contactForm');
+if (contactForm) {
+    contactForm.addEventListener('submit', (e) => {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const message = document.getElementById('message').value;
+
+        if (!name || !email || !message) {
+            e.preventDefault();
+            alert('Harap isi semua kolom yang wajib diisi.');
         }
     });
 }

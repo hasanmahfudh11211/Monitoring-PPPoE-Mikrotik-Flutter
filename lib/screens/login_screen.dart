@@ -93,9 +93,9 @@ class _LoginScreenState extends State<LoginScreen>
           final parts = address.split(':');
           if (parts.length != 2) return false;
 
-          // Validate IP format
-          final ipRegex = RegExp(r'^(\d{1,3}\.){3}\d{1,3}$');
-          if (!ipRegex.hasMatch(parts[0])) return false;
+          // Validate IP/Domain format
+          // Allow any non-empty string for host to support domain names (e.g. example.com, my-router.net)
+          if (parts[0].trim().isEmpty) return false;
 
           // Validate port
           final port = int.tryParse(parts[1]);
@@ -612,8 +612,12 @@ Solusi:
           return false;
         }
       });
-      savedLogins.add(jsonEncode(loginData));
+      savedLogins.insert(0, jsonEncode(loginData));
+
       await prefs.setStringList('mikrotik_logins', savedLogins);
+
+      // Force refresh local state to reflect changes immediately
+      await _loadSavedLogins();
 
       if (!mounted) return;
 
@@ -812,6 +816,33 @@ Solusi:
           ),
           Scaffold(
             backgroundColor: Colors.transparent,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              actions: [
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/initial-config');
+                  },
+                  icon: Icon(
+                    Icons.settings,
+                    color: isDark ? Colors.white : Colors.white70,
+                    size: 20,
+                  ),
+                  label: Text(
+                    'Setting',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.white70,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
             body: SafeArea(
               child: LayoutBuilder(
                 builder: (context, constraints) {

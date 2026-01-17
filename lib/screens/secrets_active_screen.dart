@@ -244,99 +244,102 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
+                // Sticky Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: isOnline
+                              ? Colors.blue.shade50
+                              : Colors.red.shade50,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.person,
+                          color: isOnline
+                              ? Colors.blue.shade700
+                              : Colors.red.shade700,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user['name'] ?? '-',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            Text(
+                              user['profile'] ?? '-',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isOnline
+                              ? (isDark
+                                  ? Colors.green.shade900
+                                  : Colors.green.shade50)
+                              : (isDark
+                                  ? Colors.red.shade900
+                                  : Colors.red.shade50),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: isOnline ? Colors.green : Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              isOnline ? 'Online' : 'Offline',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isOnline
+                                    ? (isDark
+                                        ? Colors.green.shade300
+                                        : Colors.green)
+                                    : (isDark
+                                        ? Colors.red.shade300
+                                        : Colors.red),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: ListView(
                     controller: controller,
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                     children: [
-                      // User header with status
-                      Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: isOnline
-                                  ? Colors.blue.shade50
-                                  : Colors.red.shade50,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.person,
-                              color: isOnline
-                                  ? Colors.blue.shade700
-                                  : Colors.red.shade700,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  user['name'] ?? '-',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color:
-                                        isDark ? Colors.white : Colors.black87,
-                                  ),
-                                ),
-                                Text(
-                                  user['profile'] ?? '-',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isOnline
-                                  ? (isDark
-                                      ? Colors.green.shade900
-                                      : Colors.green.shade50)
-                                  : (isDark
-                                      ? Colors.red.shade900
-                                      : Colors.red.shade50),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    color: isOnline ? Colors.green : Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  isOnline ? 'Online' : 'Offline',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: isOnline
-                                        ? (isDark
-                                            ? Colors.green.shade300
-                                            : Colors.green)
-                                        : (isDark
-                                            ? Colors.red.shade300
-                                            : Colors.red),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
+                      // User header moved up
+
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -622,6 +625,68 @@ class _SecretsActiveScreenState extends State<SecretsActiveScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(bottomSheetContext);
+                          Navigator.pushNamed(
+                            parentContext,
+                            '/all-users',
+                            arguments: {'initialSearch': user['name']},
+                          );
+                        },
+                        icon: Icon(
+                          Icons.search,
+                          color: isDark ? Colors.white : Colors.white,
+                        ),
+                        label: Text(
+                          'Cari di Database',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              isDark ? Colors.green.shade700 : Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(bottomSheetContext);
+                          Navigator.pushNamed(
+                            parentContext,
+                            '/traffic',
+                            arguments: {'initialInterface': user['name']},
+                          );
+                        },
+                        icon: Icon(
+                          Icons.network_check,
+                          color: isDark ? Colors.white : Colors.white,
+                        ),
+                        label: Text(
+                          'Cek Trafik',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              isDark ? Colors.orange.shade800 : Colors.orange,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(

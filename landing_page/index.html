@@ -8,94 +8,277 @@
       name="description"
       content="Aplikasi monitoring Mikrotik terbaik untuk memantau trafik, manajemen user, dan log sistem secara real-time."
     />
-    <link rel="stylesheet" href="style.css?v=2.1" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <!-- Font Awesome for Icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
+    <meta name="keywords" content="Mikrotik, Monitoring, PPPoE, Network Management, RouterOS, Android App, Real-time Monitoring, Bandwidth Management" />
+    <link rel="canonical" href="https://cmmnetwork.online/index.html" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cmmnetwork.online/index.html" />
+    <meta property="og:title" content="Mikrotik Monitor - Kelola Jaringan Anda dengan Mudah" />
+    <meta property="og:description" content="Aplikasi monitoring Mikrotik terbaik untuk memantau trafik, manajemen user, dan log sistem secara real-time." />
+    <meta property="og:image" content="https://cmmnetwork.online/assets/img/dashboard.jpg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://cmmnetwork.online/index.html" />
+    <meta property="twitter:title" content="Mikrotik Monitor - Kelola Jaringan Anda dengan Mudah" />
+    <meta property="twitter:description" content="Aplikasi monitoring Mikrotik terbaik untuk memantau trafik, manajemen user, dan log sistem secara real-time." />
+    <meta property="twitter:image" content="https://cmmnetwork.online/assets/img/dashboard.jpg" />
+    <!-- Favicon -->
+    <link rel="icon" href="assets/img/logo.png" type="image/png">
+    <!-- Preload Critical Image -->
+    <link rel="preload" as="image" href="assets/img/dashboard.jpg">
     <!-- AOS Animation CSS -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    
+    <!-- Tailwind CSS & Shadcn Config -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          container: {
+            center: true,
+            padding: "2rem",
+            screens: {
+              "2xl": "1400px",
+            },
+          },
+          extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              input: "hsl(var(--input))",
+              ring: "hsl(var(--ring))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+              primary: {
+                DEFAULT: "hsl(var(--primary))",
+                foreground: "hsl(var(--primary-foreground))",
+              },
+              secondary: {
+                DEFAULT: "hsl(var(--secondary))",
+                foreground: "hsl(var(--secondary-foreground))",
+              },
+              destructive: {
+                DEFAULT: "hsl(var(--destructive))",
+                foreground: "hsl(var(--destructive-foreground))",
+              },
+              muted: {
+                DEFAULT: "hsl(var(--muted))",
+                foreground: "hsl(var(--muted-foreground))",
+              },
+              accent: {
+                DEFAULT: "hsl(var(--accent))",
+                foreground: "hsl(var(--accent-foreground))",
+              },
+              popover: {
+                DEFAULT: "hsl(var(--popover))",
+                foreground: "hsl(var(--popover-foreground))",
+              },
+              card: {
+                DEFAULT: "hsl(var(--card))",
+                foreground: "hsl(var(--card-foreground))",
+              },
+            },
+            borderRadius: {
+              lg: "var(--radius)",
+              md: "calc(var(--radius) - 2px)",
+              sm: "calc(var(--radius) - 4px)",
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+          }
+        }
+      }
+    </script>
+    <style type="text/tailwindcss">
+      @layer base {
+        :root {
+          --background: 0 0% 100%;
+          --foreground: 240 10% 3.9%;
+          --card: 0 0% 100%;
+          --card-foreground: 240 10% 3.9%;
+          --popover: 0 0% 100%;
+          --popover-foreground: 240 10% 3.9%;
+          --primary: 240 5.9% 10%;
+          --primary-foreground: 0 0% 98%;
+          --secondary: 240 4.8% 95.9%;
+          --secondary-foreground: 240 5.9% 10%;
+          --muted: 240 4.8% 95.9%;
+          --muted-foreground: 240 3.8% 46.1%;
+          --accent: 240 4.8% 95.9%;
+          --accent-foreground: 240 5.9% 10%;
+          --destructive: 0 84.2% 60.2%;
+          --destructive-foreground: 0 0% 98%;
+          --border: 240 5.9% 90%;
+          --input: 240 5.9% 90%;
+          --ring: 240 10% 3.9%;
+          --radius: 0.5rem;
+        }
+        .dark {
+          --background: 240 10% 3.9%;
+          --foreground: 0 0% 98%;
+          --card: 240 10% 3.9%;
+          --card-foreground: 0 0% 98%;
+          --popover: 240 10% 3.9%;
+          --popover-foreground: 0 0% 98%;
+          --primary: 0 0% 98%;
+          --primary-foreground: 240 5.9% 10%;
+          --secondary: 240 3.7% 15.9%;
+          --secondary-foreground: 0 0% 98%;
+          --muted: 240 3.7% 15.9%;
+          --muted-foreground: 240 5% 64.9%;
+          --accent: 240 3.7% 15.9%;
+          --accent-foreground: 0 0% 98%;
+          --destructive: 0 62.8% 30.6%;
+          --destructive-foreground: 0 0% 98%;
+          --border: 240 3.7% 15.9%;
+          --input: 240 3.7% 15.9%;
+          --ring: 240 4.9% 83.9%;
+        }
+        * {
+          @apply border-border;
+        }
+        body {
+          @apply bg-background text-foreground antialiased relative overflow-x-hidden;
+        }
+        
+        /* Glassmorphism Utility */
+        .glass {
+          @apply bg-white/70 dark:bg-zinc-900/70 backdrop-blur-lg border border-white/20 dark:border-white/10 shadow-xl;
+        }
+        
+        /* Blob Animations */
+        .blob {
+          @apply absolute rounded-full filter blur-3xl opacity-30 -z-10 animate-blob;
+        }
+        .blob-1 {
+          @apply top-0 left-0 w-72 h-72 bg-purple-300 dark:bg-purple-900 mix-blend-multiply dark:mix-blend-screen;
+        }
+        .blob-2 {
+          @apply top-0 right-0 w-72 h-72 bg-yellow-300 dark:bg-yellow-900 mix-blend-multiply dark:mix-blend-screen animation-delay-2000;
+        }
+        .blob-3 {
+          @apply -bottom-8 left-20 w-72 h-72 bg-pink-300 dark:bg-pink-900 mix-blend-multiply dark:mix-blend-screen animation-delay-4000;
+        }
+        
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      }
+    </style>
+    <!-- <link rel="stylesheet" href="style.css?v=2.1" /> -->
   </head>
   <body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
     <!-- Navbar -->
-    <nav class="navbar">
-      <div class="container">
-        <a href="index.html" class="logo">
-          <img src="assets/img/logo.png" alt="Mikrotik PPPoE Monitor Logo" style="height: 40px; margin-right: 10px; vertical-align: middle;">
-          Mikrotik <span>PPPoE Monitor</span>
+    <nav class="sticky top-0 z-50 w-full border-b border-white/20 dark:border-white/10 glass supports-[backdrop-filter]:bg-white/60">
+      <div class="container flex h-16 max-w-screen-2xl items-center justify-between px-4 md:px-8">
+        <a href="index.html" class="flex items-center gap-2 font-bold text-xl tracking-tight">
+          <img src="assets/img/logo.png" alt="Logo" class="h-8 w-8">
+          <span>Mikrotik <span class="text-primary">Monitor</span></span>
         </a>
-        <ul class="nav-links">
-          <li><a href="index.html" class="active">Beranda</a></li>
-          <li><a href="features.html">Fitur</a></li>
-          <li><a href="about.html">Tentang</a></li>
-          <li><a href="contact.html">Kontak</a></li>
-          <li><a href="/api/download.php" class="btn-primary">Unduh Sekarang</a></li>
-          <li>
-            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">
+        <ul class="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
+          <li><a href="index.html" class="text-foreground transition-colors hover:text-foreground">Beranda</a></li>
+          <li><a href="features.html" class="transition-colors hover:text-foreground">Fitur</a></li>
+          <li><a href="about.html" class="transition-colors hover:text-foreground">Tentang</a></li>
+          <li><a href="contact.html" class="transition-colors hover:text-foreground">Kontak</a></li>
+        </ul>
+        <div class="hidden md:flex items-center gap-4">
+           <button id="theme-toggle" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
               <i class="fas fa-moon"></i>
             </button>
-          </li>
-        </ul>
-        <div class="menu-toggle">
-          <i class="fas fa-bars"></i>
+            <a href="download.html" class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+              Unduh Sekarang
+            </a>
         </div>
+        <div class="md:hidden flex items-center gap-4">
+             <button class="menu-toggle inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">
+              <i class="fas fa-bars"></i>
+            </button>
+        </div>
+      </div>
+      <!-- Mobile Menu -->
+      <div id="mobile-menu" class="hidden md:hidden absolute top-16 left-0 w-full bg-background border-b border-border p-4 flex flex-col gap-4 shadow-lg z-40">
+          <a href="index.html" class="text-sm font-medium transition-colors hover:text-primary">Beranda</a>
+          <a href="features.html" class="text-sm font-medium transition-colors hover:text-primary">Fitur</a>
+          <a href="about.html" class="text-sm font-medium transition-colors hover:text-primary">Tentang</a>
+          <a href="contact.html" class="text-sm font-medium transition-colors hover:text-primary">Kontak</a>
+          <a href="download.html" class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+              Unduh Sekarang
+          </a>
       </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero">
-      <div class="hero-bg-overlay"></div>
-      <div class="container">
-        <div class="hero-content" data-aos="fade-right" data-aos-duration="1000">
-          <h1>Pantau Jaringan Mikrotik Anda Secara Real-time</h1>
-          <p>
-            Solusi lengkap untuk manajemen bandwidth, monitoring user, dan
-            analisis log sistem dalam satu genggaman.
-          </p>
-          <div class="hero-buttons">
-            <a href="/api/download.php" class="btn-primary"
-              ><i class="fab fa-android"></i> Download APK</a
-            >
-            <a href="features.html" class="btn-secondary">Pelajari Lebih Lanjut</a>
-          </div>
-        </div>
-        <div class="hero-image" data-aos="fade-left" data-aos-duration="1000">
-          <!-- Placeholder for App Screenshot -->
-          <div class="phone-mockup">
-            <div class="screen">
-              <img id="hero-img" src="assets/img/dashboard.jpg" alt="App Screenshot" style="width: 100%; height: 100%; object-fit: contain; background-color: #f0f0f0;">
+    <!-- Hero Section -->
+    <section class="w-full py-24 lg:py-32 xl:py-48 bg-background">
+      <div class="container px-4 md:px-6">
+        <div class="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px] items-center">
+          <div class="flex flex-col justify-center space-y-4" data-aos="fade-right">
+            <div class="space-y-2">
+              <h1 class="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none text-foreground">
+                Pantau Jaringan Mikrotik Anda Secara Real-time
+              </h1>
+              <p class="max-w-[600px] text-muted-foreground md:text-xl">
+                Solusi lengkap untuk manajemen bandwidth, monitoring user, dan analisis log sistem dalam satu genggaman.
+              </p>
             </div>
+            <div class="flex flex-col gap-2 min-[400px]:flex-row">
+              <a href="download.html" class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+                <i class="fab fa-android mr-2"></i> Download APK
+              </a>
+              <a href="features.html" class="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+                Pelajari Lebih Lanjut
+              </a>
+            </div>
+          </div>
+          <div class="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last" data-aos="fade-left">
+             <div class="relative rounded-xl border border-white/20 dark:border-white/10 glass text-card-foreground shadow-sm">
+                <img src="assets/img/dashboard.jpg" alt="App Screenshot" class="w-full h-auto rounded-xl" loading="lazy">
+             </div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Stats Section -->
-    <section class="stats">
-      <div class="container">
-        <div class="stats-grid" data-aos="fade-up">
-          <div class="stat-item">
-            <h3>10k+</h3>
-            <p>Pengguna Aktif</p>
+    <!-- Stats Section -->
+    <section class="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+      <div class="container px-4 md:px-6">
+        <div class="grid grid-cols-2 gap-8 md:grid-cols-4 text-center" data-aos="fade-up">
+          <div class="space-y-2">
+            <h3 class="text-3xl font-bold text-primary">10k+</h3>
+            <p class="text-sm font-medium text-muted-foreground">Pengguna Aktif</p>
           </div>
-          <div class="stat-item">
-            <h3>50k+</h3>
-            <p>Router Terhubung</p>
+          <div class="space-y-2">
+            <h3 class="text-3xl font-bold text-primary">50k+</h3>
+            <p class="text-sm font-medium text-muted-foreground">Router Terhubung</p>
           </div>
-          <div class="stat-item">
-            <h3>99.9%</h3>
-            <p>Uptime Monitoring</p>
+          <div class="space-y-2">
+            <h3 class="text-3xl font-bold text-primary">99.9%</h3>
+            <p class="text-sm font-medium text-muted-foreground">Uptime Monitoring</p>
           </div>
-          <div class="stat-item">
-            <h3>24/7</h3>
-            <p>Support Teknis</p>
+          <div class="space-y-2">
+            <h3 class="text-3xl font-bold text-primary">24/7</h3>
+            <p class="text-sm font-medium text-muted-foreground">Support Teknis</p>
           </div>
         </div>
       </div>
@@ -106,63 +289,62 @@
       <div class="container">
         <p>Dipercaya oleh Perusahaan Jaringan Terkemuka</p>
         <div class="logos-grid">
-          <i class="fab fa-aws" title="AWS"></i>
-          <i class="fab fa-google" title="Google Cloud"></i>
-          <i class="fab fa-digital-ocean" title="Digital Ocean"></i>
-          <i class="fab fa-microsoft" title="Azure"></i>
-          <i class="fab fa-linux" title="Linux"></i>
+          <i class="fas fa-network-wired" title="Network Infrastructure"></i>
+          <i class="fas fa-server" title="Server Management"></i>
+          <i class="fas fa-wifi" title="Wireless Networks"></i>
+          <i class="fas fa-shield-alt" title="Security"></i>
+          <i class="fas fa-globe" title="Global Connectivity"></i>
         </div>
       </div>
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="features">
-      <div class="container">
-        <div class="section-header" data-aos="fade-up">
-          <h2>Fitur Unggulan</h2>
-          <p>
-            Semua yang Anda butuhkan untuk mengelola jaringan dengan efisien.
-          </p>
+    <!-- Features Section -->
+    <section id="features" class="w-full py-12 md:py-24 lg:py-32 bg-background">
+      <div class="container px-4 md:px-6">
+        <div class="flex flex-col items-center justify-center space-y-4 text-center" data-aos="fade-up">
+          <div class="space-y-2">
+            <h2 class="text-3xl font-bold tracking-tighter sm:text-5xl">Fitur Unggulan</h2>
+            <p class="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              Semua yang Anda butuhkan untuk mengelola jaringan dengan efisien.
+            </p>
+          </div>
         </div>
-        <div class="feature-grid">
-          <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
-            <div class="icon-box">
-              <i class="fas fa-tachometer-alt"></i>
+        <div class="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-4 lg:gap-12">
+          <div class="flex flex-col items-center space-y-4 text-center" data-aos="fade-up" data-aos-delay="100">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <i class="fas fa-tachometer-alt text-2xl"></i>
             </div>
-            <h3>Monitoring Real-time</h3>
-            <p>
-              Pantau penggunaan CPU, Memori, dan Trafik Interface secara
-              langsung dengan grafik interaktif.
+            <h3 class="text-xl font-bold">Monitoring Real-time</h3>
+            <p class="text-sm text-muted-foreground">
+              Pantau penggunaan CPU, Memori, dan Trafik Interface secara langsung dengan grafik interaktif.
             </p>
           </div>
-          <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-            <div class="icon-box">
-              <i class="fas fa-users-cog"></i>
+          <div class="flex flex-col items-center space-y-4 text-center" data-aos="fade-up" data-aos-delay="200">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <i class="fas fa-users-cog text-2xl"></i>
             </div>
-            <h3>Manajemen User</h3>
-            <p>
-              Kelola pengguna PPPoE dengan mudah. Tambah, edit, atau
-              hapus user dalam hitungan detik.
+            <h3 class="text-xl font-bold">Manajemen User</h3>
+            <p class="text-sm text-muted-foreground">
+              Kelola pengguna PPPoE dengan mudah. Tambah, edit, atau hapus user dalam hitungan detik.
             </p>
           </div>
-          <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
-            <div class="icon-box">
-              <i class="fas fa-clipboard-list"></i>
+          <div class="flex flex-col items-center space-y-4 text-center" data-aos="fade-up" data-aos-delay="300">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <i class="fas fa-clipboard-list text-2xl"></i>
             </div>
-            <h3>Log Sistem Lengkap</h3>
-            <p>
-              Akses log sistem router Anda kapan saja untuk troubleshooting dan
-              audit keamanan yang lebih baik.
+            <h3 class="text-xl font-bold">Log Sistem Lengkap</h3>
+            <p class="text-sm text-muted-foreground">
+              Akses log sistem router Anda kapan saja untuk troubleshooting dan audit keamanan yang lebih baik.
             </p>
           </div>
-          <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
-            <div class="icon-box">
-              <i class="fas fa-bell"></i>
+          <div class="flex flex-col items-center space-y-4 text-center" data-aos="fade-up" data-aos-delay="400">
+            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <i class="fas fa-bell text-2xl"></i>
             </div>
-            <h3>Notifikasi Pintar</h3>
-            <p>
-              Dapatkan pemberitahuan instan jika ada masalah pada jaringan atau
-              router Anda down.
+            <h3 class="text-xl font-bold">Notifikasi Pintar</h3>
+            <p class="text-sm text-muted-foreground">
+              Dapatkan pemberitahuan instan jika ada masalah pada jaringan atau router Anda down.
             </p>
           </div>
         </div>
@@ -170,143 +352,164 @@
     </section>
 
     <!-- How It Works / Steps Section -->
-    <section class="steps">
-      <div class="container">
-        <div class="section-header" data-aos="fade-up">
-          <h2>Cara Kerja</h2>
-          <p>Mulai monitoring jaringan Anda dalam 3 langkah mudah.</p>
+    <!-- How It Works / Steps Section -->
+    <section class="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+      <div class="container px-4 md:px-6">
+        <div class="flex flex-col items-center justify-center space-y-4 text-center" data-aos="fade-up">
+          <div class="space-y-2">
+            <h2 class="text-3xl font-bold tracking-tighter sm:text-5xl">Cara Kerja</h2>
+            <p class="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              Mulai monitoring jaringan Anda dalam 3 langkah mudah.
+            </p>
+          </div>
         </div>
-        <div class="steps-grid">
-          <div class="step-card" data-aos="fade-up" data-aos-delay="100">
-            <div class="step-number">1</div>
-            <h3>Unduh Aplikasi</h3>
-            <p>Download aplikasi Mikrotik Monitor dari website kami dan instal di perangkat Android Anda.</p>
+        <div class="mx-auto grid max-w-5xl gap-6 py-12 lg:grid-cols-3">
+          <div class="flex flex-col items-center space-y-4 text-center" data-aos="fade-up" data-aos-delay="100">
+            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-xl font-bold">1</div>
+            <h3 class="text-xl font-bold">Unduh Aplikasi</h3>
+            <p class="text-sm text-muted-foreground">
+              Download aplikasi Mikrotik Monitor dari website kami dan instal di perangkat Android Anda.
+            </p>
           </div>
-          <div class="step-card" data-aos="fade-up" data-aos-delay="200">
-            <div class="step-number">2</div>
-            <h3>Hubungkan Router</h3>
-            <p>Masukkan IP address, username, dan password router Mikrotik Anda untuk terhubung.</p>
+          <div class="flex flex-col items-center space-y-4 text-center" data-aos="fade-up" data-aos-delay="200">
+            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-xl font-bold">2</div>
+            <h3 class="text-xl font-bold">Hubungkan Router</h3>
+            <p class="text-sm text-muted-foreground">
+              Masukkan IP address, username, dan password router Mikrotik Anda untuk terhubung.
+            </p>
           </div>
-          <div class="step-card" data-aos="fade-up" data-aos-delay="300">
-            <div class="step-number">3</div>
-            <h3>Mulai Monitoring</h3>
-            <p>Selesai! Anda sekarang bisa memantau trafik dan mengelola user dari mana saja.</p>
+          <div class="flex flex-col items-center space-y-4 text-center" data-aos="fade-up" data-aos-delay="300">
+            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground text-xl font-bold">3</div>
+            <h3 class="text-xl font-bold">Mulai Monitoring</h3>
+            <p class="text-sm text-muted-foreground">
+              Selesai! Anda sekarang bisa memantau trafik dan mengelola user dari mana saja.
+            </p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Screenshots Section -->
-    <section id="screenshots" class="screenshots">
-      <div class="container">
-        <div class="section-header" data-aos="fade-up">
-          <h2>Tampilan Aplikasi</h2>
-          <p>Antarmuka yang modern dan mudah digunakan.</p>
+    <!-- Screenshots Section -->
+    <section id="screenshots" class="w-full py-12 md:py-24 lg:py-32 bg-background">
+      <div class="container px-4 md:px-6">
+        <div class="flex flex-col items-center justify-center space-y-4 text-center mb-12" data-aos="fade-up">
+          <div class="space-y-2">
+            <h2 class="text-3xl font-bold tracking-tighter sm:text-5xl">Tampilan Aplikasi</h2>
+            <p class="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              Antarmuka yang modern dan mudah digunakan.
+            </p>
+          </div>
         </div>
         
         <!-- Swiper -->
-        <div class="swiper mySwiper" data-aos="fade-up" data-aos-delay="100">
+        <div class="swiper mySwiper w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-auto" data-aos="fade-up" data-aos-delay="100">
           <div class="swiper-wrapper">
             <!-- Slide 1: Dashboard -->
             <div class="swiper-slide">
-              <div class="screenshot-frame">
-                <img src="assets/img/dashboard.jpg" alt="Dashboard Utama" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
+              <div class="relative aspect-[9/19] overflow-hidden rounded-[2.5rem] border-[8px] border-zinc-900 bg-zinc-900 shadow-xl">
+                <img src="assets/img/dashboard.jpg" alt="Dashboard Utama" class="h-full w-full object-cover" loading="lazy">
               </div>
             </div>
             <!-- Slide 2: User PPP -->
             <div class="swiper-slide">
-              <div class="screenshot-frame">
-                <img src="assets/img/user-ppp.jpg" alt="Manajemen User PPPoE" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
+              <div class="relative aspect-[9/19] overflow-hidden rounded-[2.5rem] border-[8px] border-zinc-900 bg-zinc-900 shadow-xl">
+                <img src="assets/img/user-ppp.jpg" alt="Manajemen User PPPoE" class="h-full w-full object-cover" loading="lazy">
               </div>
             </div>
             <!-- Slide 3: Traffic Online -->
             <div class="swiper-slide">
-              <div class="screenshot-frame">
-                <img src="assets/img/traffic-online.jpg" alt="Monitoring Trafik Real-time" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
+              <div class="relative aspect-[9/19] overflow-hidden rounded-[2.5rem] border-[8px] border-zinc-900 bg-zinc-900 shadow-xl">
+                <img src="assets/img/traffic-online.jpg" alt="Monitoring Trafik Real-time" class="h-full w-full object-cover" loading="lazy">
               </div>
             </div>
             <!-- Slide 4: System Resource -->
             <div class="swiper-slide">
-              <div class="screenshot-frame">
-                <img src="assets/img/system-resource.jpg" alt="Resource Router" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
+              <div class="relative aspect-[9/19] overflow-hidden rounded-[2.5rem] border-[8px] border-zinc-900 bg-zinc-900 shadow-xl">
+                <img src="assets/img/system-resource.jpg" alt="Resource Router" class="h-full w-full object-cover" loading="lazy">
               </div>
             </div>
             <!-- Slide 5: Logs -->
             <div class="swiper-slide">
-              <div class="screenshot-frame">
-                <img src="assets/img/log.jpg" alt="Log Sistem" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
+              <div class="relative aspect-[9/19] overflow-hidden rounded-[2.5rem] border-[8px] border-zinc-900 bg-zinc-900 shadow-xl">
+                <img src="assets/img/log.jpg" alt="Log Sistem" class="h-full w-full object-cover" loading="lazy">
               </div>
             </div>
             <!-- Slide 6: Tambah User -->
             <div class="swiper-slide">
-              <div class="screenshot-frame">
-                <img src="assets/img/tambah-user.jpg" alt="Tambah User Baru" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
+              <div class="relative aspect-[9/19] overflow-hidden rounded-[2.5rem] border-[8px] border-zinc-900 bg-zinc-900 shadow-xl">
+                <img src="assets/img/tambah-user.jpg" alt="Tambah User Baru" class="h-full w-full object-cover" loading="lazy">
               </div>
             </div>
             <!-- Slide 7: Login -->
             <div class="swiper-slide">
-              <div class="screenshot-frame">
-                <img src="assets/img/login.jpg" alt="Halaman Login" style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
+              <div class="relative aspect-[9/19] overflow-hidden rounded-[2.5rem] border-[8px] border-zinc-900 bg-zinc-900 shadow-xl">
+                <img src="assets/img/login.jpg" alt="Halaman Login" class="h-full w-full object-cover" loading="lazy">
               </div>
             </div>
           </div>
           <div class="swiper-pagination"></div>
-          <div class="swiper-button-next"></div>
-          <div class="swiper-button-prev"></div>
+          <div class="swiper-button-next !text-primary"></div>
+          <div class="swiper-button-prev !text-primary"></div>
         </div>
       </div>
     </section>
 
     <!-- Testimonials Section -->
-    <section id="testimonials" class="testimonials">
-      <div class="container">
-        <div class="section-header" data-aos="fade-up">
-          <h2>Apa Kata Mereka?</h2>
-          <p>Pengalaman pengguna yang telah terbantu oleh Mikrotik Monitor.</p>
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
+      <div class="container px-4 md:px-6">
+        <div class="flex flex-col items-center justify-center space-y-4 text-center" data-aos="fade-up">
+          <div class="space-y-2">
+            <h2 class="text-3xl font-bold tracking-tighter sm:text-5xl">Apa Kata Mereka?</h2>
+            <p class="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              Pengalaman pengguna yang telah terbantu oleh Mikrotik Monitor.
+            </p>
+          </div>
         </div>
-        <div class="testimonial-grid">
-          <div class="testimonial-card" data-aos="flip-left" data-aos-delay="100">
-            <div class="user-info">
-              <div class="user-avatar">
+        <div class="mx-auto grid max-w-5xl gap-6 py-12 lg:grid-cols-3">
+          <div class="rounded-xl border border-white/20 dark:border-white/10 glass text-card-foreground shadow-sm p-6" data-aos="flip-left" data-aos-delay="100">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <i class="fas fa-user"></i>
               </div>
               <div>
-                <h4>Budi Santoso</h4>
-                <span>Network Admin</span>
+                <h4 class="font-bold">Budi Santoso</h4>
+                <span class="text-xs text-muted-foreground">Network Admin</span>
               </div>
             </div>
-            <p>"Aplikasi ini sangat membantu saya memantau trafik jaringan kantor dari mana saja. Notifikasinya sangat responsif!"</p>
-            <div class="stars">
+            <p class="text-sm text-muted-foreground">"Aplikasi ini sangat membantu saya memantau trafik jaringan kantor dari mana saja. Notifikasinya sangat responsif!"</p>
+            <div class="mt-4 flex text-yellow-500">
               <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
             </div>
           </div>
-          <div class="testimonial-card" data-aos="flip-left" data-aos-delay="200">
-            <div class="user-info">
-              <div class="user-avatar">
+          <div class="rounded-xl border border-white/20 dark:border-white/10 glass text-card-foreground shadow-sm p-6" data-aos="flip-left" data-aos-delay="200">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <i class="fas fa-user"></i>
               </div>
               <div>
-                <h4>Siti Aminah</h4>
-                <span>Pemilik Warnet</span>
+                <h4 class="font-bold">Siti Aminah</h4>
+                <span class="text-xs text-muted-foreground">Pemilik Warnet</span>
               </div>
             </div>
-            <p>"Manajemen user hotspot jadi jauh lebih mudah. Tidak perlu buka laptop lagi, cukup dari HP semua beres."</p>
-            <div class="stars">
+            <p class="text-sm text-muted-foreground">"Manajemen user hotspot jadi jauh lebih mudah. Tidak perlu buka laptop lagi, cukup dari HP semua beres."</p>
+            <div class="mt-4 flex text-yellow-500">
               <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
             </div>
           </div>
-          <div class="testimonial-card" data-aos="flip-left" data-aos-delay="300">
-            <div class="user-info">
-              <div class="user-avatar">
+          <div class="rounded-xl border border-white/20 dark:border-white/10 glass text-card-foreground shadow-sm p-6" data-aos="flip-left" data-aos-delay="300">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <i class="fas fa-user"></i>
               </div>
               <div>
-                <h4>Rudi Hartono</h4>
-                <span>Freelancer IT</span>
+                <h4 class="font-bold">Rudi Hartono</h4>
+                <span class="text-xs text-muted-foreground">Freelancer IT</span>
               </div>
             </div>
-            <p>"Fitur log-nya sangat detail. Sangat berguna untuk troubleshooting saat ada klien yang komplain masalah koneksi."</p>
-            <div class="stars">
+            <p class="text-sm text-muted-foreground">"Fitur log-nya sangat detail. Sangat berguna untuk troubleshooting saat ada klien yang komplain masalah koneksi."</p>
+            <div class="mt-4 flex text-yellow-500">
               <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
             </div>
           </div>
@@ -315,37 +518,42 @@
     </section>
 
     <!-- FAQ Section -->
-    <section id="faq" class="faq">
-      <div class="container">
-        <div class="section-header" data-aos="fade-up">
-          <h2>Pertanyaan Umum (FAQ)</h2>
-          <p>Jawaban atas pertanyaan yang sering diajukan.</p>
+    <!-- FAQ Section -->
+    <section id="faq" class="w-full py-12 md:py-24 lg:py-32 bg-background">
+      <div class="container px-4 md:px-6">
+        <div class="flex flex-col items-center justify-center space-y-4 text-center mb-12" data-aos="fade-up">
+          <div class="space-y-2">
+            <h2 class="text-3xl font-bold tracking-tighter sm:text-5xl">Pertanyaan Umum (FAQ)</h2>
+            <p class="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              Jawaban atas pertanyaan yang sering diajukan.
+            </p>
+          </div>
         </div>
-        <div class="faq-container">
-          <div class="faq-item" data-aos="fade-up" data-aos-delay="100">
-            <div class="faq-question">
+        <div class="mx-auto max-w-3xl space-y-4">
+          <div class="faq-item rounded-lg border border-white/20 dark:border-white/10 glass text-card-foreground shadow-sm" data-aos="fade-up" data-aos-delay="100">
+            <div class="faq-question flex w-full items-center justify-between p-4 font-medium cursor-pointer hover:bg-muted/50 transition-colors">
               <h3>Apakah aplikasi ini gratis?</h3>
-              <i class="fas fa-chevron-down"></i>
+              <i class="fas fa-chevron-down transition-transform duration-200"></i>
             </div>
-            <div class="faq-answer">
+            <div class="faq-answer hidden p-4 pt-0 text-sm text-muted-foreground">
               <p>Ya, aplikasi Mikrotik Monitor dapat diunduh dan digunakan secara gratis dengan fitur dasar yang lengkap.</p>
             </div>
           </div>
-          <div class="faq-item" data-aos="fade-up" data-aos-delay="200">
-            <div class="faq-question">
+          <div class="faq-item rounded-lg border border-white/20 dark:border-white/10 glass text-card-foreground shadow-sm" data-aos="fade-up" data-aos-delay="200">
+            <div class="faq-question flex w-full items-center justify-between p-4 font-medium cursor-pointer hover:bg-muted/50 transition-colors">
               <h3>Router Mikrotik apa saja yang didukung?</h3>
-              <i class="fas fa-chevron-down"></i>
+              <i class="fas fa-chevron-down transition-transform duration-200"></i>
             </div>
-            <div class="faq-answer">
+            <div class="faq-answer hidden p-4 pt-0 text-sm text-muted-foreground">
               <p>Aplikasi ini mendukung hampir semua jenis router Mikrotik yang menjalankan RouterOS v6 maupun v7 dengan API service yang diaktifkan.</p>
             </div>
           </div>
-          <div class="faq-item" data-aos="fade-up" data-aos-delay="300">
-            <div class="faq-question">
+          <div class="faq-item rounded-lg border border-white/20 dark:border-white/10 glass text-card-foreground shadow-sm" data-aos="fade-up" data-aos-delay="300">
+            <div class="faq-question flex w-full items-center justify-between p-4 font-medium cursor-pointer hover:bg-muted/50 transition-colors">
               <h3>Bagaimana cara mengaktifkan API di Mikrotik?</h3>
-              <i class="fas fa-chevron-down"></i>
+              <i class="fas fa-chevron-down transition-transform duration-200"></i>
             </div>
-            <div class="faq-answer">
+            <div class="faq-answer hidden p-4 pt-0 text-sm text-muted-foreground">
               <p>Anda bisa mengaktifkannya melalui Winbox di menu IP > Services, lalu aktifkan service 'api' (port default 8728).</p>
             </div>
           </div>
@@ -354,46 +562,42 @@
     </section>
 
     <!-- Call to Action / Download -->
-    <section id="download" class="cta">
-      <div class="container">
-        <h2>Siap Mengoptimalkan Jaringan Anda?</h2>
-        <p>
-          Dapatkan aplikasi Mikrotik Monitor sekarang dan rasakan kemudahannya.
-        </p>
-        <a href="/api/download.php" class="btn-light"
-          ><i class="fas fa-download"></i> Download Versi Terbaru</a
-        >
+    <section id="download" class="w-full py-12 md:py-24 lg:py-32 bg-primary text-primary-foreground">
+      <div class="container px-4 md:px-6">
+        <div class="flex flex-col items-center justify-center space-y-4 text-center">
+          <div class="space-y-2">
+            <h2 class="text-3xl font-bold tracking-tighter sm:text-5xl">Siap Mengoptimalkan Jaringan Anda?</h2>
+            <p class="max-w-[600px] text-primary-foreground/80 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              Dapatkan aplikasi Mikrotik Monitor sekarang dan rasakan kemudahannya.
+            </p>
+          </div>
+          <a href="/api/download.php" class="inline-flex h-10 items-center justify-center rounded-md bg-background px-8 text-sm font-medium text-foreground shadow transition-colors hover:bg-background/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+            <i class="fas fa-download mr-2"></i> Download Versi Terbaru
+          </a>
+        </div>
       </div>
     </section>
 
     <!-- Footer -->
-    <footer>
-      <div class="container">
-        <div class="footer-content">
-          <div class="footer-logo">
-            <h3>Mikrotik Monitor</h3>
-            <p>Aplikasi monitoring jaringan terpercaya.</p>
-          </div>
-          <div class="footer-links">
-            <h4>Tautan</h4>
-            <ul>
-              <li><a href="index.html">Beranda</a></li>
-              <li><a href="features.html">Fitur</a></li>
-              <li><a href="privacy.html">Kebijakan Privasi</a></li>
-            </ul>
-          </div>
-          <div class="footer-social">
-            <h4>Ikuti Kami</h4>
-            <div class="social-icons">
-              <a href="#"><i class="fab fa-facebook"></i></a>
-              <a href="#"><i class="fab fa-twitter"></i></a>
-              <a href="#"><i class="fab fa-github"></i></a>
-            </div>
-          </div>
+    <footer class="w-full py-6 bg-background border-t border-border">
+      <div class="container flex flex-col md:flex-row items-center justify-between gap-4 px-4 md:px-6">
+        <div class="flex flex-col items-center md:items-start gap-1">
+          <h3 class="text-lg font-bold">Mikrotik Monitor</h3>
+          <p class="text-sm text-muted-foreground">Aplikasi monitoring jaringan terpercaya.</p>
         </div>
-        <div class="footer-bottom">
-          <p>&copy; 2025 Mikrotik Monitor. All rights reserved.</p>
+        <div class="flex gap-6 text-sm font-medium text-muted-foreground">
+          <a href="index.html" class="hover:text-foreground transition-colors">Beranda</a>
+          <a href="features.html" class="hover:text-foreground transition-colors">Fitur</a>
+          <a href="privacy.html" class="hover:text-foreground transition-colors">Kebijakan Privasi</a>
         </div>
+        <div class="flex gap-4">
+          <a href="#" aria-label="Facebook" class="text-muted-foreground hover:text-foreground transition-colors"><i class="fab fa-facebook text-lg"></i></a>
+          <a href="#" aria-label="Twitter" class="text-muted-foreground hover:text-foreground transition-colors"><i class="fab fa-twitter text-lg"></i></a>
+          <a href="#" aria-label="GitHub" class="text-muted-foreground hover:text-foreground transition-colors"><i class="fab fa-github text-lg"></i></a>
+        </div>
+      </div>
+      <div class="container mt-4 text-center text-xs text-muted-foreground">
+        <p>&copy; 2025 Mikrotik Monitor. All rights reserved.</p>
       </div>
     </footer>
 

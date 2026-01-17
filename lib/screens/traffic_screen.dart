@@ -26,6 +26,22 @@ class _TrafficScreenState extends State<TrafficScreen> {
   double _timeCounter = 0;
   static const int _maxPoints = 20;
 
+  bool _processedArgs = false;
+  String? _initialInterface;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_processedArgs) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null && args['initialInterface'] != null) {
+        _initialInterface = args['initialInterface'] as String;
+      }
+      _processedArgs = true;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -211,8 +227,30 @@ class _TrafficScreenState extends State<TrafficScreen> {
       setState(() {
         _interfaces = interfaces;
         if (interfaces.isNotEmpty) {
-          _selectedInterfaceId = interfaces.first['.id'];
-          _selectedInterface = interfaces.first;
+          Map<String, dynamic>? targetInterface;
+
+          // Try to find interface matching the initial argument
+          if (_initialInterface != null) {
+            try {
+              targetInterface = interfaces.firstWhere(
+                (i) =>
+                    (i['name'] ?? '')
+                        .toString()
+                        .toLowerCase()
+                        .contains(_initialInterface!.toLowerCase()) ||
+                    (i['name'] ?? '').toString().toLowerCase() ==
+                        ('<pppoe-${_initialInterface!.toLowerCase()}>'),
+                orElse: () => interfaces.first,
+              );
+            } catch (_) {
+              targetInterface = interfaces.first;
+            }
+          } else {
+            targetInterface = interfaces.first;
+          }
+
+          _selectedInterfaceId = targetInterface!['.id'];
+          _selectedInterface = targetInterface;
           _startPolling();
         }
       });

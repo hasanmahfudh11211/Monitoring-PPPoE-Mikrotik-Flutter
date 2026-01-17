@@ -35,6 +35,25 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
     'ODP (Z-A)',
   ];
 
+  bool _processedArgs = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_processedArgs) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null && args['initialSearch'] != null) {
+        final search = args['initialSearch'] as String;
+        setState(() {
+          _searchQuery = search;
+          _searchController.text = search;
+        });
+      }
+      _processedArgs = true;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -375,254 +394,278 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(24)),
             ),
-            child: ListView(
-              controller: controller,
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            child: Column(
               children: [
                 Center(
                   child: Container(
                     width: 40,
                     height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
+                    margin: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
                       color: Colors.grey[300],
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 32,
-                      backgroundColor:
-                          isDark ? Colors.blue.shade900 : Colors.blue.shade50,
-                      child: Icon(Icons.person,
-                          color: isDark
-                              ? Colors.blue.shade300
-                              : Colors.blue.shade700,
-                          size: 38),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user['username'] ?? '-',
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87),
-                          ),
-                          Text(
-                            user['profile'] ?? '-',
-                            style: TextStyle(
-                                color: isDark
-                                    ? Colors.grey[400]
-                                    : Colors.grey[600],
-                                fontSize: 15),
-                          ),
-                        ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 32,
+                        backgroundColor:
+                            isDark ? Colors.blue.shade900 : Colors.blue.shade50,
+                        child: Icon(Icons.person,
+                            color: isDark
+                                ? Colors.blue.shade300
+                                : Colors.blue.shade700,
+                            size: 38),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user['username'] ?? '-',
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      isDark ? Colors.white : Colors.black87),
+                            ),
+                            Text(
+                              user['profile'] ?? '-',
+                              style: TextStyle(
+                                  color: isDark
+                                      ? Colors.grey[400]
+                                      : Colors.grey[600],
+                                  fontSize: 15),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                if (user['foto'] != null && user['foto'].toString().isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Builder(
-                      builder: (context) {
-                        String fotoUrl = user['foto'];
-                        if (!fotoUrl.startsWith('http')) {
-                          fotoUrl = '${ApiService.baseUrl}/' + fotoUrl;
-                        }
-                        return GestureDetector(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              barrierDismissible: true,
-                              builder: (context) => Dialog(
-                                backgroundColor: Colors.transparent,
-                                insetPadding: EdgeInsets.all(10),
-                                child: Stack(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () => Navigator.of(context).pop(),
-                                      child: Container(
-                                        color: Colors.black.withOpacity(0.8),
-                                        child: Center(
-                                          child: InteractiveViewer(
-                                            child: Image.network(
-                                              fotoUrl,
-                                              fit: BoxFit.contain,
-                                              errorBuilder: (context, error,
-                                                      stackTrace) =>
-                                                  const Icon(Icons.broken_image,
-                                                      color: Colors.white,
-                                                      size: 80),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView(
+                    controller: controller,
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    children: [
+                      if (user['foto'] != null &&
+                          user['foto'].toString().isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          child: Builder(
+                            builder: (context) {
+                              String fotoUrl = user['foto'];
+                              if (!fotoUrl.startsWith('http')) {
+                                fotoUrl = '${ApiService.baseUrl}/' + fotoUrl;
+                              }
+                              return GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: true,
+                                    builder: (context) => Dialog(
+                                      backgroundColor: Colors.transparent,
+                                      insetPadding: EdgeInsets.all(10),
+                                      child: Stack(
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () =>
+                                                Navigator.of(context).pop(),
+                                            child: Container(
+                                              color:
+                                                  Colors.black.withOpacity(0.8),
+                                              child: Center(
+                                                child: InteractiveViewer(
+                                                  child: Image.network(
+                                                    fotoUrl,
+                                                    fit: BoxFit.contain,
+                                                    errorBuilder: (context,
+                                                            error,
+                                                            stackTrace) =>
+                                                        const Icon(
+                                                            Icons.broken_image,
+                                                            color: Colors.white,
+                                                            size: 80),
+                                                  ),
+                                                ),
+                                              ),
                                             ),
                                           ),
+                                          Positioned(
+                                            top: 10,
+                                            right: 10,
+                                            child: IconButton(
+                                              icon: const Icon(Icons.close,
+                                                  color: Colors.white,
+                                                  size: 30),
+                                              onPressed: () =>
+                                                  Navigator.of(context).pop(),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.network(
+                                    fotoUrl,
+                                    height: 180,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        height: 180,
+                                        color: Colors.grey[200],
+                                        child: const Center(
+                                          child: Icon(Icons.broken_image,
+                                              size: 48, color: Colors.grey),
                                         ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      const SizedBox(height: 24),
+                      Container(
+                        decoration: BoxDecoration(
+                          color:
+                              isDark ? const Color(0xFF2D2D2D) : Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 18, horizontal: 16),
+                        child: Column(
+                          children: [
+                            _infoRow(Icons.person_outline, 'Username',
+                                user['username'] ?? '-'),
+                            _buildDivider(),
+                            _infoRow(Icons.lock_outline, 'Password',
+                                user['password'] ?? '-',
+                                isPassword: true),
+                            _buildDivider(),
+                            _infoRow(Icons.category, 'Profile',
+                                user['profile'] ?? '-'),
+                            if (user['odp_name'] != null &&
+                                user['odp_name'].isNotEmpty) ...[
+                              _buildDivider(),
+                              _infoRow(
+                                  Icons.call_split, 'ODP', user['odp_name']),
+                            ],
+                            if (user['wa']?.isNotEmpty ?? false) ...[
+                              _buildDivider(),
+                              _infoRow(null, 'WA', user['wa'] ?? '-',
+                                  isWA: true),
+                            ],
+                            if (user['maps']?.isNotEmpty ?? false) ...[
+                              _buildDivider(),
+                              _infoRow(null, 'Maps', user['maps'] ?? '-',
+                                  isMaps: true),
+                            ],
+                            if (user['tanggal_dibuat']?.isNotEmpty ??
+                                false) ...[
+                              _buildDivider(),
+                              _infoRow(
+                                Icons.calendar_today,
+                                'Tanggal dibuat',
+                                user['tanggal_dibuat'] != null
+                                    ? (() {
+                                        try {
+                                          return DateFormat(
+                                                  'dd MMM yyyy, HH:mm', 'id_ID')
+                                              .format(DateTime.tryParse(
+                                                      user['tanggal_dibuat']) ??
+                                                  DateTime.now());
+                                        } catch (_) {
+                                          return user['tanggal_dibuat'];
+                                        }
+                                      })()
+                                    : '-',
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Align(
+                        alignment: Alignment.center,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 320),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          EditDataTambahanScreen(
+                                        username: user['username'],
+                                        currentData: {
+                                          'wa': user['wa'] ?? '',
+                                          'maps': user['maps'] ?? '',
+                                          'foto': user['foto'] ?? '',
+                                          'odp_id': user['odp_id'],
+                                        },
                                       ),
                                     ),
-                                    Positioned(
-                                      top: 10,
-                                      right: 10,
-                                      child: IconButton(
-                                        icon: const Icon(Icons.close,
-                                            color: Colors.white, size: 30),
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(),
-                                      ),
-                                    ),
-                                  ],
+                                  ).then((value) {
+                                    if (value == true) _loadUsersFromApi();
+                                  });
+                                },
+                                icon: const Icon(Icons.edit_note),
+                                label: const Text('Edit Data Tambahan'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isDark
+                                      ? Colors.blue.shade700
+                                      : Colors.blue.shade800,
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                 ),
                               ),
-                            );
-                          },
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              fotoUrl,
-                              height: 180,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  height: 180,
-                                  color: Colors.grey[200],
-                                  child: const Center(
-                                    child: Icon(Icons.broken_image,
-                                        size: 48, color: Colors.grey),
+                              const SizedBox(height: 16),
+                              ElevatedButton.icon(
+                                onPressed: () => _deleteUser(user),
+                                icon: const Icon(Icons.delete),
+                                label: const Text('Hapus'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                );
-                              },
-                            ),
+                                ),
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                const SizedBox(height: 24),
-                Container(
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF2D2D2D) : Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        ),
                       ),
                     ],
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-                  child: Column(
-                    children: [
-                      _infoRow(Icons.person_outline, 'Username',
-                          user['username'] ?? '-'),
-                      _buildDivider(),
-                      _infoRow(Icons.lock_outline, 'Password',
-                          user['password'] ?? '-',
-                          isPassword: true),
-                      _buildDivider(),
-                      _infoRow(
-                          Icons.category, 'Profile', user['profile'] ?? '-'),
-                      if (user['odp_name'] != null &&
-                          user['odp_name'].isNotEmpty) ...[
-                        _buildDivider(),
-                        _infoRow(Icons.call_split, 'ODP', user['odp_name']),
-                      ],
-                      if (user['wa']?.isNotEmpty ?? false) ...[
-                        _buildDivider(),
-                        _infoRow(null, 'WA', user['wa'] ?? '-', isWA: true),
-                      ],
-                      if (user['maps']?.isNotEmpty ?? false) ...[
-                        _buildDivider(),
-                        _infoRow(null, 'Maps', user['maps'] ?? '-',
-                            isMaps: true),
-                      ],
-                      if (user['tanggal_dibuat']?.isNotEmpty ?? false) ...[
-                        _buildDivider(),
-                        _infoRow(
-                          Icons.calendar_today,
-                          'Tanggal dibuat',
-                          user['tanggal_dibuat'] != null
-                              ? (() {
-                                  try {
-                                    return DateFormat(
-                                            'dd MMM yyyy, HH:mm', 'id_ID')
-                                        .format(DateTime.tryParse(
-                                                user['tanggal_dibuat']) ??
-                                            DateTime.now());
-                                  } catch (_) {
-                                    return user['tanggal_dibuat'];
-                                  }
-                                })()
-                              : '-',
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Align(
-                  alignment: Alignment.center,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 320),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EditDataTambahanScreen(
-                                  username: user['username'],
-                                  currentData: {
-                                    'wa': user['wa'] ?? '',
-                                    'maps': user['maps'] ?? '',
-                                    'foto': user['foto'] ?? '',
-                                    'odp_id': user['odp_id'],
-                                  },
-                                ),
-                              ),
-                            ).then((value) {
-                              if (value == true) _loadUsersFromApi();
-                            });
-                          },
-                          icon: const Icon(Icons.edit_note),
-                          label: const Text('Edit Data Tambahan'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: isDark
-                                ? Colors.blue.shade700
-                                : Colors.blue.shade800,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: () => _deleteUser(user),
-                          icon: const Icon(Icons.delete),
-                          label: const Text('Hapus'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ],
