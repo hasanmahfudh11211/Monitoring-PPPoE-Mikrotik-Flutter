@@ -14,8 +14,8 @@ Dokumen ini berisi prompt untuk men-generate diagram UML secara **terpisah untuk
 > **Aktor:** Administrator.
 > **Use Case:**
 >
-> - Login (Input IP, User, Pass).
-> - Simpan Riwayat Login (SharedPrefs).
+> - Login (Input IP/Domain, User, Pass).
+> - Simpan Riwayat Login (SharedPrefs - Support Domain).
 > - Logout (Hapus Sesi).
 > - Validasi Koneksi (Include ke Login).
 > - Auto-Login (Cek Sesi Tersimpan).
@@ -49,6 +49,7 @@ Dokumen ini berisi prompt untuk men-generate diagram UML secara **terpisah untuk
 > - Lihat User Aktif (Active Connections).
 > - Putus Koneksi User (Disconnect/Kick).
 > - Filter Status (Online/Offline).
+> - Navigasi Cepat (Cari di Database, Cek Trafik User).
 
 ### 4. Use Case: Billing & Logs
 
@@ -73,7 +74,7 @@ Dokumen ini berisi prompt untuk men-generate diagram UML secara **terpisah untuk
 **Prompt:**
 
 > Buatkan Activity Diagram untuk **"Proses Login"**.
-> **Alur:** Start -> Input IP/User/Pass -> Klik Connect -> Validasi Input Kosong? -> (Jika Ya: Tampil Error) -> (Jika Tidak: Cek Koneksi Socket) -> Koneksi Berhasil? -> (Jika Tidak: Tampil Error Timeout) -> (Jika Ya: Kirim Login API) -> Login Sukses? -> (Jika Tidak: Tampil Error Auth) -> (Jika Ya: Simpan Sesi di SharedPrefs -> Start LiveMonitorService -> Masuk Dashboard) -> End.
+> **Alur:** Start -> Input IP/Domain/User/Pass -> Klik Connect -> Validasi Input Kosong? -> (Jika Ya: Tampil Error) -> (Jika Tidak: Cek Koneksi Socket) -> Koneksi Berhasil? -> (Jika Tidak: Tampil Error Timeout) -> (Jika Ya: Kirim Login API) -> Login Sukses? -> (Jika Tidak: Tampil Error Auth) -> (Jika Ya: Simpan Sesi (IP/Domain) di SharedPrefs -> Start LiveMonitorService -> Masuk Dashboard) -> End.
 
 ### 2. Activity: Proses Live Monitor (Background Service)
 
@@ -102,6 +103,20 @@ Dokumen ini berisi prompt untuk men-generate diagram UML secara **terpisah untuk
 
 > Buatkan Activity Diagram untuk **"Proses Disconnect User"**.
 > **Alur:** Start -> Buka Tab Active -> Pilih User -> Klik Tombol Disconnect (X) -> Kirim Request API (/ppp/active/remove) -> User Terputus di Router -> Refresh List Active -> End.
+
+### 6. Activity: Proses Cek Trafik User (Cross-Navigation)
+
+**Prompt:**
+
+> Buatkan Activity Diagram untuk **"Proses Cek Trafik User"**.
+> **Alur:** Start -> Buka Detail User (Secret Active) -> Klik Tombol "Cek Trafik" -> Navigasi ke Traffic Screen -> Kirim Parameter Nama User -> Traffic Screen Load -> Auto-Select Interface sesuai Nama User -> Tampilkan Grafik Realtime -> End.
+
+### 7. Activity: Proses Cari User Database (Cross-Navigation)
+
+**Prompt:**
+
+> Buatkan Activity Diagram untuk **"Proses Cari User Database"**.
+> **Alur:** Start -> Buka Detail User (Secret Active) -> Klik Tombol "Cari di Database" -> Navigasi ke All Users Screen -> Kirim Parameter Nama User -> All Users Screen Load -> Auto-Fill Search Bar -> Filter List User -> Tampilkan Hasil Pencarian -> End.
 
 ---
 

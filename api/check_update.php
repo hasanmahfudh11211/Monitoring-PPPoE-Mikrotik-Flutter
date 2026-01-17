@@ -35,6 +35,16 @@ const APK_SIZE_BYTES = 0; // Will be calculated if APK exists
 // Optional: Add release notes
 const RELEASE_NOTES = [
     [
+        'version' => '1.0.5+6',
+        'build' => 6,
+        'date' => '2026-01-18',
+        'notes' => [
+            'Sticky Header pada detail user',
+            'Navigasi Cepat: Cari di Database & Cek Trafik',
+            'Fix: Penyimpanan login domain'
+        ]
+    ],
+    [
         'version' => '1.0.4+5',
         'build' => 5,
         'date' => '2025-12-19',

@@ -4,8 +4,8 @@
  * Central place to manage app version and download URL
  */
 
-const LATEST_VERSION = '1.0.4+5';
-const LATEST_BUILD_NUMBER = 5;
+const LATEST_VERSION = '1.0.5+6';
+const LATEST_BUILD_NUMBER = 6;
 
 // The direct URL to the APK file
 // Change this when you upload a new APK
