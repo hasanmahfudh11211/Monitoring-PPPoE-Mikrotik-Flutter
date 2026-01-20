@@ -33,6 +33,9 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
   final _formKey = GlobalKey<FormState>();
   final _waController = TextEditingController();
   final _mapsController = TextEditingController();
+  final _alamatController = TextEditingController();
+  final _redamanController = TextEditingController();
+  final _tanggalTagihanController = TextEditingController();
   DateTime? _tanggalDibuat;
   bool _isLoading = false;
   String? _error;
@@ -43,6 +46,9 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
   void dispose() {
     _waController.dispose();
     _mapsController.dispose();
+    _alamatController.dispose();
+    _redamanController.dispose();
+    _tanggalTagihanController.dispose();
     super.dispose();
   }
 
@@ -156,6 +162,9 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
         profile: widget.profile,
         wa: _waController.text.trim(),
         maps: _mapsController.text.trim(),
+        alamat: _alamatController.text.trim(),
+        redaman: _redamanController.text.trim(),
+        tanggalTagihan: _tanggalTagihanController.text.trim(),
         foto: base64Image,
         tanggalDibuat: (_tanggalDibuat ?? DateTime.now()).toIso8601String(),
         adminUsername: adminUsername,
@@ -542,6 +551,86 @@ class _TambahDataScreenState extends State<TambahDataScreen> {
                         ),
                         contentPadding:
                             const EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Alamat Field
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: TextFormField(
+                      controller: _alamatController,
+                      maxLines: 2,
+                      decoration: const InputDecoration(
+                        labelText: 'Alamat Lengkap',
+                        border: InputBorder.none,
+                        prefixIcon: Icon(Icons.home),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Redaman Field
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: TextFormField(
+                      controller: _redamanController,
+                      decoration: const InputDecoration(
+                        labelText: 'Redaman (dBm)',
+                        border: InputBorder.none,
+                        prefixIcon: Icon(Icons.signal_cellular_alt),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Tanggal Tagihan Field
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: TextFormField(
+                      controller: _tanggalTagihanController,
+                      readOnly: true,
+                      onTap: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                        );
+                        if (pickedDate != null) {
+                          String formattedDate =
+                              "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                          setState(() {
+                            _tanggalTagihanController.text = formattedDate;
+                          });
+                        }
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Tanggal Jatuh Tempo',
+                        border: InputBorder.none,
+                        prefixIcon: Icon(Icons.calendar_today),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
                       ),
                     ),
                   ),

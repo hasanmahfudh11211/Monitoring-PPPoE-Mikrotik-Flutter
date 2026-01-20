@@ -27,6 +27,11 @@ try {
                 u.wa,
                 u.foto,
                 u.maps,
+                u.lat,
+                u.lng,
+                u.alamat,
+                u.redaman,
+                u.tanggal_tagihan,
                 DATE_FORMAT(u.tanggal_dibuat, '%Y-%m-%d %H:%i:%s') as tanggal_dibuat,
                 u.odp_id,
                 o.name as odp_name

@@ -32,6 +32,9 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
   final _formKey = GlobalKey<FormState>();
   final _waController = TextEditingController();
   final _mapsController = TextEditingController();
+  final _alamatController = TextEditingController();
+  final _redamanController = TextEditingController();
+  final _tanggalTagihanController = TextEditingController();
   XFile? _pickedImage;
   bool _isLoading = false;
   String? _error;
@@ -49,7 +52,12 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
     super.initState();
     // Inisialisasi data yang sudah ada
     _waController.text = widget.currentData['wa'] ?? '';
+    _waController.text = widget.currentData['wa'] ?? '';
     _mapsController.text = widget.currentData['maps'] ?? '';
+    _alamatController.text = widget.currentData['alamat'] ?? '';
+    _redamanController.text = widget.currentData['redaman'] ?? '';
+    _tanggalTagihanController.text =
+        widget.currentData['tanggal_tagihan'] ?? '';
     _currentImageUrl = widget.currentData['foto'];
 
     // Set ODP yang sudah terpilih jika ada
@@ -70,6 +78,9 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
   void dispose() {
     _waController.dispose();
     _mapsController.dispose();
+    _alamatController.dispose();
+    _redamanController.dispose();
+    _tanggalTagihanController.dispose();
     super.dispose();
   }
 
@@ -303,6 +314,9 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
         username: widget.username,
         wa: _waController.text.trim(),
         maps: _mapsController.text.trim(),
+        alamat: _alamatController.text.trim(),
+        redaman: _redamanController.text.trim(),
+        tanggalTagihan: _tanggalTagihanController.text.trim(),
         foto: base64Image,
         odpId: _selectedOdpId,
         adminUsername:
@@ -472,6 +486,175 @@ class _EditDataTambahanScreenState extends State<EditDataTambahanScreen> {
                               ),
                               onPressed: _openMaps,
                               tooltip: 'Buka Google Maps',
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color:
+                                    isDark ? Colors.blue.shade300 : Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Alamat Field
+                        TextFormField(
+                          controller: _alamatController,
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          maxLines: 2,
+                          decoration: InputDecoration(
+                            labelText: 'Alamat Lengkap',
+                            labelStyle: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.home,
+                              color:
+                                  isDark ? Colors.blue.shade300 : Colors.blue,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color:
+                                    isDark ? Colors.blue.shade300 : Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Redaman Field
+                        TextFormField(
+                          controller: _redamanController,
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          decoration: InputDecoration(
+                            labelText: 'Redaman (dBm)',
+                            labelStyle: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.signal_cellular_alt,
+                              color:
+                                  isDark ? Colors.blue.shade300 : Colors.blue,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: isDark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color:
+                                    isDark ? Colors.blue.shade300 : Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Tanggal Tagihan Field
+                        TextFormField(
+                          controller: _tanggalTagihanController,
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          readOnly: true,
+                          onTap: () async {
+                            DateTime? pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime(2000),
+                              lastDate: DateTime(2101),
+                              builder: (context, child) {
+                                return Theme(
+                                  data: isDark
+                                      ? ThemeData.dark().copyWith(
+                                          colorScheme: ColorScheme.dark(
+                                            primary: Colors.blue.shade700,
+                                            onPrimary: Colors.white,
+                                            surface: const Color(0xFF1E1E1E),
+                                            onSurface: Colors.white,
+                                          ),
+                                          dialogBackgroundColor:
+                                              const Color(0xFF1E1E1E),
+                                        )
+                                      : ThemeData.light().copyWith(
+                                          colorScheme: ColorScheme.light(
+                                            primary: Colors.blue.shade700,
+                                            onPrimary: Colors.white,
+                                          ),
+                                        ),
+                                  child: child!,
+                                );
+                              },
+                            );
+                            if (pickedDate != null) {
+                              // Format date to YYYY-MM-DD
+                              String formattedDate =
+                                  "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                              setState(() {
+                                _tanggalTagihanController.text = formattedDate;
+                              });
+                            }
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Tanggal Jatuh Tempo',
+                            labelStyle: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.calendar_today,
+                              color:
+                                  isDark ? Colors.blue.shade300 : Colors.blue,
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),

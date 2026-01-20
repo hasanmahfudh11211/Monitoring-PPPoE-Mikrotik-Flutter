@@ -113,6 +113,16 @@ class _BillingScreenState extends State<BillingScreen> {
     });
   }
 
+  String _formatDate(String? dateStr, {String format = 'd MMMM yyyy'}) {
+    if (dateStr == null || dateStr.isEmpty) return '-';
+    try {
+      final date = DateTime.tryParse(dateStr);
+      return date != null ? DateFormat(format, 'id_ID').format(date) : dateStr;
+    } catch (_) {
+      return dateStr;
+    }
+  }
+
   void _showBillingDetailSheet(Map<String, dynamic> user) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
@@ -587,6 +597,32 @@ class _BillingScreenState extends State<BillingScreen> {
                                       : Colors.grey[600],
                                   fontSize: 13),
                             ),
+                          if (user['tanggal_tagihan'] != null &&
+                              user['tanggal_tagihan']
+                                  .toString()
+                                  .isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(Icons.calendar_today,
+                                    size: 14,
+                                    color: isDark
+                                        ? Colors.orange.shade300
+                                        : Colors.orange.shade800),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Jatuh Tempo: ${_formatDate(user['tanggal_tagihan'])}',
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.orange.shade300
+                                        : Colors.orange.shade800,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                           const SizedBox(height: 16),
                         ],
                       ),
@@ -1075,9 +1111,6 @@ class _BillingScreenState extends State<BillingScreen> {
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            print('=== KIRIM PESAN BUTTON CLICKED ===');
-                            print('User data: ${user.toString()}');
-                            print('Phone: ${user['phone']}');
                             _showSendMessageDialog(user);
                           },
                           icon: const Icon(Icons.message, color: Colors.white),
@@ -1115,8 +1148,6 @@ class _BillingScreenState extends State<BillingScreen> {
 
     // Check if user has phone number (using 'wa' field)
     final phoneNumber = user['wa']?.toString() ?? '';
-    print('=== SEND MESSAGE DIALOG ===');
-    print('Phone from wa field: $phoneNumber');
     if (phoneNumber.isEmpty) {
       if (mounted) {
         await showDialog(
@@ -2184,6 +2215,57 @@ Terimakasih''';
                                                         color: isDark
                                                             ? Colors.white70
                                                             : Colors.black54)),
+                                              if (user['tanggal_tagihan'] !=
+                                                      null &&
+                                                  user['tanggal_tagihan']
+                                                      .toString()
+                                                      .isNotEmpty)
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          top: 4),
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(Icons.calendar_today,
+                                                          size: 12,
+                                                          color: isDark
+                                                              ? Colors.orange
+                                                                  .shade300
+                                                              : Colors.orange
+                                                                  .shade800),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        'Jatuh Tempo: ${(() {
+                                                          try {
+                                                            final date = DateTime
+                                                                .tryParse(user[
+                                                                    'tanggal_tagihan']);
+                                                            return date != null
+                                                                ? DateFormat(
+                                                                        'd MMM',
+                                                                        'id_ID')
+                                                                    .format(
+                                                                        date)
+                                                                : user[
+                                                                    'tanggal_tagihan'];
+                                                          } catch (_) {
+                                                            return user[
+                                                                'tanggal_tagihan'];
+                                                          }
+                                                        })()}',
+                                                        style: TextStyle(
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: isDark
+                                                                ? Colors.orange
+                                                                    .shade300
+                                                                : Colors.orange
+                                                                    .shade800),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
                                               if (user['nominal'] != null)
                                                 Text(
                                                     'Tagihan: Rp ${currencyFormat.format(double.tryParse(user['nominal']) ?? 0)}',

@@ -118,9 +118,10 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
       final adminUsername =
           Provider.of<RouterSessionProvider>(context, listen: false).username;
 
+      Map<String, dynamic> responseData;
       if (widget.odpToEdit != null) {
         // Update
-        await ApiService.updateODP(
+        responseData = await ApiService.updateODP(
           routerId: routerId,
           id: int.parse(widget.odpToEdit!['id'].toString()),
           name: _nameController.text,
@@ -139,7 +140,7 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
         );
       } else {
         // Add
-        await ApiService.addODP(
+        responseData = await ApiService.addODP(
           routerId: routerId,
           name: _nameController.text,
           location: _locationController.text,
@@ -156,13 +157,6 @@ class _TambahODPScreenState extends State<TambahODPScreen> {
           adminUsername: adminUsername,
         );
       }
-
-      // Mock response for compatibility with existing logic
-      // ApiService throws exception on failure, so if we are here, it's success.
-      const responseData = {'success': true};
-
-      // Save response status: ${response.statusCode}
-      // Save response body: ${response.body}
 
       if (!mounted) return;
 

@@ -35,6 +35,17 @@ const APK_SIZE_BYTES = 0; // Will be calculated if APK exists
 // Optional: Add release notes
 const RELEASE_NOTES = [
     [
+        'version' => '1.0.6+7',
+        'build' => 7,
+        'date' => '2026-01-20',
+        'notes' => [
+            'Customer Map: Navigasi (Ambil Rute) ke lokasi pelanggan',
+            'Customer Map: Pencarian & Filter Paket',
+            'UI Upgrade: Tampilan Glassmorphism & Boxed Map',
+            'Fix: Stabilitas & Perbaikan Bug'
+        ]
+    ],
+    [
         'version' => '1.0.5+6',
         'build' => 6,
         'date' => '2026-01-18',

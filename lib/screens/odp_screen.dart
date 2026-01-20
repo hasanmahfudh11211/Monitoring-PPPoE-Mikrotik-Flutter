@@ -563,18 +563,15 @@ class _ODPScreenState extends State<ODPScreen> {
       final adminUsername =
           Provider.of<RouterSessionProvider>(context, listen: false).username;
 
-      await ApiService.deleteODP(
+      final result = await ApiService.deleteODP(
         routerId: routerId,
         id: int.parse(odp['id'].toString()),
         adminUsername: adminUsername,
       );
 
-      // Mock response for compatibility
-      const data = {'success': true};
-
       if (!mounted) return;
 
-      if (data['success'] == true) {
+      if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('ODP berhasil dihapus'),
@@ -583,7 +580,7 @@ class _ODPScreenState extends State<ODPScreen> {
         );
         _loadODPList();
       } else {
-        throw Exception(data['error'] ?? 'Gagal menghapus ODP');
+        throw Exception(result['error'] ?? 'Gagal menghapus ODP');
       }
     } catch (e) {
       if (mounted) {

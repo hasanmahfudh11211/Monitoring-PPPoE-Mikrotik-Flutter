@@ -579,6 +579,54 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
                               _infoRow(null, 'Maps', user['maps'] ?? '-',
                                   isMaps: true),
                             ],
+                            if (user['alamat'] != null &&
+                                user['alamat'].toString().isNotEmpty) ...[
+                              _buildDivider(),
+                              _infoRow(Icons.home_outlined, 'Alamat',
+                                  user['alamat']),
+                            ],
+                            if (user['redaman'] != null &&
+                                user['redaman'].toString().isNotEmpty) ...[
+                              _buildDivider(),
+                              _infoRow(Icons.signal_cellular_alt, 'Redaman',
+                                  '${user['redaman']} dBm'),
+                            ],
+                            if (user['tanggal_tagihan'] != null &&
+                                user['tanggal_tagihan']
+                                    .toString()
+                                    .isNotEmpty) ...[
+                              _buildDivider(),
+                              _infoRow(
+                                Icons.calendar_month_outlined,
+                                'Jatuh Tempo',
+                                (() {
+                                  try {
+                                    final date = DateTime.tryParse(
+                                        user['tanggal_tagihan']);
+                                    return date != null
+                                        ? DateFormat('d MMMM yyyy', 'id_ID')
+                                            .format(date)
+                                        : user['tanggal_tagihan'];
+                                  } catch (_) {
+                                    return user['tanggal_tagihan'];
+                                  }
+                                })(),
+                              ),
+                            ],
+                            if (user['lat'] != null &&
+                                user['lng'] != null &&
+                                user['lat'].toString().isNotEmpty &&
+                                user['lng'].toString().isNotEmpty) ...[
+                              _buildDivider(),
+                              _infoRow(
+                                Icons.location_on_outlined,
+                                'Koordinat',
+                                '${user['lat']}, ${user['lng']}',
+                                isCoordinates: true,
+                                lat: user['lat'],
+                                lng: user['lng'],
+                              ),
+                            ],
                             if (user['tanggal_dibuat']?.isNotEmpty ??
                                 false) ...[
                               _buildDivider(),
@@ -776,6 +824,9 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
       {bool isPassword = false,
       bool isWA = false,
       bool isMaps = false,
+      bool isCoordinates = false,
+      dynamic lat,
+      dynamic lng,
       bool lightBackground = false}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final useDark = lightBackground ? false : isDark;
@@ -784,6 +835,9 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
       leadingIcon =
           Image.asset('assets/WhatsApp.svg.png', width: 22, height: 22);
     } else if (isMaps) {
+      leadingIcon = Image.asset('assets/pngimg.com - google_maps_pin_PNG26.png',
+          width: 22, height: 22);
+    } else if (isCoordinates) {
       leadingIcon = Image.asset('assets/pngimg.com - google_maps_pin_PNG26.png',
           width: 22, height: 22);
     } else if (icon != null) {
@@ -836,7 +890,9 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
     }
 
     // Kembalikan popup salin & buka untuk WA dan Maps
-    if ((isWA && value.isNotEmpty) || (isMaps && value.isNotEmpty)) {
+    if ((isWA && value.isNotEmpty) ||
+        (isMaps && value.isNotEmpty) ||
+        (isCoordinates && value.isNotEmpty)) {
       valueWidget = InkWell(
         onTap: () async {
           if (isWA) {
@@ -880,6 +936,21 @@ class _AllUsersScreenState extends State<AllUsersScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Tidak dapat membuka link: $value')),
                   );
+                }
+              },
+            );
+          } else if (isCoordinates) {
+            final url =
+                'https://www.google.com/maps/search/?api=1&query=$lat,$lng';
+            _showCopyOpenDialog(
+              context: context,
+              title: 'Koordinat Lokasi',
+              value: value,
+              openLabel: 'Buka Maps',
+              onOpen: () async {
+                if (await canLaunchUrl(Uri.parse(url))) {
+                  await launchUrl(Uri.parse(url),
+                      mode: LaunchMode.externalApplication);
                 }
               },
             );

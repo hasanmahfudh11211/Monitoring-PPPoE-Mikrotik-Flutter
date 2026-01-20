@@ -504,6 +504,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               },
                             ),
                             ListTile(
+                              leading: const Icon(Icons.map),
+                              title: const Text('Customer Map'),
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                Future.delayed(
+                                    const Duration(milliseconds: 250), () {
+                                  Navigator.of(context, rootNavigator: true)
+                                      .pushNamed('/customer-map');
+                                });
+                              },
+                            ),
+                            ListTile(
                               leading: const Icon(Icons.receipt_long),
                               title: const Text('Billing'),
                               onTap: () {

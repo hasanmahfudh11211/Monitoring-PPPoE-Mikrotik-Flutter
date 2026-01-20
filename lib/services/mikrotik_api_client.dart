@@ -9,8 +9,11 @@ class MikrotikApiClient {
   bool _isLoggedIn = false;
   bool _enableLogging = false;
 
-  // Buffer untuk menampung data dari stream socket
-  final List<int> _buffer = [];
+  // Optimized Buffer Handling
+  // Menggunakan offset untuk menghindari O(N^2) saat menghapus data dari depan List
+  List<int> _buffer = [];
+  int _bufferOffset = 0;
+
   Completer<void>? _dataSignal;
   StreamSubscription? _subscription;
 
@@ -58,7 +61,8 @@ class MikrotikApiClient {
     _socket?.destroy();
     _socket = null;
     _isLoggedIn = false;
-    _buffer.clear();
+    _buffer = [];
+    _bufferOffset = 0;
     _log('Connection closed.');
   }
 
@@ -124,16 +128,10 @@ class MikrotikApiClient {
     if (_socket == null) throw Exception('Not connected');
 
     // --- Locking Mechanism ---
-    // Buat completer untuk request ini
     final myCompleter = Completer<void>();
-
-    // Masukkan diri sendiri ke antrian SEBELUM menunggu (untuk reservasi urutan)
     _requestQueue.add(myCompleter);
 
-    // Jika ada request lain sebelum saya, tunggu giliran
     if (_requestQueue.length > 1) {
-      // Tunggu request yang tepat berada di depan saya
-      // (Request sebelumnya adalah yang terakhir sebelum saya ditambahkan)
       final previousCompleter = _requestQueue[_requestQueue.length - 2];
       await previousCompleter.future;
     }
@@ -156,8 +154,9 @@ class MikrotikApiClient {
         String line = await _readWord();
         lineCount++;
 
-        // Yield execution every 100 lines to prevent ANR on large data
-        if (lineCount % 100 == 0) {
+        // Yield execution every 500 lines (increased from 100)
+        // Optimization: Don't yield too often, but enough to keep UI responsive
+        if (lineCount % 500 == 0) {
           await Future.delayed(Duration.zero);
         }
 
@@ -191,7 +190,6 @@ class MikrotikApiClient {
       return replies;
       // --- Critical Section End ---
     } finally {
-      // Selesai, lepaskan lock dan beritahu antrian berikutnya
       myCompleter.complete();
       _requestQueue.remove(myCompleter);
     }
@@ -265,25 +263,36 @@ class MikrotikApiClient {
     return 0;
   }
 
-  /// Membaca n bytes dari buffer
+  /// Membaca n bytes dari buffer dengan optimasi offset
   Future<List<int>> _readBytes(int n) async {
-    while (_buffer.length < n) {
+    while (_buffer.length - _bufferOffset < n) {
       if (_socket == null) throw Exception('Socket closed');
+
       // Buat completer baru jika belum ada atau sudah selesai
       if (_dataSignal == null || _dataSignal!.isCompleted) {
         _dataSignal = Completer<void>();
       }
+
       // Tunggu data masuk dengan timeout
       try {
-        await _dataSignal!.future.timeout(const Duration(seconds: 5));
+        await _dataSignal!.future
+            .timeout(const Duration(seconds: 10)); // Increased timeout
       } catch (e) {
         throw Exception('Timeout waiting for data from router');
       }
     }
 
-    // Ambil n bytes dari depan buffer
-    List<int> result = _buffer.sublist(0, n);
-    _buffer.removeRange(0, n);
+    // Ambil n bytes menggunakan offset (O(1) copy)
+    List<int> result = _buffer.sublist(_bufferOffset, _bufferOffset + n);
+    _bufferOffset += n;
+
+    // Compact buffer jika offset sudah terlalu jauh (misal > 2KB dan > 50% buffer)
+    // Ini mencegah memory leak tapi tetap efisien
+    if (_bufferOffset > 2048 && _bufferOffset > _buffer.length / 2) {
+      _buffer = _buffer.sublist(_bufferOffset);
+      _bufferOffset = 0;
+    }
+
     return result;
   }
 

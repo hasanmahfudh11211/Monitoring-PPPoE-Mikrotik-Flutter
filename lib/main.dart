@@ -19,6 +19,7 @@ import 'screens/genieacs_screen.dart';
 import 'screens/database_sync_screen.dart';
 import 'screens/system_logs_screen.dart';
 import 'screens/initial_config_screen.dart';
+import 'screens/customer_map_screen.dart';
 // import 'screens/changelog_screen.dart'; // Remove this import
 import 'services/mikrotik_service.dart';
 import 'providers/mikrotik_provider.dart';
@@ -279,6 +280,7 @@ class MyApp extends StatelessWidget {
                     child: SystemLogsScreen(),
                   ),
               '/initial-config': (context) => const InitialConfigScreen(),
+              '/customer-map': (context) => const CustomerMapScreen(),
               // '/changelog': (context) => const MikrotikScreenWrapper(
               //       child: ChangelogScreen(),
               //     ), // Remove this route
