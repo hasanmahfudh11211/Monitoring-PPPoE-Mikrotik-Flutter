@@ -6,8 +6,31 @@
 ![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
 [![Download APK](https://img.shields.io/badge/Download-APK-blue?style=for-the-badge&logo=android)](https://cmmnetwork.online/api/download.php)
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/K3K41SNVN2)
+## 🌐 Website & Download
+
+Dapatkan versi terbaru, tutorial, dan informasi lainnya di website resmi kami:
+
+# [🔗 CMMNETWORK.ONLINE](https://cmmnetwork.online)
+
+---
+
+## 💖 Dukungan & Donasi
+
+**Aplikasi ini gratis dan open source!** Kalau terbantu dengan aplikasi ini, boleh banget dukung pengembang lewat platform di bawah. Dukungan kalian sangat membantu untuk terus mengembangkan project ini! 🚀
+
+### 🎁 Cara Mendukung:
+
+<div align="center">
+
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/K3K41SNVN2)
+&nbsp;&nbsp;&nbsp;
 <a href="https://saweria.co/hasanmahfudh"><img src="assets/saweria.png" height="36" alt="Saweria"/></a>
+
+**Setiap dukungan sangat berarti! ☕✨**
+
+</div>
+
+---
 
 Aplikasi monitoring user PPPoE Mikrotik berbasis Flutter dan REST API. Memudahkan monitoring, manajemen, dan analisis user PPPoE secara real-time. Dibuat untuk tugas akhir/skripsi dan kebutuhan monitoring jaringan.
 
